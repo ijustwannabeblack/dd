@@ -81,6 +81,74 @@ function saveTrackers() {
     }
 }
 
+const PREMIUM_FILE = path.resolve(process.cwd(), 'premium_users.json');
+let premiumUsers = new Set();
+
+function loadPremiumUsers() {
+    try {
+        if (fs.existsSync(PREMIUM_FILE)) {
+            const raw = fs.readFileSync(PREMIUM_FILE, 'utf8');
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) {
+                premiumUsers = new Set(arr);
+            }
+        }
+    } catch (e) {
+        console.warn(`[Bot] Could not load premium_users.json: ${e.message}`);
+    }
+    if (process.env.PREMIUM_USER_IDS) {
+        process.env.PREMIUM_USER_IDS.split(',').forEach(id => {
+            const clean = id.trim();
+            if (clean) premiumUsers.add(clean);
+        });
+    }
+}
+
+function savePremiumUsers() {
+    try {
+        const arr = Array.from(premiumUsers);
+        fs.writeFileSync(PREMIUM_FILE, JSON.stringify(arr, null, 2), 'utf8');
+    } catch (e) {
+        console.warn(`[Bot] Could not save premium_users.json: ${e.message}`);
+    }
+}
+
+// Call on startup
+loadSeen();
+loadTrackers();
+loadPremiumUsers();
+
+function isPremiumUser(message) {
+    if (!message || !message.author) return false;
+    const authorId = message.author.id;
+    if (authorId === AUTHORIZED_DISCORD_USER_ID) return true;
+    if (premiumUsers.has(authorId)) return true;
+    if (message.member && message.member.roles && message.member.roles.cache) {
+        const hasRole = message.member.roles.cache.some(r => {
+            const name = r.name.toLowerCase();
+            return name === 'premium' || name === 'vip' || (process.env.PREMIUM_ROLE_ID && r.id === process.env.PREMIUM_ROLE_ID);
+        });
+        if (hasRole) return true;
+    }
+    return false;
+}
+
+function sendPremiumRequiredNotice(message, cmdName) {
+    const embed = new EmbedBuilder()
+        .setTitle('🔒 Premium Access Required')
+        .setDescription(
+            `The \`${cmdName}\` command is exclusively available to **Premium** users.\n\n` +
+            `💎 **How to unlock access:**\n` +
+            `• Hold the **Premium** or **VIP** Discord role, or\n` +
+            `• Have your user ID whitelisted by the bot owner.\n\n` +
+            `*Contact <@${AUTHORIZED_DISCORD_USER_ID}> to get Premium access.*`
+        )
+        .setColor(0xF59E0B)
+        .setFooter({ text: 'Larpifyy Premium Intelligence' });
+
+    return message.channel.send({ embeds: [embed] });
+}
+
 function copyCaToClipboard(mint) {
     if (!mint || process.platform !== 'win32') return;
     try {
@@ -661,8 +729,8 @@ client.on('messageCreate', async (message) => {
 
     // 1. .check <mint> command (InsightX Atlas Audit + Visualizer)
     if (content.startsWith('.check') || content.startsWith('/check')) {
-        if (message.author.id !== AUTHORIZED_DISCORD_USER_ID) {
-            return message.channel.send(`⚠️ Only authorized user <@${AUTHORIZED_DISCORD_USER_ID}> can run this command.`);
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.check');
         }
 
         const parts = content.split(/\s+/);
@@ -928,6 +996,9 @@ client.on('messageCreate', async (message) => {
 
     // 5. .kol or .trenches (GMGN KOL-bought tokens)
     if (content.startsWith('.kol') || content.startsWith('.trenches')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.kol');
+        }
         await message.channel.send('🔎 Scanning GMGN for new Solana tokens bought by **>= 2 renowned KOLs** (MC < $100k)...');
         try {
             const tokens = await getGmgnKolBoughtTokens(2, 100000);
@@ -961,6 +1032,9 @@ client.on('messageCreate', async (message) => {
 
     // 6. .trending (GMGN 5m trending tokens)
     if (content.startsWith('.trending')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.trending');
+        }
         await message.channel.send('🔥 Fetching top trending tokens on Solana (5-minute interval via GMGN)...');
         try {
             const tokens = await getGmgnTrendingTokens('5m');
@@ -995,6 +1069,9 @@ client.on('messageCreate', async (message) => {
 
     // 7. .news (6551 OpenNews Breaking Market News)
     if (content.startsWith('.news')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.news');
+        }
         await message.channel.send('📰 Fetching real-time Web3 breaking news & trading signals via 6551 OpenNews...');
         try {
             const items = await getHotCryptoNews('web3');
@@ -1025,6 +1102,9 @@ client.on('messageCreate', async (message) => {
 
     // 8. .twitter <handle> (6551 OpenTwitter Profile lookup)
     if (content.startsWith('.twitter')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.twitter');
+        }
         const parts = content.split(/\s+/);
         if (parts.length < 2) {
             return message.channel.send('⚠️ Please provide a Twitter/X username.\nUsage: `.twitter <handle>`');
@@ -1064,6 +1144,9 @@ client.on('messageCreate', async (message) => {
 
     // 9. .security <mint> (GMGN Token Security Check skill)
     if (content.startsWith('.security')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.security');
+        }
         const parts = content.split(/\s+/);
         if (parts.length < 2) {
             return message.channel.send('⚠️ Please provide a contract address.\nUsage: `.security <mint>`');
@@ -1109,6 +1192,9 @@ client.on('messageCreate', async (message) => {
 
     // 10. .holders <mint> (GMGN Top100 Holders Analysis skill)
     if (content.startsWith('.holders')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.holders');
+        }
         const parts = content.split(/\s+/);
         if (parts.length < 2) {
             return message.channel.send('⚠️ Please provide a contract address.\nUsage: `.holders <mint>`');
@@ -1153,6 +1239,9 @@ client.on('messageCreate', async (message) => {
 
     // 11. .wallet <address> (GMGN Wallet Holdings skill)
     if (content.startsWith('.wallet')) {
+        if (!isPremiumUser(message)) {
+            return sendPremiumRequiredNotice(message, '.wallet');
+        }
         const parts = content.split(/\s+/);
         if (parts.length < 2) {
             return message.channel.send('⚠️ Please provide a Solana wallet address.\nUsage: `.wallet <address>`');
@@ -1186,6 +1275,32 @@ client.on('messageCreate', async (message) => {
             await message.channel.send(`❌ Error fetching wallet holdings: \`${err.message}\``);
         }
         return;
+    }
+
+    // 12. Owner Admin Commands (.addpremium, .delpremium, .listpremium)
+    if (message.author.id === AUTHORIZED_DISCORD_USER_ID) {
+        if (content.startsWith('.addpremium')) {
+            const parts = content.split(/\s+/);
+            const target = parts[1] ? parts[1].replace(/[<@!>]/g, '').trim() : null;
+            if (!target) return message.channel.send('Usage: `.addpremium <@user or ID>`');
+            premiumUsers.add(target);
+            savePremiumUsers();
+            return message.channel.send(`✅ Added <@${target}> (\`${target}\`) to Premium whitelist!`);
+        }
+
+        if (content.startsWith('.delpremium')) {
+            const parts = content.split(/\s+/);
+            const target = parts[1] ? parts[1].replace(/[<@!>]/g, '').trim() : null;
+            if (!target) return message.channel.send('Usage: `.delpremium <@user or ID>`');
+            premiumUsers.delete(target);
+            savePremiumUsers();
+            return message.channel.send(`🗑️ Removed <@${target}> (\`${target}\`) from Premium whitelist.`);
+        }
+
+        if (content.startsWith('.listpremium')) {
+            const list = Array.from(premiumUsers).map(id => `• <@${id}> (\`${id}\`)`).join('\n') || 'None';
+            return message.channel.send(`👑 **Whitelisted Premium Users:**\n${list}`);
+        }
     }
 });
 

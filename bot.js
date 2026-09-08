@@ -23,7 +23,6 @@ import {
 } from './fetchers/index.js';
 import { evaluateCoin } from './filters.js';
 import { PumpPortalStream } from './streams/pumpportal.js';
-import { startWebServer } from './webServer.js';
 
 const AUTHORIZED_DISCORD_USER_ID = '1415022792214052915';
 const SEEN_FILE = path.resolve(process.cwd(), 'seen_mints.json');
@@ -693,11 +692,6 @@ client.once('clientReady', async () => {
         },
     });
     stream.runForever();
-
-    // Start Web Server Dashboard only if explicitly enabled (saves ~40MB RAM on bot-hosting containers)
-    if (process.env.ENABLE_WEB_SERVER === 'true') {
-        startWebServer(5000);
-    }
 });
 
 // Command & Message Router

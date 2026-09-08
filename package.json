@@ -7,14 +7,12 @@
   "scripts": {
     "start": "node index.js",
     "bot": "node bot.js",
-    "web": "node webServer.js",
     "test": "node --test"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.8",
     "discord.js": "^14.27.0",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
     "gmgn-cli": "^1.6.1",
     "ws": "^8.21.3"
   }

@@ -1,0 +1,48 @@
+# Node modules & logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Playwright & Browser Cache
+.cache/
+.local/
+
+# Generated Local Charts & Dumps
+chart/
+seen_mints.json
+active_trackers.json
+rugcheck_raw_sample.json
+
+# IDE & OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

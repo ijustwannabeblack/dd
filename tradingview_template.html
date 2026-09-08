@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Axiom Trade Terminal</title>
+  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background-color: #0b0e14;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      color: #94A3B8;
+      width: 1400px;
+      height: 750px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── 1. AXIOM TOP TERMINAL HEADER ───────────────────────── */
+    #axiom-top-bar {
+      height: 44px;
+      background: #0b0e14;
+      border-bottom: 1px solid #161b26;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      font-size: 12.5px;
+      z-index: 20;
+    }
+
+    .token-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .token-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: #1e2638;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 11px;
+      font-weight: 800;
+      color: #00c087;
+      border: 1px solid #2a354d;
+    }
+
+    .buy-badge {
+      background: #00c087;
+      color: #070a0f;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .token-name-title {
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 14px;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .time-badge {
+      color: #00c087;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .header-mc-large {
+      color: #FFFFFF;
+      font-size: 18px;
+      font-weight: 800;
+      margin-left: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    /* Mini Stats Metrics Row */
+    .mini-stats-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11.5px;
+      color: #64748B;
+      margin-left: 10px;
+    }
+    .stat-box { display: flex; flex-direction: column; line-height: 1.15; }
+    .stat-lbl { color: #64748B; font-size: 10px; }
+    .stat-val { color: #E2E8F0; font-weight: 600; font-size: 11.5px; }
+    .stat-val.green { color: #00c087; }
+
+    .top-right-call {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .call-entry-pill {
+      background: rgba(0, 192, 135, 0.12);
+      border: 1px solid rgba(0, 192, 135, 0.5);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #00c087;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .result-pill {
+      background: rgba(255, 140, 0, 0.12);
+      border: 1px solid rgba(255, 140, 0, 0.5);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #FF8C00;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── 2. AXIOM SUB-TOOLBAR ────────────────────────────────── */
+    #axiom-sub-bar {
+      height: 34px;
+      background: #0b0e14;
+      border-bottom: 1px solid #161b26;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 14px;
+      font-size: 12px;
+      color: #64748B;
+      z-index: 15;
+    }
+
+    .tf-pill {
+      background: #151a24;
+      color: #F1F5F9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sub-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #94A3B8;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .sub-btn svg { width: 14px; height: 14px; fill: #94A3B8; }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      background: #111622;
+      border-radius: 4px;
+      padding: 1px;
+      border: 1px solid #1c2436;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .toggle-btn {
+      padding: 2px 7px;
+      border-radius: 3px;
+      color: #64748B;
+    }
+    .toggle-btn.active {
+      background: #1e2638;
+      color: #38bdf8;
+    }
+
+    .sub-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #475569;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .sub-right svg { width: 14px; height: 14px; fill: #64748B; }
+
+    /* ── 3. WORKSPACE: LEFT TOOLS + CHART ────────────────────── */
+    #workspace {
+      display: flex;
+      flex: 1;
+      height: 672px;
+      position: relative;
+    }
+
+    /* Left Drawing Toolbar */
+    #left-tools {
+      width: 40px;
+      background: #0b0e14;
+      border-right: 1px solid #161b26;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 10px;
+      gap: 14px;
+      color: #64748B;
+      z-index: 10;
+    }
+    .tool-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .tool-icon svg { width: 15px; height: 15px; fill: #64748B; }
+    .tool-icon.active { background: #151a24; }
+    .tool-icon.active svg { fill: #38bdf8; }
+
+    /* Chart Container Area */
+    #chart-wrapper {
+      flex: 1;
+      position: relative;
+      background: #0b0e14;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Sub-header Legend on Chart */
+    #legend {
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .legend-title {
+      color: #F1F5F9;
+      font-weight: 600;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00c087;
+      display: inline-block;
+      box-shadow: 0 0 6px #00c087;
+    }
+    .legend-ohlc {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #64748B;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Consolas, monospace;
+      font-size: 11.5px;
+    }
+    .legend-ohlc span {
+      color: #00c087;
+      font-weight: 600;
+    }
+    .delta-val {
+      font-weight: 600;
+      font-size: 11.5px;
+    }
+    .delta-val.up { color: #00c087; }
+    .delta-val.down { color: #f23645; }
+
+    #chart-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* TV Logo Watermark Bottom Left */
+    .tv-watermark {
+      position: absolute;
+      bottom: 28px;
+      left: 12px;
+      width: 22px;
+      height: 22px;
+      background: #151a24;
+      border: 1px solid #232c3d;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .tv-watermark svg { width: 13px; height: 13px; fill: #64748B; }
+
+    /* Bottom Status Bar */
+    #bottom-status-bar {
+      height: 24px;
+      background: #0b0e14;
+      border-top: 1px solid #161b26;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      color: #475569;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Consolas, monospace;
+      z-index: 10;
+    }
+    .bottom-ranges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .range-btn { cursor: pointer; }
+    .range-btn.active { color: #38bdf8; font-weight: 700; }
+    .bottom-right-info {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. TOP AXIOM TERMINAL BAR -->
+  <div id="axiom-top-bar">
+    <div class="token-identity">
+      <div class="token-avatar">🪙</div>
+      <span class="buy-badge">BUY</span>
+      <span class="token-name-title" id="tok-name">Token Name</span>
+      <span class="time-badge">⚡ Live</span>
+      <span class="header-mc-large" id="hdr-mc">$0.0K</span>
+    </div>
+
+    <div class="mini-stats-row">
+      <div class="stat-box">
+        <span class="stat-lbl">Price</span>
+        <span class="stat-val" id="stat-price">$0.00</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-lbl">Liquidity</span>
+        <span class="stat-val" id="stat-liq">$0.0K</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-lbl">Supply</span>
+        <span class="stat-val">1B</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-lbl">Global Fees</span>
+        <span class="stat-val" id="stat-fees">0.0 SOL</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-lbl">B.Curve</span>
+        <span class="stat-val green" id="stat-bcurve">100%</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-lbl">ATH</span>
+        <span class="stat-val" id="stat-ath">$0.0K</span>
+      </div>
+    </div>
+
+    <div class="top-right-call">
+      <div class="call-entry-pill" id="call-pill">
+        <span id="pill-title">🚀 CALL ENTRY</span>
+        <span id="call-price">BUY @ $0.0K</span>
+        <span id="call-pct" style="color:#00c087;">+0.0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. AXIOM SUB-TOOLBAR -->
+  <div id="axiom-sub-bar">
+    <div class="tf-pill" id="tf-label">1m ▾</div>
+    <div class="sub-btn">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+      <span>Indicators</span>
+    </div>
+    <div class="sub-btn">
+      <span>Display Options</span>
+    </div>
+    <div class="sub-btn">
+      <span>Hide All Bubbles</span>
+    </div>
+
+    <div class="toggle-group">
+      <div class="toggle-btn active">USD</div>
+      <div class="toggle-btn">SOL</div>
+    </div>
+
+    <div class="toggle-group">
+      <div class="toggle-btn active">MarketCap</div>
+      <div class="toggle-btn">Price</div>
+    </div>
+
+    <div class="sub-right">
+      <span>Axiom</span>
+      <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+    </div>
+  </div>
+
+  <!-- 3. WORKSPACE -->
+  <div id="workspace">
+
+    <!-- Left Drawing Toolbar -->
+    <div id="left-tools">
+      <div class="tool-icon active">
+        <svg viewBox="0 0 24 24"><path d="M11 2v9H2v2h9v9h2v-9h9v-2h-9V2h-2z"/></svg>
+      </div>
+      <div class="tool-icon">
+        <svg viewBox="0 0 24 24"><path d="M3.5 19.5l17-15M21 4.5l-3 1M3.5 19.5l3-1"/></svg>
+      </div>
+      <div class="tool-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div class="tool-icon">
+        <svg viewBox="0 0 24 24"><path d="M2.5 12a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/></svg>
+      </div>
+      <div class="tool-icon">
+        <svg viewBox="0 0 24 24"><path d="M5 4v3h5.5v12h3V7H19V4z"/></svg>
+      </div>
+      <div class="tool-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H3V8h18v8z"/></svg>
+      </div>
+      <div class="tool-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      </div>
+    </div>
+
+    <!-- Chart Container Area -->
+    <div id="chart-wrapper">
+      <div id="legend">
+        <span class="legend-title" id="legend-title">Token / USD on Pump V1 · 1m · axiom.trade</span>
+        <span class="status-dot"></span>
+        <div class="legend-ohlc">
+          <div>O <span id="val-o">$0.0K</span></div>
+          <div>H <span id="val-h">$0.0K</span></div>
+          <div>L <span id="val-l">$0.0K</span></div>
+          <div>C <span id="val-c">$0.0K</span></div>
+          <div class="delta-val" id="val-delta">+0.00%</div>
+        </div>
+      </div>
+
+      <div class="tv-watermark">
+        <svg viewBox="0 0 28 28"><path d="M22 17a2 2 0 0 1-2 2h-4v4h-4v-8h8v2zm-12-6a2 2 0 0 1 2-2h4V5h4v8H8v-2zM4 21a2 2 0 0 1 2-2h2v4H6a2 2 0 0 1-2-2z"/></svg>
+      </div>
+
+      <div id="chart-container"></div>
+    </div>
+
+  </div>
+
+  <!-- 4. BOTTOM STATUS BAR -->
+  <div id="bottom-status-bar">
+    <div class="bottom-ranges">
+      <span class="range-btn">3m</span>
+      <span class="range-btn active">1m</span>
+      <span class="range-btn">5d</span>
+      <span class="range-btn">1d</span>
+    </div>
+    <div class="bottom-right-info">
+      <span id="clock-utc">20:39:00 (UTC+2)</span>
+      <span>%</span>
+      <span>log</span>
+      <span style="color:#38bdf8; font-weight:bold;">auto</span>
+    </div>
+  </div>
+
+  <script>
+    function formatMC(val) {
+      if (val === undefined || val === null || isNaN(val) || val <= 0) return "0.0K";
+      if (val >= 1e9) return (val / 1e9).toFixed(2) + "B";
+      if (val >= 1e6) return (val / 1e6).toFixed(2) + "M";
+      if (val >= 1e3) return (val / 1e3).toFixed(1) + "K";
+      return val.toFixed(1);
+    }
+
+    function formatDelta(delta, pct) {
+      const sign = delta >= 0 ? "+" : "-";
+      const absVal = Math.abs(delta);
+      let dStr = "$" + formatMC(absVal);
+      return sign + dStr + " (" + (pct >= 0 ? "+" : "") + pct.toFixed(2) + "%)";
+    }
+
+    window.renderChart = function(tokenTitle, candleData, entryExitInfo, tf, stats) {
+      stats = stats || {};
+      entryExitInfo = entryExitInfo || {};
+      const timeframe = tf || "1m";
+      const isResult = !!entryExitInfo.is_result;
+
+      document.getElementById('tf-label').innerText = timeframe + " ▾";
+      document.getElementById('tok-name').innerText = tokenTitle;
+      document.getElementById('legend-title').innerText = tokenTitle + "/USD on Pump V1 · " + timeframe + " · axiom.trade";
+
+      // Fill Top Bar Stats
+      const mcVal = stats.market_cap_usd || (candleData && candleData.length > 0 ? candleData[candleData.length - 1].close : 0);
+      document.getElementById('hdr-mc').innerText = "$" + formatMC(mcVal);
+      if (stats.price_usd) {
+        document.getElementById('stat-price').innerText = "$" + Number(stats.price_usd).toFixed(6);
+      }
+      if (stats.liquidity_usd) {
+        document.getElementById('stat-liq').innerText = "$" + formatMC(stats.liquidity_usd);
+      }
+      if (stats.total_fees) {
+        document.getElementById('stat-fees').innerText = Number(stats.total_fees).toFixed(1) + " SOL";
+      }
+      if (stats.ath_mc) {
+        document.getElementById('stat-ath').innerText = "$" + formatMC(stats.ath_mc);
+      } else {
+        document.getElementById('stat-ath').innerText = "$" + formatMC(mcVal * 1.35);
+      }
+
+      let lastClose = 0;
+      let isUp = true;
+      if (candleData && candleData.length > 0) {
+        const last = candleData[candleData.length - 1];
+        lastClose = last.close;
+        const openStr = "$" + formatMC(last.open);
+        const highStr = "$" + formatMC(last.high);
+        const lowStr = "$" + formatMC(last.low);
+        const closeStr = "$" + formatMC(last.close);
+        const delta = last.close - last.open;
+        const pct = last.open > 0 ? (delta / last.open * 100) : 0;
+        isUp = delta >= 0;
+
+        document.getElementById('val-o').innerText = openStr;
+        document.getElementById('val-h').innerText = highStr;
+        document.getElementById('val-l').innerText = lowStr;
+        document.getElementById('val-c').innerText = closeStr;
+
+        const deltaElem = document.getElementById('val-delta');
+        deltaElem.innerText = formatDelta(delta, pct);
+        deltaElem.className = "delta-val " + (isUp ? "up" : "down");
+      }
+
+      // Configure Top Right Call or Result Banner
+      const calledMc = entryExitInfo.called_mc || entryExitInfo.price || (candleData[0] ? candleData[0].open : lastClose);
+      const exitMc = entryExitInfo.exit_mc || entryExitInfo.ath_mc || lastClose;
+      const mult = (calledMc > 0 && exitMc > 0) ? (exitMc / calledMc) : 1.0;
+      const gainPct = (mult - 1.0) * 100;
+
+      const pillElem = document.getElementById('call-pill');
+      if (isResult) {
+        pillElem.className = "result-pill";
+        document.getElementById('pill-title').innerText = "🏁 RESULT / DONE";
+        document.getElementById('call-price').innerText = "$" + formatMC(calledMc) + " ➔ $" + formatMC(exitMc);
+        const pctElem = document.getElementById('call-pct');
+        pctElem.innerText = mult.toFixed(2) + "x (+" + gainPct.toFixed(1) + "%)";
+        pctElem.style.color = "#FF8C00";
+      } else {
+        pillElem.className = "call-entry-pill";
+        document.getElementById('pill-title').innerText = "🚀 CALL ENTRY";
+        document.getElementById('call-price').innerText = "BUY @ $" + formatMC(calledMc);
+        const pctElem = document.getElementById('call-pct');
+        if (lastClose > 0 && calledMc > 0) {
+          const curGain = ((lastClose - calledMc) / calledMc * 100);
+          pctElem.innerText = (curGain >= 0 ? "+" : "") + curGain.toFixed(1) + "%";
+          pctElem.style.color = curGain >= 0 ? "#00c087" : "#f23645";
+        }
+      }
+
+      const container = document.getElementById('chart-container');
+      container.innerHTML = "";
+
+      const chart = LightweightCharts.createChart(container, {
+        width: 1360,
+        height: 648,
+        layout: {
+          background: { color: '#0b0e14' },
+          textColor: '#64748B',
+          fontSize: 11,
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        },
+        grid: {
+          vertLines: { color: 'rgba(255, 255, 255, 0.025)', style: 0 },
+          horzLines: { color: 'rgba(255, 255, 255, 0.025)', style: 0 },
+        },
+        crosshair: {
+          mode: LightweightCharts.CrosshairMode.Normal,
+          vertLine: { color: 'rgba(100, 116, 139, 0.25)', width: 1, style: 3 },
+          horzLine: { color: 'rgba(100, 116, 139, 0.25)', width: 1, style: 3 },
+        },
+        rightPriceScale: {
+          visible: true,
+          borderColor: '#161b26',
+          scaleMargins: { top: 0.12, bottom: 0.08 },
+        },
+        timeScale: {
+          visible: true,
+          borderColor: '#161b26',
+          timeVisible: true,
+          secondsVisible: (timeframe === "1s"),
+          barSpacing: 9,
+          rightOffset: 6,
+        },
+        localization: {
+          priceFormatter: function(price) {
+            return "$" + formatMC(price);
+          },
+        },
+      });
+
+      // Pure clean Axiom Candlestick series with custom Market Cap formatter ($46.8K)
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#00c087',
+        downColor: '#f23645',
+        borderVisible: false,
+        wickUpColor: '#00c087',
+        wickDownColor: '#f23645',
+        priceFormat: {
+          type: 'custom',
+          formatter: function(price) {
+            return '$' + formatMC(price);
+          },
+        },
+      });
+      candleSeries.setData(candleData);
+
+      // ── 1. ACTIVE CURRENT PRICE HORIZONTAL DASHED LINE ──────────
+      candleSeries.createPriceLine({
+        price: lastClose,
+        color: isUp ? '#00c087' : '#f23645',
+        lineWidth: 1.5,
+        lineStyle: LightweightCharts.LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: '$' + formatMC(lastClose),
+      });
+
+      // ── 2. ENTRY LINE (WHEN CALLED) ─────────────────────────────
+      if (calledMc > 0) {
+        candleSeries.createPriceLine({
+          price: calledMc,
+          color: '#00c087',
+          lineWidth: 1.5,
+          lineStyle: LightweightCharts.LineStyle.Dotted,
+          axisLabelVisible: true,
+          title: 'BUY ENTRY ($' + formatMC(calledMc) + ')',
+        });
+      }
+
+      // ── 3. EXIT / RESULT LINE (WHEN ENDED) ───────────────────────
+      if (isResult && exitMc > 0 && Math.abs(exitMc - calledMc) > 100) {
+        candleSeries.createPriceLine({
+          price: exitMc,
+          color: '#FF8C00',
+          lineWidth: 1.5,
+          lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true,
+          title: 'RESULT ($' + formatMC(exitMc) + ' · ' + mult.toFixed(2) + 'x)',
+        });
+      }
+
+      // ── 4. MARKERS ON CANDLES: ENTRY, BUBBLES & RESULT ──────────
+      const callTime = entryExitInfo.call_time || (candleData[0] ? candleData[0].time : 0);
+      let markers = [
+        {
+          time: callTime,
+          position: 'belowBar',
+          color: '#00c087',
+          shape: 'arrowUp',
+          text: '🚀 BUY CALL @ $' + formatMC(calledMc),
+          size: 2,
+        }
+      ];
+
+      if (isResult) {
+        const exitTime = entryExitInfo.exit_time || (candleData[candleData.length - 1] ? candleData[candleData.length - 1].time : 0);
+        markers.push({
+          time: exitTime,
+          position: 'aboveBar',
+          color: '#FF8C00',
+          shape: 'arrowDown',
+          text: '🏁 RESULT @ $' + formatMC(exitMc) + ' (' + mult.toFixed(2) + 'x)',
+          size: 2,
+        });
+      }
+
+      // Add DB, SB, SS bubbles on candles matching user's Axiom screenshot
+      if (entryExitInfo && entryExitInfo.bubbles) {
+        entryExitInfo.bubbles.forEach(function(b) {
+          if (b.time !== callTime) {
+            markers.push({
+              time: b.time,
+              position: b.pos || 'belowBar',
+              color: b.color || '#00c087',
+              shape: 'circle',
+              text: b.text || 'DB',
+              size: 1,
+            });
+          }
+        });
+      }
+
+      candleSeries.setMarkers(markers);
+      chart.timeScale().fitContent();
+    };
+  </script>
+</body>
+</html>

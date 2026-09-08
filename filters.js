@@ -87,6 +87,56 @@ export function isStaircaseChartRug(stats) {
     return [false, ''];
 }
 
+export function isInstantSpikeDumpRug(stats) {
+    const mcUsd = Number(stats.market_cap_usd || 0);
+    const devPct = Number(stats.dev_holdings_pct || 0);
+    const holders = Number(stats.holders || 0);
+    const top10Pct = Number(stats.top10_holders_pct || 0);
+    const clusterPct = Number(stats.cluster_pct || 0);
+    const bundlersPct = Number(stats.bundlers_pct || 0);
+    const buysM5 = Number(stats.buys_m5 || 0);
+    const sellsM5 = Number(stats.sells_m5 || 0);
+    const priceChg5m = Number(stats.price_change_m5 || 0);
+    const smartW = Number(stats.gmgn_smart_wallets || stats.smart_traders || 0);
+    const renownedW = Number(stats.gmgn_renowned_wallets || 0);
+
+    // Image 2 Pattern: Pumped to $45k-$120k MC, dev dumped (devPct <= 0),
+    // supply concentrated in clusters/bundlers, and sells matching/exceeding buys with barcode bleed
+    if (mcUsd >= 40000 && mcUsd <= 130000) {
+        if (devPct <= 0.05 && (clusterPct > 8.0 || bundlersPct > 8.0) && sellsM5 >= buysM5 && smartW === 0 && renownedW === 0) {
+            return [true, `Instant Migration Dump & Bleed: Dev dumped (0% dev), ${clusterPct.toFixed(1)}% clusters, sell pressure ${sellsM5} sells vs ${buysM5} buys`];
+        }
+        if (holders < 40 && top10Pct > 40.0) {
+            return [true, `Artificial Migration Spike: Only ${holders} holders at $${Math.round(mcUsd / 1000)}k MC with ${top10Pct.toFixed(1)}% Top-10 concentration`];
+        }
+        if (priceChg5m < -4.0 && sellsM5 >= (buysM5 * 1.5)) {
+            return [true, `Post-Migration Selloff: 5m change ${priceChg5m.toFixed(1)}% with heavy exit sells (${sellsM5} sells vs ${buysM5} buys)`];
+        }
+    }
+
+    return [false, ''];
+}
+
+export function isSybilClusterRug(stats) {
+    const clusterPct = Number(stats.cluster_pct || 0);
+    const bundlersPct = Number(stats.bundlers_pct || 0);
+    const insidersPct = Number(stats.insiders_pct || 0);
+    const totalClusterRisk = clusterPct + bundlersPct + insidersPct;
+    const suspPct = Number(stats.gmgn_suspicious_pct || 0);
+
+    // Image 1 Pattern: 2 interconnected distributor nodes funding dozens of child wallets
+    if (clusterPct >= 14.0 && bundlersPct >= 12.0) {
+        return [true, `Connected Sybil Hub Network: InsightX shows ${clusterPct.toFixed(1)}% cluster + ${bundlersPct.toFixed(1)}% bundlers (Interconnected distributor nodes)`];
+    }
+    if (totalClusterRisk >= 22.0) {
+        return [true, `High Sybil Concentration: Combined cluster, bundlers & insiders control ${totalClusterRisk.toFixed(1)}% (max 22.0%)`];
+    }
+    if (suspPct > 8.0) {
+        return [true, `GMGN Suspicious Wallets: ${suspPct.toFixed(1)}% held by suspicious wallets (max 8.0%)`];
+    }
+    return [false, ''];
+}
+
 export function evaluateCoin(stats, stage = 'New Pair') {
     const reasons = [];
 
@@ -119,6 +169,11 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ Slop Detected: ${slopReason}`], 'rejected'];
     }
 
+    // GMGN Alert Gate
+    if (stats.gmgn_is_show_alert) {
+        return [false, ['❌ GMGN Direct Security Alert: Token flagged as rug / high risk by GMGN'], 'rejected'];
+    }
+
     // Fatal On-Chain Checks
     if (stats.is_honeypot) {
         return [false, ['❌ Honeypot / Freeze Authority is active (Buyers cannot sell)'], 'rejected'];
@@ -132,29 +187,39 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ ${staircaseMsg}`], 'rejected'];
     }
 
+    const [isInstantSpike, instantSpikeMsg] = isInstantSpikeDumpRug(stats);
+    if (isInstantSpike) {
+        return [false, [`❌ ${instantSpikeMsg}`], 'rejected'];
+    }
+
+    const [isSybil, sybilMsg] = isSybilClusterRug(stats);
+    if (isSybil) {
+        return [false, [`❌ ${sybilMsg}`], 'rejected'];
+    }
+
     // LP Lock/Burn check for pump.fun Migrated
     if (stage === 'Migrated' && !lpBurned && lpLockedPct < 85.0) {
         return [false, [`❌ Liquidity Pool Unlocked on DEX: Only ${lpLockedPct.toFixed(1)}% locked/burned (High Rug Pull Risk)`], 'rejected'];
     }
 
-    if (dangerRisks.length >= 3) {
-        return [false, [`❌ Critical RugCheck Security Risks: ${dangerRisks.slice(0, 3).join(', ')}`], 'rejected'];
+    if (dangerRisks.length >= 2) {
+        return [false, [`❌ Critical RugCheck Security Risks: ${dangerRisks.slice(0, 2).join(', ')}`], 'rejected'];
     }
 
     const isLive = Boolean(stats.is_live);
     const liveViewers = Number(stats.live_viewers || 0);
     const hasGoodViewers = Boolean(stats.has_good_viewers) || (isLive && liveViewers >= config.PUMPFUN_MIN_GOOD_VIEWERS);
 
-    // Dynamic thresholds
-    const devLimit = hasGoodViewers ? 33.0 : 30.0;
-    const devInsiderLimit = hasGoodViewers ? 52.0 : 48.0;
-    const singleLimit = hasGoodViewers ? 40.0 : 38.0;
-    const top10Limit = hasGoodViewers ? 80.0 : 75.0;
-    const bundlerLimit = hasGoodViewers ? 32.0 : 28.5;
-    const sniperLimit = hasGoodViewers ? 25.0 : 22.0;
-    const clusterLimit = hasGoodViewers ? 28.0 : 25.0;
-    const spiderwebLimit = hasGoodViewers ? 38.0 : 33.0;
-    const minHolders = hasGoodViewers ? 4 : 5;
+    // Strict Anti-Rug Dynamic thresholds
+    const devLimit = hasGoodViewers ? 22.0 : 18.0;
+    const devInsiderLimit = hasGoodViewers ? 35.0 : 30.0;
+    const singleLimit = hasGoodViewers ? 25.0 : 20.0;
+    const top10Limit = hasGoodViewers ? 60.0 : 50.0;
+    const bundlerLimit = hasGoodViewers ? 18.0 : 15.0;
+    const sniperLimit = hasGoodViewers ? 18.0 : 15.0;
+    const clusterLimit = hasGoodViewers ? 16.0 : 14.0;
+    const spiderwebLimit = hasGoodViewers ? 25.0 : 22.0;
+    const minHolders = hasGoodViewers ? 6 : 8;
 
     // Gate 0: Early-Entry Max MC Ceiling ($1.5M)
     if (mcUsd > config.MAX_CALL_MC_USD) {
@@ -238,12 +303,16 @@ export function evaluateCoin(stats, stage = 'New Pair') {
 
     // GMGN Checks
     const gmgnRat = Number(stats.gmgn_rat_pct || 0);
-    if (gmgnRat > 8.0) {
-        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 8.0%)`], 'rejected'];
+    if (gmgnRat > 5.0) {
+        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 5.0%)`], 'rejected'];
     }
     const gmgnBundler = Number(stats.gmgn_bundler_pct || 0);
-    if (gmgnBundler > 25.0) {
-        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 25.0%)`], 'rejected'];
+    if (gmgnBundler > 15.0) {
+        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 15.0%)`], 'rejected'];
+    }
+    const gmgnSusp = Number(stats.gmgn_suspicious_pct || 0);
+    if (gmgnSusp > 8.0) {
+        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max 8.0%)`], 'rejected'];
     }
 
     // Stage label

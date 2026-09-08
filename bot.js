@@ -14,6 +14,9 @@ import {
     getGmgnPumpfunTrenches,
     getGmgnKolBoughtTokens,
     getGmgnTrendingTokens,
+    getGmgnTokenSecurity,
+    getGmgnTopHolders,
+    getGmgnWalletHoldings,
     getTwitterUserInfo,
     getHotCryptoNews,
     getDexscreenerData,
@@ -1055,6 +1058,132 @@ client.on('messageCreate', async (message) => {
             await message.channel.send({ embeds: [twEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error checking Twitter: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 9. .security <mint> (GMGN Token Security Check skill)
+    if (content.startsWith('.security')) {
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) {
+            return message.channel.send('⚠️ Please provide a contract address.\nUsage: `.security <mint>`');
+        }
+        const mint = parts[1].trim();
+        await message.channel.send(`🛡️ Running GMGN Token Security Check for \`${mint}\`...`);
+        try {
+            const sec = await getGmgnTokenSecurity(mint, 'sol');
+            if (!sec.security_checked) {
+                return message.channel.send(`⚠️ Could not retrieve security report for \`${mint}\`.`);
+            }
+
+            const alertStr = sec.is_show_alert ? '🚨 **RUG / SCAM ALERT FLAGGED**' : '✅ **No Critical Alert**';
+            const freezeStr = sec.renounced_freeze_account ? '✅ Renounced (Safe)' : '🚨 **ACTIVE (Honeypot Risk)**';
+            const mintStr = sec.renounced_mint ? '✅ Renounced (Fixed Supply)' : '🚨 **ACTIVE (Dev can mint)**';
+            const hpStr = sec.is_honeypot ? '🚨 **YES (Cannot sell)**' : '✅ No Honeypot';
+            const taxStr = (sec.buy_tax > 0 || sec.sell_tax > 0) ? `🚨 Buy ${sec.buy_tax}% / Sell ${sec.sell_tax}%` : '✅ 0% / 0%';
+            const burnStr = `${sec.burn_ratio.toFixed(1)}% (${sec.burn_status})`;
+            const flagsStr = sec.flags.length > 0 ? sec.flags.join(', ') : 'None';
+
+            const secEmbed = new EmbedBuilder()
+                .setTitle(`🛡️ GMGN TOKEN SECURITY CHECK`)
+                .setDescription(
+                    `**CA:** \`${mint}\`\n\n` +
+                    `⚠️ **GMGN Alert Status:** ${alertStr}\n` +
+                    `❄️ **Freeze Authority:** ${freezeStr}\n` +
+                    `🖨️ **Mint Authority:** ${mintStr}\n` +
+                    `🍯 **Honeypot:** ${hpStr}\n` +
+                    `💸 **Taxes:** ${taxStr}\n` +
+                    `🔥 **LP Burned:** \`${burnStr}\`\n` +
+                    `👥 **Top 10 Holder Rate:** \`${sec.top_10_holder_rate.toFixed(1)}%\`\n` +
+                    `🚩 **Risk Flags:** \`${flagsStr}\``
+                )
+                .setColor(sec.is_show_alert || sec.is_honeypot || !sec.renounced_freeze_account ? 0xEF4444 : 0x10B981)
+                .setFooter({ text: 'GMGN Token Security Intelligence' });
+
+            await message.channel.send({ embeds: [secEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error checking security: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 10. .holders <mint> (GMGN Top100 Holders Analysis skill)
+    if (content.startsWith('.holders')) {
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) {
+            return message.channel.send('⚠️ Please provide a contract address.\nUsage: `.holders <mint>`');
+        }
+        const mint = parts[1].trim();
+        await message.channel.send(`👥 Analyzing top holders via GMGN for \`${mint}\`...`);
+        try {
+            const data = await getGmgnTopHolders(mint, 'sol');
+            if (!data.holders_checked || data.holders.length === 0) {
+                return message.channel.send(`⚠️ No holder records returned for \`${mint}\`.`);
+            }
+
+            const topList = data.holders.slice(0, 10).map((h, i) => {
+                const addr = `${h.address.slice(0, 4)}...${h.address.slice(-4)}`;
+                const pct = (Number(h.amount_percentage || 0) * 100).toFixed(2);
+                const usd = h.usd_value ? `$${Math.round(h.usd_value).toLocaleString()}` : '';
+                const susp = h.is_suspicious ? '⚠️ [SUSPICIOUS]' : '';
+                const isNew = h.is_new ? '🌱 [NEW]' : '';
+                const tag = h.wallet_tag_v2 ? `\`${h.wallet_tag_v2}\`` : '';
+                const name = h.name ? `(${h.name})` : '';
+                return `**${i + 1}.** \`${addr}\` ${tag} ${name} — **${pct}%** ${usd} ${susp} ${isNew}`.trim();
+            }).join('\n');
+
+            const hEmbed = new EmbedBuilder()
+                .setTitle(`👥 GMGN TOP HOLDERS ANALYSIS`)
+                .setDescription(
+                    `**CA:** \`${mint}\`\n\n` +
+                    `📊 **Top 10 Concentration:** \`${data.top10_pct.toFixed(1)}%\`\n` +
+                    `🚨 **Suspicious Wallets:** \`${data.suspicious_count}\` (\`${data.suspicious_pct.toFixed(1)}%\` held)\n` +
+                    `🌱 **New Wallets:** \`${data.new_wallets_pct.toFixed(1)}%\` held\n\n` +
+                    `### Top 10 Largest Holders:\n${topList}`
+                )
+                .setColor(data.suspicious_pct > 8.0 || data.top10_pct > 60.0 ? 0xEF4444 : 0x10B981)
+                .setFooter({ text: 'GMGN Top 100 Holders Analysis' });
+
+            await message.channel.send({ embeds: [hEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error analyzing holders: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 11. .wallet <address> (GMGN Wallet Holdings skill)
+    if (content.startsWith('.wallet')) {
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) {
+            return message.channel.send('⚠️ Please provide a Solana wallet address.\nUsage: `.wallet <address>`');
+        }
+        const wallet = parts[1].trim();
+        await message.channel.send(`💼 Fetching portfolio holdings for \`${wallet}\`...`);
+        try {
+            const list = await getGmgnWalletHoldings(wallet, 'sol');
+            if (!list || list.length === 0) {
+                return message.channel.send(`ℹ️ No active token holdings found for wallet \`${wallet}\`.`);
+            }
+
+            const holdingsDesc = list.slice(0, 10).map((t, i) => {
+                const sym = t.symbol || 'TOKEN';
+                const usd = t.usd_value ? `$${Math.round(t.usd_value).toLocaleString()}` : '';
+                const pnl = t.pnl ? `(${t.pnl >= 0 ? '+' : ''}${Number(t.pnl).toFixed(1)}%)` : '';
+                return `**${i + 1}.** **${sym}** — ${usd} ${pnl}`;
+            }).join('\n');
+
+            const wEmbed = new EmbedBuilder()
+                .setTitle(`💼 WALLET PORTFOLIO HOLDINGS`)
+                .setDescription(
+                    `**Wallet:** \`${wallet}\`\n\n` +
+                    `### Top Holdings:\n${holdingsDesc}`
+                )
+                .setColor(0x8B5CF6)
+                .setFooter({ text: 'GMGN Wallet Portfolio Intelligence' });
+
+            await message.channel.send({ embeds: [wEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error fetching wallet holdings: \`${err.message}\``);
         }
         return;
     }

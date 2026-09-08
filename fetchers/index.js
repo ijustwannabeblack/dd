@@ -4,7 +4,15 @@ import { getDexscreenerData, getPonsRobinhoodPairs } from './dexscreener.js';
 import { getRugcheckReport, getPumpfunLivestreamInfo } from './rugcheck.js';
 import { getInsightxMetrics, getInsightxAtlasUrl } from './insightx.js';
 import { renderInsightXAtlas } from './visualizer.js';
-import { getGmgnTokenInfo, getGmgnPumpfunTrenches, getGmgnKolBoughtTokens, getGmgnTrendingTokens } from './gmgn.js';
+import {
+    getGmgnTokenInfo,
+    getGmgnTokenSecurity,
+    getGmgnTopHolders,
+    getGmgnWalletHoldings,
+    getGmgnPumpfunTrenches,
+    getGmgnKolBoughtTokens,
+    getGmgnTrendingTokens,
+} from './gmgn.js';
 import { callAimlapi, aiEvaluateToken } from './aimlapi.js';
 import { getTwitterUserInfo, getTwitterUserTweets, searchTwitter, getHotCryptoNews } from './open6551.js';
 
@@ -19,6 +27,9 @@ export {
     getInsightxAtlasUrl,
     renderInsightXAtlas,
     getGmgnTokenInfo,
+    getGmgnTokenSecurity,
+    getGmgnTopHolders,
+    getGmgnWalletHoldings,
     getGmgnPumpfunTrenches,
     getGmgnKolBoughtTokens,
     getGmgnTrendingTokens,
@@ -145,6 +156,8 @@ export async function buildStats(coin, stage = 'Migrated') {
         rugcheck,
         liveInfo,
         gmgnData,
+        gmgnSecurity,
+        gmgnHoldersData,
         insightxData,
     ] = await Promise.all([
         getOnchainMintSecurity(mint).catch(() => null),
@@ -152,6 +165,8 @@ export async function buildStats(coin, stage = 'Migrated') {
         getRugcheckReport(mint).catch(() => null),
         getPumpfunLivestreamInfo(mint).catch(() => null),
         getGmgnTokenInfo(mint, 'sol').catch(() => ({})),
+        getGmgnTokenSecurity(mint, 'sol').catch(() => ({})),
+        getGmgnTopHolders(mint, 'sol').catch(() => ({})),
         getInsightxMetrics(mint).catch(() => ({})),
     ]);
 
@@ -162,10 +177,22 @@ export async function buildStats(coin, stage = 'Migrated') {
     let maxSingleHolderPct = 0;
 
     if (!topHolders || topHolders.length === 0) {
-        const onchainHolders = await getOnchainTopHolders(mint).catch(() => []);
-        if (onchainHolders && onchainHolders.length > 0) {
-            topHolders = onchainHolders;
-            top10Pct = onchainHolders.slice(0, 10).reduce((acc, h) => acc + (h.pct || 0), 0);
+        if (gmgnHoldersData?.holders?.length > 0) {
+            topHolders = gmgnHoldersData.holders.map(h => ({
+                address: h.address,
+                pct: Number(h.amount_percentage || 0) * 100,
+                is_suspicious: Boolean(h.is_suspicious),
+                is_new: Boolean(h.is_new),
+                tags: h.tags || [],
+                name: h.name || null,
+            }));
+            top10Pct = Number(gmgnHoldersData.top10_pct || 0);
+        } else {
+            const onchainHolders = await getOnchainTopHolders(mint).catch(() => []);
+            if (onchainHolders && onchainHolders.length > 0) {
+                topHolders = onchainHolders;
+                top10Pct = onchainHolders.slice(0, 10).reduce((acc, h) => acc + (h.pct || 0), 0);
+            }
         }
     }
 
@@ -189,20 +216,24 @@ export async function buildStats(coin, stage = 'Migrated') {
             }
         }
     }
-    if (devHoldingsPct <= 0 && gmgnData.gmgn_dev_holding_pct) {
-        devHoldingsPct = Number(gmgnData.gmgn_dev_holding_pct);
+    if (devHoldingsPct <= 0 && gmgnData.gmgn_dev_team_hold_rate) {
+        devHoldingsPct = Number(gmgnData.gmgn_dev_team_hold_rate);
     }
 
     const isHoneypot = Boolean(
         onchainSec?.is_honeypot_risk ||
-        (rugcheck?.freeze_authority && rugcheck.freeze_authority !== null)
+        (rugcheck?.freeze_authority && rugcheck.freeze_authority !== null) ||
+        gmgnSecurity?.is_honeypot ||
+        (gmgnSecurity?.renounced_freeze_account === false) ||
+        (gmgnSecurity?.buy_tax > 0 || gmgnSecurity?.sell_tax > 0)
     );
     const isMintable = Boolean(
         onchainSec?.mintable ||
-        (rugcheck?.mint_authority && rugcheck.mint_authority !== null)
+        (rugcheck?.mint_authority && rugcheck.mint_authority !== null) ||
+        (gmgnSecurity?.renounced_mint === false)
     );
 
-    const holders = Math.max(realHolders, Number(gmgnData.gmgn_holders || 0), (dexPair ? 10 : 2));
+    const holders = Math.max(realHolders, Number(gmgnHoldersData?.holders?.length || 0), (dexPair ? 10 : 2));
     const lpBurned = stage === 'Migrated' ? true : Boolean(rugcheck?.lp_burned ?? true);
 
     // Resolve Name & Symbol
@@ -348,6 +379,12 @@ export async function buildStats(coin, stage = 'Migrated') {
         ...activity,
         ...socials,
         ...gmgnData,
+        ...gmgnSecurity,
+        gmgn_is_show_alert: Boolean(gmgnSecurity?.is_show_alert),
+        gmgn_suspicious_pct: Number(gmgnHoldersData?.suspicious_pct || 0),
+        gmgn_suspicious_count: Number(gmgnHoldersData?.suspicious_count || 0),
+        gmgn_flags: gmgnSecurity?.flags || [],
+        gmgn_top100_holders: gmgnHoldersData?.holders || [],
     };
 
     fullStats.chart_prediction = getChartPrediction(fullStats, dexPair);

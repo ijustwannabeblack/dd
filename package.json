@@ -2,11 +2,12 @@
   "name": "dd-main",
   "version": "1.0.0",
   "description": "Autonomous Solana meme coin sniper, caller, and on-chain intelligence system with real-time TradingView candlestick chart rendering, multi-cluster bubblemap analysis, and Pump.fun livestream tracking.",
-  "main": "src/bot.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/bot.js",
-    "web": "node src/webServer.js",
+    "start": "node index.js",
+    "bot": "node bot.js",
+    "web": "node webServer.js",
     "test": "node --test"
   },
   "dependencies": {

@@ -79,7 +79,7 @@ function saveTrackers() {
 }
 
 function copyCaToClipboard(mint) {
-    if (!mint) return;
+    if (!mint || process.platform !== 'win32') return;
     try {
         const proc = exec('clip.exe');
         proc.stdin.write(mint.trim());

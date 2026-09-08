@@ -3,7 +3,8 @@ import { promisify } from 'node:util';
 import * as config from '../config.js';
 
 const execFileAsync = promisify(execFile);
-const GMGN_CLI_PATH = 'C:\\Users\\daa\\AppData\\Roaming\\npm\\gmgn-cli.cmd';
+const isWin = process.platform === 'win32';
+const GMGN_CLI_PATH = process.env.GMGN_CLI_PATH || (isWin ? 'C:\\Users\\daa\\AppData\\Roaming\\npm\\gmgn-cli.cmd' : 'gmgn-cli');
 
 /**
  * Token Basic Info skill:

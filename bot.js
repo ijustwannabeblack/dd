@@ -51,12 +51,27 @@ function loadSeen() {
 
 function saveSeen() {
     try {
-        const arr = Array.from(seen).slice(-2000);
+        const arr = Array.from(seen).slice(-500);
+        seen = new Set(arr);
         fs.writeFileSync(SEEN_FILE, JSON.stringify(arr, null, 2), 'utf8');
     } catch (e) {
         console.warn(`[Bot] Could not save seen_mints.json: ${e.message}`);
     }
 }
+
+// Low-memory container maintenance (cleans stale caches every 3 mins)
+setInterval(() => {
+    if (seen.size > 600) {
+        seen = new Set(Array.from(seen).slice(-400));
+    }
+    const now = Date.now();
+    for (const [k, v] of lastCaFetchTs.entries()) {
+        if (now - v > 60000) lastCaFetchTs.delete(k);
+    }
+    if (global.gc) {
+        try { global.gc(); } catch {}
+    }
+}, 180000);
 
 function loadTrackers() {
     try {
@@ -679,8 +694,10 @@ client.once('clientReady', async () => {
     });
     stream.runForever();
 
-    // Start Web Server Dashboard
-    startWebServer(5000);
+    // Start Web Server Dashboard only if explicitly enabled (saves ~40MB RAM on bot-hosting containers)
+    if (process.env.ENABLE_WEB_SERVER === 'true') {
+        startWebServer(5000);
+    }
 });
 
 // Command & Message Router

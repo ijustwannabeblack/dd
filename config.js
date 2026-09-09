@@ -68,9 +68,10 @@ export const STAGES = {
 };
 
 // ---- Market Cap Limits & Early Entry Ceiling ----
-export const MIGRATED_MIN_MC_USD = 28_000;  // 28k minimum for migrated pairs
-export const MAX_MC_USD = 1_500_000;        // 1.5M USD ceiling
-export const MAX_CALL_MC_USD = 1_500_000;   // 1.5M USD hard early-entry ceiling
+export const MIN_CALL_MC_USD = 20_000;       // $20k minimum threshold (user requirement: 20k or up)
+export const MIGRATED_MIN_MC_USD = 20_000;   // $20k minimum
+export const MAX_MC_USD = 100_000_000;       // No upper cap ceiling (MC doesn't matter above 20k)
+export const MAX_CALL_MC_USD = 100_000_000;  // No upper cap ceiling (MC doesn't matter above 20k)
 export const MAX_DEV_HOLDINGS_PCT = 30.0;  // Max 30% dev limit (synced to Axiom devHolding.max = 30)
 export const MAX_SINGLE_HOLDER_PCT = 35.0;
 export const MAX_BUNDLERS_PCT = 35.0;
@@ -112,7 +113,7 @@ export const ACTIVITY_FILTERS = {
 
 export const PONS_DEX_IDS = ['pons', 'pons-amm', 'pons-v2', 'ponsv2'];
 export const ROBINHOOD_DEX_IDS = ['robinhood', 'robinhood-amm', 'robinhoodamm'];
-export const DEXSCREENER_POLL_INTERVAL = 15;
+export const DEXSCREENER_POLL_INTERVAL = 4;
 
 export const PUMPPORTAL_API_KEY = process.env.PUMPPORTAL_API_KEY || '';
 export const PUMPPORTAL_WS_URL = 'wss://pumpportal.fun/api/data';

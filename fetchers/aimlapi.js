@@ -34,7 +34,7 @@ export async function callAimlapi(messages, systemPrompt = null) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(15000),
+            signal: AbortSignal.timeout(3000),
         });
 
         if (resp.ok) {

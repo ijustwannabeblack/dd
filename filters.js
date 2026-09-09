@@ -221,9 +221,10 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const spiderwebLimit = 8.0;
     const minHolders = 10;
 
-    // Gate 0: Early-Entry Max MC Ceiling ($1.5M)
-    if (mcUsd > config.MAX_CALL_MC_USD) {
-        return [false, [`❌ MC too high for early entry: $${Math.round(mcUsd).toLocaleString()} > $${Math.round(config.MAX_CALL_MC_USD).toLocaleString()} ceiling`], 'rejected'];
+    // Gate 0: Min MC Check ($20k+ as requested by user, no upper ceiling)
+    const minCallMc = config.MIN_CALL_MC_USD || 20000;
+    if (mcUsd < minCallMc) {
+        return [false, [`❌ Market Cap below $20k threshold ($${Math.round(mcUsd).toLocaleString()} < $${Math.round(minCallMc).toLocaleString()})`], 'rejected'];
     }
 
     // Gate A: Dev Launch History (Anti-Serial Rugger)

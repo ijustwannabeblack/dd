@@ -384,8 +384,8 @@ async function processCoin(stage, coin, retryCount = 0) {
     if (!mint || seen.has(stageKey) || queued.has(stageKey)) return;
 
     queued.add(stageKey);
-
-    let stats = null;
+    try {
+        let stats = null;
     try {
         stats = await buildStats(coin, stage);
     } catch (e) {
@@ -429,23 +429,12 @@ async function processCoin(stage, coin, retryCount = 0) {
         }
     }
 
-    // Market cap range check
+    // Market cap range check: User requirement -> Must be $20k or up, no upper cap ceiling
     if (!config.IGNORE_MARKET_CAP) {
-        let minMc = 1000.0;
-        let maxMc = config.MAX_CALL_MC_USD || config.MAX_MC_USD || 1_500_000.0;
-        if (stage === 'New Pair') {
-            minMc = 1000.0;
-            maxMc = 70000.0;
-        } else if (stage === 'Final Stretch') {
-            minMc = 25000.0;
-            maxMc = 85000.0;
-        } else if (stage === 'Migrated') {
-            minMc = config.MIGRATED_MIN_MC_USD || 28000.0;
-            maxMc = config.MAX_CALL_MC_USD || config.MAX_MC_USD || 1_500_000.0;
-        }
+        const minMc = config.MIN_CALL_MC_USD || 20000.0;
         const mcVal = Number(stats.market_cap_usd || 0);
-        if (mcVal < minMc || mcVal > maxMc) {
-            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} outside range ($${minMc.toLocaleString()} - $${maxMc.toLocaleString()})`);
+        if (mcVal < minMc) {
+            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} below $20k threshold`);
             broadcastFeedEvent({
                 mint,
                 symbol: stats.symbol || coin.symbol || 'TOKEN',
@@ -457,7 +446,7 @@ async function processCoin(stage, coin, retryCount = 0) {
                 top10_pct: Number(stats.top10_pct || 0),
                 bundlers_pct: Number(stats.bundlers_pct || 0),
                 rugcheck_score: stats.rugcheck_score || 'High Risk',
-                reason: `MC $${mcVal.toLocaleString()} outside range`,
+                reason: `MC $${mcVal.toLocaleString()} below $20k threshold`,
                 source: coin.source || stage
             });
             return;
@@ -604,13 +593,16 @@ async function processCoin(stage, coin, retryCount = 0) {
         source: stats.source || stage
     });
 
-    await sendCallAlertInstantly({
-        stats,
-        embed,
-        stage,
-        alert_type: alertType,
-        stageKey,
-    });
+        await sendCallAlertInstantly({
+            stats,
+            embed,
+            stage,
+            alert_type: alertType,
+            stageKey,
+        });
+    } finally {
+        queued.delete(stageKey);
+    }
 }
 
 // Background Scanners
@@ -620,9 +612,9 @@ async function activeRunnerScanner() {
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 12000));
+            await new Promise(r => setTimeout(r, 3000));
 
-            const resp = await fetch('https://api.dexscreener.com/token-profiles/latest/v1', { signal: AbortSignal.timeout(5000) });
+            const resp = await fetch('https://api.dexscreener.com/token-profiles/latest/v1', { signal: AbortSignal.timeout(4000) });
             if (!resp.ok) continue;
             const profiles = await resp.json();
 
@@ -639,15 +631,14 @@ async function activeRunnerScanner() {
 
                 const mc = Number(pair.market_cap_usd || 0);
                 if (!config.IGNORE_MARKET_CAP) {
-                    const maxCap = config.MAX_CALL_MC_USD || config.MAX_MC_USD || 1500000;
-                    if (mc < 28000 || mc > maxCap) continue;
+                    if (mc < 20000) continue; // User requirement: 20k or up, no upper cap
                 }
 
                 const pcM5 = Number(pair.price_change_m5 || 0);
                 const volM5 = Number(pair.volume_m5 || 0);
                 if (pcM5 < 0.0 && volM5 < 1500.0) continue;
 
-                const stage = mc >= 30000 ? 'Migrated' : 'Final Stretch';
+                const stage = mc >= 28000 ? 'Migrated' : 'Final Stretch';
                 const stageKey = `${stage}:${mint}`;
                 if (seen.has(stageKey) || queued.has(stageKey)) continue;
 
@@ -708,20 +699,20 @@ async function gmgnTrenchesScanner() {
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 45000)); // 45s — stay within GMGN rate limits
+            await new Promise(r => setTimeout(r, 20000)); // 20s fast scan
             const coins = await getGmgnPumpfunTrenches(30).catch(() => []);
             for (const coin of coins) {
                 const mint = coin.mint;
                 if (!mint) continue;
 
-                const stage = Number(coin.market_cap_usd || 0) >= 28000 ? 'Final Stretch' : 'New Pair';
+                const stage = Number(coin.market_cap_usd || 0) >= 20000 ? 'Final Stretch' : 'New Pair';
                 const stageKey = `${stage}:${mint}`;
                 if (seen.has(stageKey) || queued.has(stageKey)) continue;
 
                 processCoin(stage, coin);
             }
         } catch (e) {
-            await new Promise(r => setTimeout(r, 10000));
+            await new Promise(r => setTimeout(r, 5000));
         }
     }
 }
@@ -732,12 +723,12 @@ async function gmgnTrenchesScanner() {
  * with the exact canonical embed and real on-chain stats.
  */
 async function gmgnOpportunityScanner() {
-    await new Promise(r => setTimeout(r, 25000));
+    await new Promise(r => setTimeout(r, 10000));
     console.log('👑 GMGN Opportunity Scanner started (feeds candidate coins through full anti-rug audit).');
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 90000)); // 90s — rate-limit safe
+            await new Promise(r => setTimeout(r, 25000)); // 25s fast scan
 
             // 1. Check KOL Buy Signals
             const signals = await getGmgnKolSignal('sol').catch(() => []);
@@ -759,7 +750,7 @@ async function gmgnOpportunityScanner() {
                 processCoin(stage, coin);
             }
 
-            await new Promise(r => setTimeout(r, 10000));
+            await new Promise(r => setTimeout(r, 5000));
 
             // 2. Check 5m Pump.fun Trending
             const trending = await getGmgnTrendingTokens('5m', 'Pump.fun').catch(() => []);
@@ -781,7 +772,7 @@ async function gmgnOpportunityScanner() {
                 processCoin(stage, coin);
             }
         } catch (e) {
-            await new Promise(r => setTimeout(r, 15000));
+            await new Promise(r => setTimeout(r, 10000));
         }
     }
 }
@@ -791,12 +782,12 @@ async function gmgnOpportunityScanner() {
  * Continuously discovers tokens being cluster-accumulated by multiple smart money degens.
  */
 async function gmgnSmartMoneyScanner() {
-    await new Promise(r => setTimeout(r, 20000));
+    await new Promise(r => setTimeout(r, 12000));
     console.log('🌱 GMGN Smart Money Signal Scanner started (Cluster Buy Signal 12).');
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 75000)); // 75s rate-limit safe interval
+            await new Promise(r => setTimeout(r, 25000)); // 25s fast scan
             const signals = await getGmgnSmartMoneyBuySignals('sol').catch(() => []);
             for (const sig of (signals || []).slice(0, 10)) {
                 const mint = sig.token_address || sig.data?.address || sig.address;
@@ -822,7 +813,7 @@ async function gmgnSmartMoneyScanner() {
                 processCoin(stage, coin);
             }
         } catch (e) {
-            await new Promise(r => setTimeout(r, 15000));
+            await new Promise(r => setTimeout(r, 10000));
         }
     }
 }
@@ -832,19 +823,19 @@ async function gmgnSmartMoneyScanner() {
  * Scans migrated Pump.fun tokens with strict server-side quality filters.
  */
 async function gmgnMigratedQualityScanner() {
-    await new Promise(r => setTimeout(r, 35000));
+    await new Promise(r => setTimeout(r, 15000));
     console.log('💎 GMGN Migrated Quality Screener started (anti-rug server pre-filtered).');
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 90000)); // 90s rate-limit safe interval
+            await new Promise(r => setTimeout(r, 25000)); // 25s fast scan
             const tokens = await getGmgnMigratedQuality('sol', {
-                min_mc: 28000,
-                max_mc: 300000,
-                min_liq: 10000,
-                max_top10: 0.45,
-                max_bundle: 0.25,
-                max_fresh: 0.35
+                min_mc: 20000,
+                max_mc: 100000000,
+                min_liq: 5000,
+                max_top10: 0.50,
+                max_bundle: 0.30,
+                max_fresh: 0.40
             }).catch(() => []);
 
             for (const item of (tokens || []).slice(0, 10)) {
@@ -871,7 +862,7 @@ async function gmgnMigratedQualityScanner() {
                 processCoin(stage, coin);
             }
         } catch (e) {
-            await new Promise(r => setTimeout(r, 15000));
+            await new Promise(r => setTimeout(r, 10000));
         }
     }
 }
@@ -881,12 +872,12 @@ async function gmgnMigratedQualityScanner() {
  * Identifies tokens reaching 80%-95% bonding curve completion with smart money backing.
  */
 async function gmgnNearCompletionScanner() {
-    await new Promise(r => setTimeout(r, 45000));
+    await new Promise(r => setTimeout(r, 18000));
     console.log('⚡ GMGN Near Completion Screener started (80%-95% curve with smart money).');
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 90000)); // 90s rate-limit safe interval
+            await new Promise(r => setTimeout(r, 25000)); // 25s fast scan
             const tokens = await getGmgnNearCompletionTokens('sol', 2).catch(() => []);
 
             for (const item of (tokens || []).slice(0, 10)) {
@@ -912,7 +903,7 @@ async function gmgnNearCompletionScanner() {
                 processCoin(stage, coin);
             }
         } catch (e) {
-            await new Promise(r => setTimeout(r, 15000));
+            await new Promise(r => setTimeout(r, 10000));
         }
     }
 }

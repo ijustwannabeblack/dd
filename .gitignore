@@ -7,6 +7,8 @@ yarn-error.log*
 # Environment & Secrets
 .env
 .env.*
+.env.txt
+*.env*
 !.env.example
 
 # Python cache & artifacts

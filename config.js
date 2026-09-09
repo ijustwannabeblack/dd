@@ -1,8 +1,14 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import fs from 'fs';
+// Load .env — fall back to .env.txt if not found (common on Windows bot-hosting setups)
+if (!fs.existsSync('.env') && fs.existsSync('.env.txt')) {
+    dotenv.config({ path: '.env.txt' });
+} else {
+    dotenv.config();
+}
 
 // ---- Discord ----
-export const DISCORD_BOT_TOKEN   = process.env.DISCORD_BOT_TOKEN || '';
+export const DISCORD_BOT_TOKEN   = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN || '';
 export const TARGET_CHANNEL_ID   = '1540840819790184458';  // Calls Channel
 export const MIGRATED_CHANNEL_ID = '1540840819790184458';  // Calls Channel
 export const PLAIN_CA_CHANNEL_ID = '1541513168239460464';  // Plain CAs Channel
@@ -43,7 +49,7 @@ export const INSIGHTX_API_KEY = process.env.INSIGHTX_API_KEY || (INSIGHTX_API_KE
 export const SOLANATRACKER_API_KEY = process.env.SOLANATRACKER_API_KEY || '505107a5-41ee-4297-ad1b-47f108b2dbe7';
 
 // ---- GMGN API Key ----
-export const GMGN_API_KEY = process.env.GMGN_API_KEY || 'gmgn_451105e5c5754a9183dfc2512287f945';
+export const GMGN_API_KEY = process.env.GMGN_API_KEY || 'gmgn_da06ce8392291430de6f06e5b7f6a30f';
 
 // ---- Chart-IMG API Key ----
 export const CHART_IMG_API_KEY = process.env.CHART_IMG_API_KEY || '6oT4Sl00aa8bB7EtByKIG5kiXzV9atry3tojN1Ag';

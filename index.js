@@ -13,8 +13,12 @@ if (process.env.__MEM_CONSTRAINED !== '1') {
     });
 
     child.on('exit', (code, signal) => {
-        if (signal) process.kill(process.pid, signal);
-        else process.exit(code || 0);
+        try {
+            if (signal) process.kill(process.pid, signal);
+            else process.exit(code || 0);
+        } catch {
+            process.exit(code || 1);
+        }
     });
 } else {
     await import('./bot.js');

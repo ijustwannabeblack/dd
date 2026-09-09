@@ -77,16 +77,40 @@ export async function aiEvaluateToken(stats) {
     const insiders = Number(stats.insiders_pct || 0);
     const riskScore = Number(stats.risk_score || 0);
 
+    // Hard gate: instantly reject any connected bubblemap cluster or bundler ring >= 5%
+    if (clusters >= 5.0) {
+        return {
+            passes: false,
+            score: 1,
+            reason: `InsightX Bubblemap Cluster Risk: Connected bubbles hold ${clusters.toFixed(1)}% (max 5.0%)`,
+            theme: 'Cluster Rug',
+        };
+    }
+    if (bundlers >= 5.0) {
+        return {
+            passes: false,
+            score: 1,
+            reason: `Coordinated Jito Bundler Ring: Bundlers hold ${bundlers.toFixed(1)}% (max 5.0%)`,
+            theme: 'Bundled Launch',
+        };
+    }
+    if ((clusters + bundlers + insiders) >= 8.0) {
+        return {
+            passes: false,
+            score: 1,
+            reason: `Multi-Cluster Spiderweb Ring: Combined clusters hold ${(clusters + bundlers + insiders).toFixed(1)}% (max 8.0%)`,
+            theme: 'Spiderweb Rug',
+        };
+    }
+
     const systemPrompt = [
         'You are an elite Solana memecoin alpha screener and anti-rug auditor.',
-        'REFERENCE AUDIT GUIDE ON BUNDLED LAUNCHES & RUGS:',
-        '- Devs bundle launches on Solana using Jito bundles in Slot 0 across 10–50 fresh sub-wallets all in the exact same millisecond to secretly control 70%+ supply.',
-        '- Red Flags to Check (Axiom & InsightX Atlas):',
-        '  1. Contract Safety: Mint Authority and Freeze Authority must both be Revoked. Liquidity must be 100% locked/burned.',
-        '  2. Slot 0 / Block 0 Sniping: If 15%+ of supply was bought in the same block/millisecond, it is a bundled launch -> REJECT.',
-        '  3. Shared Funders: Early buyers funded by same address/mixer (FixedFloat) minutes before launch -> REJECT.',
-        '  4. InsightX Atlas Spiderweb: Large bubbles connected by transfer lines to a central funder. Single connected cluster >15–20% is high risk; >30% avoid -> REJECT.',
-        '  5. Slop & Narrative: Token must have genuine viral meme appeal, clever concept, or organic crypto narrative. Brainless copycat slop, keyboard mash, or AI deploy spam -> REJECT.',
+        'CRITICAL ANTI-RUG CRITERIA (INSTANT FAIL IF VIOLATED):',
+        '1. InsightX Atlas / Bubblemaps Spiderweb: Any connected cluster holding >= 5%, or any fan-out ring connected to a central funder/deployer -> FAIL.',
+        '2. Jito Bundlers & Snipers: Any token with >= 5% supply bundled or sniped at launch -> FAIL.',
+        '3. Dev Holdings: Dev holds > 5%, or combined dev + insiders hold > 8% -> FAIL.',
+        '4. Top 10 Concentration: Top 10 holders hold > 25% non-pool -> FAIL.',
+        '5. Slop & Low-effort: Brainless copycat slop, keyboard mash tickers, or zero-effort AI deploy spam -> FAIL.',
         '',
         'Return STRICT JSON with keys:',
         '{',

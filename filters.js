@@ -202,24 +202,24 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ Liquidity Pool Unlocked on DEX: Only ${lpLockedPct.toFixed(1)}% locked/burned (High Rug Pull Risk)`], 'rejected'];
     }
 
-    if (dangerRisks.length >= 2) {
-        return [false, [`❌ Critical RugCheck Security Risks: ${dangerRisks.slice(0, 2).join(', ')}`], 'rejected'];
+    if (dangerRisks.length >= 1) {
+        return [false, [`❌ RugCheck Critical Security Risk: ${dangerRisks[0]}`], 'rejected'];
     }
 
     const isLive = Boolean(stats.is_live);
     const liveViewers = Number(stats.live_viewers || 0);
     const hasGoodViewers = Boolean(stats.has_good_viewers) || (isLive && liveViewers >= config.PUMPFUN_MIN_GOOD_VIEWERS);
 
-    // Strict Anti-Rug Dynamic thresholds
-    const devLimit = hasGoodViewers ? 22.0 : 18.0;
-    const devInsiderLimit = hasGoodViewers ? 35.0 : 30.0;
-    const singleLimit = hasGoodViewers ? 25.0 : 20.0;
-    const top10Limit = hasGoodViewers ? 60.0 : 50.0;
-    const bundlerLimit = hasGoodViewers ? 18.0 : 15.0;
-    const sniperLimit = hasGoodViewers ? 18.0 : 15.0;
-    const clusterLimit = hasGoodViewers ? 16.0 : 14.0;
-    const spiderwebLimit = hasGoodViewers ? 25.0 : 22.0;
-    const minHolders = hasGoodViewers ? 6 : 8;
+    // Strict Anti-Rug Dynamic thresholds (blocks bubblemap clusters, spiderwebs & dev dumps)
+    const devLimit = hasGoodViewers ? 8.0 : 6.0;
+    const devInsiderLimit = hasGoodViewers ? 12.0 : 10.0;
+    const singleLimit = hasGoodViewers ? 8.0 : 6.0;
+    const top10Limit = hasGoodViewers ? 30.0 : 25.0;
+    const bundlerLimit = 5.0;
+    const sniperLimit = 6.0;
+    const clusterLimit = 5.0;
+    const spiderwebLimit = 8.0;
+    const minHolders = 10;
 
     // Gate 0: Early-Entry Max MC Ceiling ($1.5M)
     if (mcUsd > config.MAX_CALL_MC_USD) {
@@ -228,20 +228,20 @@ export function evaluateCoin(stats, stage = 'New Pair') {
 
     // Gate B: Dev Holdings
     if (devPct > devLimit) {
-        return [false, [`❌ High Dev Dump Risk: Dev holds ${devPct.toFixed(1)}% (max ${devLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ High Dev Dump Risk: Dev holds ${devPct.toFixed(1)}% (max ${devLimit.toFixed(1)}%)`], 'rejected'];
     }
     if ((devPct + insidersPct) > devInsiderLimit) {
-        return [false, [`❌ Dev + Insider Concentration: Combined dev & insiders hold ${(devPct + insidersPct).toFixed(1)}% (max ${devInsiderLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ Dev + Insider Concentration: Combined dev & insiders hold ${(devPct + insidersPct).toFixed(1)}% (max ${devInsiderLimit.toFixed(1)}%)`], 'rejected'];
     }
 
     // Gate C: Single Whale
     if (singlePct > singleLimit) {
-        return [false, [`❌ Whale Dump Risk: Top non-pool holder holds ${singlePct.toFixed(1)}% (max ${singleLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ Whale Dump Risk: Top non-pool holder holds ${singlePct.toFixed(1)}% (max ${singleLimit.toFixed(1)}%)`], 'rejected'];
     }
 
     // Gate D: Top 10
     if (top10Pct > top10Limit) {
-        return [false, [`❌ High Top-10 Concentration: Top 10 hold ${top10Pct.toFixed(1)}% (max ${top10Limit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ High Top-10 Concentration: Top 10 hold ${top10Pct.toFixed(1)}% (max ${top10Limit.toFixed(1)}%)`], 'rejected'];
     }
 
     // Gate E: Holder Count
@@ -251,10 +251,10 @@ export function evaluateCoin(stats, stage = 'New Pair') {
 
     // Gate F: Bundlers & Snipers
     if (bundlersPct > bundlerLimit) {
-        return [false, [`❌ Coordinated Jito Bundler Ring: Bundlers hold ${bundlersPct.toFixed(1)}% (max ${bundlerLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ Coordinated Jito Bundler Ring: Bundlers hold ${bundlersPct.toFixed(1)}% (max ${bundlerLimit.toFixed(1)}%)`], 'rejected'];
     }
     if (snipersPct > sniperLimit) {
-        return [false, [`❌ Slot 0 / Block 0 Sniping: Snipers hold ${snipersPct.toFixed(1)}% (max ${sniperLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ Slot 0 / Block 0 Sniping: Snipers hold ${snipersPct.toFixed(1)}% (max ${sniperLimit.toFixed(1)}%)`], 'rejected'];
     }
 
     // Gate H: Momentum
@@ -288,31 +288,35 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ Stagnant / Flat Coin: 5m Change ${priceChg5m.toFixed(1)}%, Vol $${Math.round(volM5)} (No clear upward trend)`], 'rejected'];
     }
 
-    // Gate J: InsightX Cluster Evaluation
+    // Gate J: InsightX Cluster & Spiderweb Evaluation
     if (stats.is_sybil_cluster) {
-        return [false, [`❌ Bubblemap Sybil Fan-out Cluster: ${stats.sybil_reason || 'Bot distribution'}`], 'rejected'];
+        return [false, [`❌ Bubblemap Sybil Fan-out Cluster: ${stats.sybil_reason || 'Connected bot network'}`], 'rejected'];
     }
     if (clusterPct > clusterLimit) {
-        return [false, [`❌ InsightX Bubblemap Cluster Risk: Connected bubbles hold ${clusterPct.toFixed(1)}% (max ${clusterLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ Connected Bubblemap Cluster: ${clusterPct.toFixed(1)}% held in connected cluster (max ${clusterLimit.toFixed(1)}%)`], 'rejected'];
     }
 
     const totalClusterRisk = clusterPct + bundlersPct + insidersPct;
     if (totalClusterRisk > spiderwebLimit) {
-        return [false, [`❌ InsightX Multi-Cluster Spiderweb: Combined clusters hold ${totalClusterRisk.toFixed(1)}% (max ${spiderwebLimit.toFixed(0)}%)`], 'rejected'];
+        return [false, [`❌ Multi-Cluster Spiderweb Ring: Combined clusters hold ${totalClusterRisk.toFixed(1)}% (max ${spiderwebLimit.toFixed(1)}%)`], 'rejected'];
     }
 
     // GMGN Checks
     const gmgnRat = Number(stats.gmgn_rat_pct || 0);
-    if (gmgnRat > 5.0) {
-        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 5.0%)`], 'rejected'];
+    if (gmgnRat > 2.0) {
+        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 2.0%)`], 'rejected'];
     }
     const gmgnBundler = Number(stats.gmgn_bundler_pct || 0);
-    if (gmgnBundler > 15.0) {
-        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 15.0%)`], 'rejected'];
+    if (gmgnBundler > 5.0) {
+        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 5.0%)`], 'rejected'];
     }
     const gmgnSusp = Number(stats.gmgn_suspicious_pct || 0);
-    if (gmgnSusp > 8.0) {
-        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max 8.0%)`], 'rejected'];
+    if (gmgnSusp > 3.0) {
+        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max 3.0%)`], 'rejected'];
+    }
+    const gmgnDevTeam = Number(stats.gmgn_dev_team_hold_rate || 0);
+    if (gmgnDevTeam > 5.0) {
+        return [false, [`❌ GMGN Dev Team Holdings: ${gmgnDevTeam.toFixed(1)}% held by dev team (max 5.0%)`], 'rejected'];
     }
 
     // Stage label

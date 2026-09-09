@@ -17,12 +17,29 @@ import {
     getGmgnTokenSecurity,
     getGmgnTopHolders,
     getGmgnWalletHoldings,
+    getGmgnTokenPool,
+    getGmgnKolSignal,
+    getGmgnKolTrades,
+    getGmgnKolHolders,
+    getGmgnDevInfo,
+    getGmgnPumpfunTrending,
     getTwitterUserInfo,
     getHotCryptoNews,
     getDexscreenerData,
 } from './fetchers/index.js';
 import { evaluateCoin } from './filters.js';
 import { PumpPortalStream } from './streams/pumpportal.js';
+
+// ─── Global Crash Guards ──────────────────────────────────────────────────────
+// Prevent stray async errors / rejected promises from killing the bot process
+process.on('unhandledRejection', (reason, promise) => {
+    console.error(`[CRASH GUARD] Unhandled Rejection:`, reason?.message || reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error(`[CRASH GUARD] Uncaught Exception:`, err?.message || err);
+    // Don't exit — log and keep running
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 const AUTHORIZED_DISCORD_USER_ID = '1415022792214052915';
 const SEEN_FILE = path.resolve(process.cwd(), 'seen_mints.json');
@@ -531,12 +548,12 @@ async function ponsRobinhoodScanner() {
 }
 
 async function gmgnTrenchesScanner() {
-    await new Promise(r => setTimeout(r, 12000));
+    await new Promise(r => setTimeout(r, 15000));
     console.log('🌱 GMGN Trenches Scanner started (Pump.fun smart money & anti-rug screener).');
 
     while (true) {
         try {
-            await new Promise(r => setTimeout(r, 20000));
+            await new Promise(r => setTimeout(r, 45000)); // 45s — stay within GMGN rate limits
             const coins = await getGmgnPumpfunTrenches(30).catch(() => []);
             for (const coin of coins) {
                 const mint = coin.mint;
@@ -550,6 +567,66 @@ async function gmgnTrenchesScanner() {
             }
         } catch (e) {
             await new Promise(r => setTimeout(r, 10000));
+        }
+    }
+}
+
+/**
+ * Periodically scans GMGN KOL buy signals & trending tokens.
+ * Only tokens that pass the full anti-rug & AI audit pipeline will be called
+ * with the exact canonical embed and real on-chain stats.
+ */
+async function gmgnOpportunityScanner() {
+    await new Promise(r => setTimeout(r, 25000));
+    console.log('👑 GMGN Opportunity Scanner started (feeds candidate coins through full anti-rug audit).');
+
+    while (true) {
+        try {
+            await new Promise(r => setTimeout(r, 90000)); // 90s — rate-limit safe
+
+            // 1. Check KOL Buy Signals
+            const signals = await getGmgnKolSignal('sol').catch(() => []);
+            for (const sig of (signals || []).slice(0, 5)) {
+                const mint = sig.mint;
+                if (!mint) continue;
+                const stage = 'Migrated';
+                const stageKey = `${stage}:${mint}`;
+                if (seen.has(stageKey) || queued.has(stageKey)) continue;
+
+                const coin = {
+                    mint,
+                    symbol: sig.symbol || 'TOKEN',
+                    name: sig.name || 'Token',
+                    created_timestamp: sig.timestamp || Date.now(),
+                    source: 'kol_signal',
+                };
+                // Full pipeline: buildStats -> evaluateCoin anti-rug -> aiEvaluateToken -> canonical embed
+                processCoin(stage, coin);
+            }
+
+            await new Promise(r => setTimeout(r, 10000));
+
+            // 2. Check 5m Pump.fun Trending
+            const trending = await getGmgnTrendingTokens('5m', 'Pump.fun').catch(() => []);
+            for (const t of (trending || []).slice(0, 3)) {
+                const mint = t.mint;
+                if (!mint) continue;
+                const stage = 'Migrated';
+                const stageKey = `${stage}:${mint}`;
+                if (seen.has(stageKey) || queued.has(stageKey)) continue;
+
+                const coin = {
+                    mint,
+                    symbol: t.symbol || 'TOKEN',
+                    name: t.name || 'Token',
+                    created_timestamp: Date.now(),
+                    source: 'gmgn_trending',
+                };
+                // Full pipeline: buildStats -> evaluateCoin anti-rug -> aiEvaluateToken -> canonical embed
+                processCoin(stage, coin);
+            }
+        } catch (e) {
+            await new Promise(r => setTimeout(r, 15000));
         }
     }
 }
@@ -648,7 +725,6 @@ async function trackCalledCoinsPerformance() {
     }
 }
 
-// Event Listeners
 client.once('clientReady', async () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
     loadSeen();
@@ -675,6 +751,7 @@ client.once('clientReady', async () => {
     ponsRobinhoodScanner();
     gmgnTrenchesScanner();
     trackCalledCoinsPerformance();
+    gmgnOpportunityScanner();
 
     // Start PumpPortal WebSocket Stream
     const stream = new PumpPortalStream({
@@ -738,6 +815,35 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
+    // 0.5. .help command
+    if (content === '.help' || content === '/help') {
+        const helpEmbed = new EmbedBuilder()
+            .setTitle('🤖 Larpifyy Memecoin & GMGN Intelligence Bot')
+            .setDescription(
+                `Welcome! Here are all the available commands:\n\n` +
+                `### 🔎 Token Analysis & Security\n` +
+                `• \`.check <mint>\` — Full audit & InsightX Atlas bubble map\n` +
+                `• \`.mc <mint>\` *(or paste CA)* — Live market cap, price & liquidity\n` +
+                `• \`.predict <mint>\` — AI chart prediction & target MC\n` +
+                `• \`.security <mint>\` — GMGN anti-rug & honeypot audit\n` +
+                `• \`.holders <mint>\` — GMGN Top 100 holders concentration & snipers\n` +
+                `• \`.devinfo <mint>\` — Dev wallet holdings, balance & CTO status\n` +
+                `• \`.pool <mint>\` — Liquidity pool analysis & DEX breakdown\n\n` +
+                `### 👑 KOL & Market Signals\n` +
+                `• \`.signal\` — Latest KOL buy signals (type 13)\n` +
+                `• \`.koltrades [buy|sell]\` — Real-time renowned KOL trades\n` +
+                `• \`.kolholders <mint>\` — Renowned KOL holders ranked by profit\n` +
+                `• \`.kol\` / \`.trenches\` — New tokens bought by >=2 renowned KOLs\n` +
+                `• \`.trending\` — Top 5-minute Solana trending tokens\n` +
+                `• \`.pumptop [1h|5m]\` — Top Pump.fun trending tokens\n` +
+                `• \`.wallet <addr>\` — Check any wallet's portfolio holdings\n` +
+                `• \`.news\` / \`.twitter <handle>\` — Crypto breaking news & X search`
+            )
+            .setColor(0x3B82F6)
+            .setFooter({ text: 'Larpifyy Trading Bot • Type any command with a CA' });
+        return message.channel.send({ embeds: [helpEmbed] });
+    }
+
     // 1. .check <mint> command (InsightX Atlas Audit + Visualizer)
     if (content.startsWith('.check') || content.startsWith('/check')) {
         if (!isPremiumUser(message)) {
@@ -753,7 +859,7 @@ client.on('messageCreate', async (message) => {
         await message.channel.send(`🔎 Scanning token stats & InsightX Atlas audit for \`${mint}\`...`);
 
         try {
-            const stats = await buildStats({ mint }, 'Migrated');
+            const stats = await buildStats({ mint }, 'Migrated', true);
             if (!stats) {
                 return message.channel.send(`❌ Failed to fetch token data for \`${mint}\`.`);
             }
@@ -899,7 +1005,7 @@ client.on('messageCreate', async (message) => {
         await message.channel.send(`🤖 Generating chart & momentum prediction for \`${mint}\`...`);
 
         try {
-            const stats = await buildStats({ mint }, 'Migrated');
+            const stats = await buildStats({ mint }, 'Migrated', true);
             if (!stats) return message.channel.send(`❌ Failed to fetch token data for \`${mint}\`.`);
 
             const pred = stats.chart_prediction || {};
@@ -982,7 +1088,14 @@ client.on('messageCreate', async (message) => {
             lastCaFetchTs.set(targetMint, now);
 
             try {
+                await message.channel.sendTyping();
+                const isExplicitCmd = content.startsWith('.mc') || content.startsWith('/mc');
+                let searchMsg = null;
+                if (isExplicitCmd) {
+                    searchMsg = await message.channel.send(`🔍 Searching market cap & pool data for \`${targetMint}\`...`).catch(() => null);
+                }
                 const pair = await getDexscreenerData(targetMint);
+                if (searchMsg) await searchMsg.delete().catch(() => {});
                 if (!pair) return message.channel.send(`⚠️ No pool found yet for \`${targetMint}\``);
 
                 const mcStr = formatMcUsd(pair.market_cap_usd);
@@ -1012,7 +1125,7 @@ client.on('messageCreate', async (message) => {
         }
         await message.channel.send('🔎 Scanning GMGN for new Solana tokens bought by **>= 2 renowned KOLs** (MC < $100k)...');
         try {
-            const tokens = await getGmgnKolBoughtTokens(2, 100000);
+            const tokens = await getGmgnKolBoughtTokens(2, 100000, true);
             if (!tokens || tokens.length === 0) {
                 return message.channel.send('⚠️ No tokens found matching KOL criteria right now.');
             }
@@ -1020,7 +1133,7 @@ client.on('messageCreate', async (message) => {
             const kolList = tokens.slice(0, 5).map((t, idx) => {
                 const sym = t.symbol || 'TOKEN';
                 const name = t.name || sym;
-                const mc = t.market_cap ? formatMcUsd(t.market_cap) : 'N/A';
+                const mc = t.market_cap_usd ? formatMcUsd(t.market_cap_usd) : (t.market_cap ? formatMcUsd(t.market_cap) : 'N/A');
                 const kols = t.renowned_count || 2;
                 const mint = t.address || t.mint || '';
                 return `**${idx + 1}. [${sym} (${name})](https://dexscreener.com/solana/${mint})**\n` +
@@ -1048,7 +1161,7 @@ client.on('messageCreate', async (message) => {
         }
         await message.channel.send('🔥 Fetching top trending tokens on Solana (5-minute interval via GMGN)...');
         try {
-            const tokens = await getGmgnTrendingTokens('5m');
+            const tokens = await getGmgnTrendingTokens('5m', null, true);
             if (!tokens || tokens.length === 0) {
                 return message.channel.send('⚠️ No trending tokens returned at the moment.');
             }
@@ -1056,10 +1169,10 @@ client.on('messageCreate', async (message) => {
             const trendList = tokens.slice(0, 5).map((t, idx) => {
                 const sym = t.symbol || 'TOKEN';
                 const name = t.name || sym;
-                const mc = t.market_cap ? formatMcUsd(t.market_cap) : 'N/A';
-                const vol = t.volume ? formatMcUsd(t.volume) : 'N/A';
-                const pc = Number(t.price_change_percent || 0);
-                const mint = t.address || t.mint || '';
+                const mc = t.market_cap_usd ? formatMcUsd(t.market_cap_usd) : 'N/A';
+                const vol = t.volume_usd ? formatMcUsd(t.volume_usd) : 'N/A';
+                const pc = Number(t.price_change_pct || 0);
+                const mint = t.mint || '';
                 return `**${idx + 1}. [${sym} (${name})](https://dexscreener.com/solana/${mint})**\n` +
                     `💎 MC: \`${mc}\` · 📊 Vol: \`${vol}\` · 🚀 \`${pc >= 0 ? '+' : ''}${pc.toFixed(1)}%\`\n` +
                     `CA: \`${mint}\``;
@@ -1165,7 +1278,7 @@ client.on('messageCreate', async (message) => {
         const mint = parts[1].trim();
         await message.channel.send(`🛡️ Running GMGN Token Security Check for \`${mint}\`...`);
         try {
-            const sec = await getGmgnTokenSecurity(mint, 'sol');
+            const sec = await getGmgnTokenSecurity(mint, 'sol', true);
             if (!sec.security_checked) {
                 return message.channel.send(`⚠️ Could not retrieve security report for \`${mint}\`.`);
             }
@@ -1213,7 +1326,7 @@ client.on('messageCreate', async (message) => {
         const mint = parts[1].trim();
         await message.channel.send(`👥 Analyzing top holders via GMGN for \`${mint}\`...`);
         try {
-            const data = await getGmgnTopHolders(mint, 'sol');
+            const data = await getGmgnTopHolders(mint, 'sol', true);
             if (!data.holders_checked || data.holders.length === 0) {
                 return message.channel.send(`⚠️ No holder records returned for \`${mint}\`.`);
             }
@@ -1260,7 +1373,7 @@ client.on('messageCreate', async (message) => {
         const wallet = parts[1].trim();
         await message.channel.send(`💼 Fetching portfolio holdings for \`${wallet}\`...`);
         try {
-            const list = await getGmgnWalletHoldings(wallet, 'sol');
+            const list = await getGmgnWalletHoldings(wallet, 'sol', true);
             if (!list || list.length === 0) {
                 return message.channel.send(`ℹ️ No active token holdings found for wallet \`${wallet}\`.`);
             }
@@ -1288,7 +1401,201 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    // 12. Owner Admin Commands (.addpremium, .delpremium, .listpremium)
+    // 12. .pool <mint> — Liquidity Pool Analysis
+    if (content.startsWith('.pool')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.pool');
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) return message.channel.send('⚠️ Usage: `.pool <mint>`');
+        const mint = parts[1].trim();
+        await message.channel.send(`🏊 Fetching liquidity pool data for \`${mint}\`...`);
+        try {
+            const pool = await getGmgnTokenPool(mint, 'sol', true);
+            if (!pool.pool_checked || pool.pools.length === 0) {
+                return message.channel.send(`⚠️ No pool data found for \`${mint}\`.`);
+            }
+            const poolList = pool.pools.slice(0, 5).map((p, i) =>
+                `**${i + 1}.** \`${p.dex}\` — Liq: \`${formatMcUsd(p.liquidity_usd)}\` · Vol 24h: \`${formatMcUsd(p.volume_24h)}\`\n` +
+                `   Pool: \`${p.address ? p.address.slice(0, 20) + '...' : 'N/A'}\``
+            ).join('\n');
+            const poolEmbed = new EmbedBuilder()
+                .setTitle('🏊 LIQUIDITY POOL ANALYSIS')
+                .setDescription(
+                    `**CA:** \`${mint}\`\n\n` +
+                    `💧 **Total Liquidity:** \`${formatMcUsd(pool.total_liquidity_usd)}\`\n` +
+                    `🏛️ **Main DEX:** \`${pool.main_dex}\`\n\n` +
+                    `### Pools:\n${poolList}`
+                )
+                .setColor(0x06B6D4)
+                .setFooter({ text: 'GMGN Liquidity Pool Analysis' });
+            await message.channel.send({ embeds: [poolEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 13. .signal — KOL Call Signal (signal-type 13)
+    if (content.startsWith('.signal')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.signal');
+        await message.channel.send('👑 Fetching latest KOL call signals from GMGN...');
+        try {
+            const signals = await getGmgnKolSignal('sol', true);
+            if (!signals || signals.length === 0) {
+                return message.channel.send('⚠️ No KOL signals found right now.');
+            }
+            const sigList = signals.slice(0, 5).map((s, i) => {
+                const mc = s.market_cap_usd ? formatMcUsd(s.market_cap_usd) : 'N/A';
+                const amt = s.buy_amount_usd ? formatMcUsd(s.buy_amount_usd) : 'N/A';
+                const kol = s.kol_name || s.kol_wallet?.slice(0, 8) + '...' || 'Unknown';
+                return `**${i + 1}. [$${s.symbol || 'TOKEN'}](https://dexscreener.com/solana/${s.mint})**\n` +
+                    `👑 KOL: \`${kol}\` · 💎 MC: \`${mc}\` · 💵 Bought: \`${amt}\`\n` +
+                    `CA: \`${s.mint}\``;
+            }).join('\n\n');
+            const sigEmbed = new EmbedBuilder()
+                .setTitle('👑 GMGN KOL CALL SIGNALS')
+                .setDescription(sigList)
+                .setColor(0xF59E0B)
+                .setFooter({ text: 'GMGN Signal Type 13 — KOL Buys' });
+            await message.channel.send({ embeds: [sigEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 14. .koltrades [buy|sell] — KOL Trade Tracker
+    if (content.startsWith('.koltrades')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.koltrades');
+        const parts = content.split(/\s+/);
+        const side = parts[1] && ['buy', 'sell'].includes(parts[1].toLowerCase()) ? parts[1].toLowerCase() : null;
+        await message.channel.send(`🔍 Fetching KOL trades${side ? ` (${side}s only)` : ''}...`);
+        try {
+            const trades = await getGmgnKolTrades('sol', side, true);
+            if (!trades || trades.length === 0) {
+                return message.channel.send('⚠️ No KOL trades found right now.');
+            }
+            const tradeList = trades.slice(0, 5).map((t, i) => {
+                const mc = t.market_cap_usd ? formatMcUsd(t.market_cap_usd) : 'N/A';
+                const amt = t.amount_usd ? formatMcUsd(t.amount_usd) : 'N/A';
+                const kol = t.kol_name || t.kol_wallet?.slice(0, 8) + '...' || 'Unknown';
+                const sideEmoji = t.side === 'sell' ? '🔴 SELL' : '🟢 BUY';
+                return `**${i + 1}. [$${t.symbol || 'TOKEN'}](https://dexscreener.com/solana/${t.mint})** ${sideEmoji}\n` +
+                    `👑 KOL: \`${kol}\` · 💎 MC: \`${mc}\` · 💵 \`${amt}\`\n` +
+                    `CA: \`${t.mint}\``;
+            }).join('\n\n');
+            const tradeEmbed = new EmbedBuilder()
+                .setTitle(`👑 GMGN KOL TRADES${side ? ` — ${side.toUpperCase()}S` : ''}`)
+                .setDescription(tradeList)
+                .setColor(side === 'sell' ? 0xEF4444 : 0x10B981)
+                .setFooter({ text: 'GMGN KOL Trade Tracker • Usage: .koltrades [buy|sell]' });
+            await message.channel.send({ embeds: [tradeEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 15. .kolholders <mint> — KOL Holders ranked by profit
+    if (content.startsWith('.kolholders')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.kolholders');
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) return message.channel.send('⚠️ Usage: `.kolholders <mint>`');
+        const mint = parts[1].trim();
+        await message.channel.send(`👑 Fetching KOL holders for \`${mint}\` sorted by profit...`);
+        try {
+            const data = await getGmgnKolHolders(mint, 'sol', true);
+            if (!data.kol_holders_checked || data.kol_count === 0) {
+                return message.channel.send(`⚠️ No KOL holders found for \`${mint}\`.`);
+            }
+            const holderList = data.kol_holders.slice(0, 8).map((h, i) => {
+                const addr = h.address ? `${h.address.slice(0, 4)}...${h.address.slice(-4)}` : 'N/A';
+                const profit = h.realized_profit >= 0 ? `+$${Math.round(h.realized_profit).toLocaleString()}` : `-$${Math.abs(Math.round(h.realized_profit)).toLocaleString()}`;
+                return `**${i + 1}.** \`${h.name || addr}\` — **${h.holding_pct.toFixed(2)}%** · Profit: \`${profit}\``;
+            }).join('\n');
+            const kolHEmbed = new EmbedBuilder()
+                .setTitle('👑 KOL HOLDERS ANALYSIS')
+                .setDescription(
+                    `**CA:** \`${mint}\`\n\n` +
+                    `🧠 **KOL Count:** \`${data.kol_count}\`\n` +
+                    `💎 **KOL Total Hold:** \`${data.kol_total_pct.toFixed(2)}%\`\n\n` +
+                    `### KOLs by Realized Profit:\n${holderList}`
+                )
+                .setColor(0xA855F7)
+                .setFooter({ text: 'GMGN KOL Holders Analysis • Sorted by profit' });
+            await message.channel.send({ embeds: [kolHEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 16. .devinfo <mint> — Dev Info Analysis
+    if (content.startsWith('.devinfo')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.devinfo');
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) return message.channel.send('⚠️ Usage: `.devinfo <mint>`');
+        const mint = parts[1].trim();
+        await message.channel.send(`🧑 Fetching dev wallet info for \`${mint}\`...`);
+        try {
+            const dev = await getGmgnDevInfo(mint, 'sol', true);
+            if (!dev.dev_checked) {
+                return message.channel.send(`⚠️ Could not retrieve dev info for \`${mint}\`.`);
+            }
+            const ctoStr = dev.cto_flag === 1 ? '✅ YES (Community Takeover)' : '❌ No';
+            const devAddr = dev.dev_wallet ? `\`${dev.dev_wallet.slice(0, 6)}...${dev.dev_wallet.slice(-4)}\`` : 'Unknown';
+            const devEmbed = new EmbedBuilder()
+                .setTitle('🧑 DEV INFO ANALYSIS')
+                .setDescription(
+                    `**CA:** \`${mint}\`\n\n` +
+                    `👤 **Dev Wallet:** ${devAddr}\n` +
+                    `💰 **Dev Holdings:** \`${dev.dev_hold_pct.toFixed(2)}%\`\n` +
+                    `🏢 **Dev Team Holdings:** \`${dev.dev_team_hold_pct.toFixed(2)}%\`\n` +
+                    `💎 **Dev SOL Balance:** \`${dev.dev_sol_balance} SOL\`\n` +
+                    `🏳️ **CTO Flag:** ${ctoStr}`
+                )
+                .setColor(dev.dev_hold_pct > 10 ? 0xEF4444 : 0x10B981)
+                .setFooter({ text: 'GMGN Dev Info Analysis' });
+            await message.channel.send({ embeds: [devEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 17. .pumptop [1h|5m] — Pump.fun Platform Trending
+    if (content.startsWith('.pumptop')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.pumptop');
+        const parts = content.split(/\s+/);
+        const interval = parts[1] && ['1h', '5m', '6h', '24h'].includes(parts[1]) ? parts[1] : '1h';
+        await message.channel.send(`🚀 Fetching top Pump.fun trending tokens (${interval})...`);
+        try {
+            const tokens = await getGmgnPumpfunTrending(interval, 'Pump.fun', true);
+            if (!tokens || tokens.length === 0) {
+                return message.channel.send('⚠️ No Pump.fun trending tokens returned right now.');
+            }
+            const pumpList = tokens.slice(0, 5).map((t, idx) => {
+                const sym = t.symbol || 'TOKEN';
+                const mc = t.market_cap_usd ? formatMcUsd(t.market_cap_usd) : 'N/A';
+                const vol = t.volume_usd ? formatMcUsd(t.volume_usd) : 'N/A';
+                const pc = Number(t.price_change_pct || 0);
+                const mint = t.mint || '';
+                return `**${idx + 1}. [$${sym}](https://pump.fun/${mint})** — [DEX](https://dexscreener.com/solana/${mint})\n` +
+                    `💎 MC: \`${mc}\` · 📊 Vol: \`${vol}\` · 🚀 \`${pc >= 0 ? '+' : ''}${pc.toFixed(1)}%\`\n` +
+                    `CA: \`${mint}\``;
+            }).join('\n\n');
+            const pumpEmbed = new EmbedBuilder()
+                .setTitle(`🚀 PUMP.FUN TRENDING (${interval.toUpperCase()})`)
+                .setDescription(pumpList)
+                .setColor(0x8B5CF6)
+                .setFooter({ text: `GMGN Pump.fun Trending • Interval: ${interval}` });
+            await message.channel.send({ embeds: [pumpEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 18. Owner Admin Commands (.addpremium, .delpremium, .listpremium)
     if (message.author.id === AUTHORIZED_DISCORD_USER_ID) {
         if (content.startsWith('.addpremium')) {
             const parts = content.split(/\s+/);
@@ -1326,9 +1633,10 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-if (!config.DISCORD_BOT_TOKEN) {
-    console.error('❌ DISCORD_BOT_TOKEN is not set in .env!');
+const discordToken = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN || config.DISCORD_BOT_TOKEN;
+if (!discordToken) {
+    console.error('❌ Neither DISCORD_TOKEN nor DISCORD_BOT_TOKEN is set in environment variables!');
     process.exit(1);
 }
 
-client.login(config.DISCORD_BOT_TOKEN);
+client.login(discordToken);

@@ -12,6 +12,12 @@ import {
     getGmgnPumpfunTrenches,
     getGmgnKolBoughtTokens,
     getGmgnTrendingTokens,
+    getGmgnTokenPool,
+    getGmgnKolSignal,
+    getGmgnKolTrades,
+    getGmgnKolHolders,
+    getGmgnDevInfo,
+    getGmgnPumpfunTrending,
 } from './gmgn.js';
 import { callAimlapi, aiEvaluateToken } from './aimlapi.js';
 import { getTwitterUserInfo, getTwitterUserTweets, searchTwitter, getHotCryptoNews } from './open6551.js';
@@ -33,6 +39,12 @@ export {
     getGmgnPumpfunTrenches,
     getGmgnKolBoughtTokens,
     getGmgnTrendingTokens,
+    getGmgnTokenPool,
+    getGmgnKolSignal,
+    getGmgnKolTrades,
+    getGmgnKolHolders,
+    getGmgnDevInfo,
+    getGmgnPumpfunTrending,
     callAimlapi,
     aiEvaluateToken,
     getTwitterUserInfo,
@@ -145,7 +157,7 @@ export function getChartPrediction(stats, dexPair) {
  * @param {string} stage
  * @returns {Promise<object|null>}
  */
-export async function buildStats(coin, stage = 'Migrated') {
+export async function buildStats(coin, stage = 'Migrated', priority = false) {
     const mint = coin?.mint;
     if (!mint) return null;
 
@@ -164,9 +176,9 @@ export async function buildStats(coin, stage = 'Migrated') {
         getDexscreenerData(mint).catch(() => null),
         getRugcheckReport(mint).catch(() => null),
         getPumpfunLivestreamInfo(mint).catch(() => null),
-        getGmgnTokenInfo(mint, 'sol').catch(() => ({})),
-        getGmgnTokenSecurity(mint, 'sol').catch(() => ({})),
-        getGmgnTopHolders(mint, 'sol').catch(() => ({})),
+        getGmgnTokenInfo(mint, 'sol', priority).catch(() => ({})),
+        priority ? getGmgnTokenSecurity(mint, 'sol', true).catch(() => ({})) : Promise.resolve({}),
+        priority ? getGmgnTopHolders(mint, 'sol', true).catch(() => ({})) : Promise.resolve({}),
         getInsightxMetrics(mint).catch(() => ({})),
     ]);
 
@@ -274,12 +286,32 @@ export async function buildStats(coin, stage = 'Migrated') {
         website_url: dexPair?.website_url || rugcheck?.website_url || '',
     };
 
-    // InsightX Metrics & fallback with GMGN
-    const clusterPct = Number(insightxData.cluster_pct || 0);
+    // Multi-source Cluster, Bundler, and Sybil Fan-out Detection
+    const clusterPct = Math.max(Number(insightxData.cluster_pct || 0), Number(gmgnHoldersData?.suspicious_pct || 0));
     const bundlersPct = Math.max(Number(insightxData.bundlers_pct || 0), Number(gmgnData.gmgn_bundler_pct || 0));
-    const snipersPct = Number(insightxData.snipers_pct || 0);
-    const insidersPct = Math.max(Number(insightxData.insiders_pct || 0), Number(gmgnData.gmgn_insider_pct || 0));
+    const snipersPct = Math.max(Number(insightxData.snipers_pct || 0), Number(gmgnData.gmgn_top70_sniper_pct || 0));
+    const insidersPct = Math.max(Number(insightxData.insiders_pct || 0), Number(gmgnData.gmgn_insider_pct || 0), Number(rugcheck?.insiders_pct || 0));
     const bubblemapUrl = getInsightxAtlasUrl(mint);
+
+    let isSybilCluster = false;
+    let sybilReason = '';
+
+    if (clusterPct >= 5.0) {
+        isSybilCluster = true;
+        sybilReason = `Connected bubblemap cluster holds ${clusterPct.toFixed(1)}% (max 5.0%)`;
+    } else if (bundlersPct >= 5.0) {
+        isSybilCluster = true;
+        sybilReason = `Bundler ring holds ${bundlersPct.toFixed(1)}% (max 5.0%)`;
+    } else if ((clusterPct + bundlersPct + insidersPct) >= 8.0) {
+        isSybilCluster = true;
+        sybilReason = `Combined spiderweb network holds ${(clusterPct + bundlersPct + insidersPct).toFixed(1)}% (max 8.0%)`;
+    } else if (Number(gmgnData.gmgn_bundler_wallets_count || 0) >= 5) {
+        isSybilCluster = true;
+        sybilReason = `Coordinated bundler group (${gmgnData.gmgn_bundler_wallets_count} wallets)`;
+    } else if (Number(gmgnHoldersData?.suspicious_count || 0) >= 3 && Number(gmgnHoldersData?.suspicious_pct || 0) >= 3.0) {
+        isSybilCluster = true;
+        sybilReason = `Multiple suspicious connected wallets (${gmgnHoldersData.suspicious_pct.toFixed(1)}%)`;
+    }
 
     // Icon & Banner URL
     let iconUrl = dexPair?.icon_url || rugcheck?.icon_url || coin.icon_url || null;
@@ -355,6 +387,8 @@ export async function buildStats(coin, stage = 'Migrated') {
         insiders_pct: insidersPct,
         bundlers_pct: bundlersPct,
         cluster_pct: clusterPct,
+        is_sybil_cluster: isSybilCluster,
+        sybil_reason: sybilReason,
         traders_24h: holders,
         total_fees: 0.0,
         smart_traders: Number(gmgnData.gmgn_smart_wallets || 0),

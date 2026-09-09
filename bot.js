@@ -1,5 +1,40 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
+import { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import * as config from './config.js';
+import {
+    buildStats,
+    formatMcUsd,
+    callAimlapi,
+    aiEvaluateToken,
+    renderInsightXAtlas,
+    getInsightxAtlasUrl,
+    getPonsRobinhoodPairs,
+    getGmgnPumpfunTrenches,
+    getGmgnKolBoughtTokens,
+    getGmgnTrendingTokens,
+    getGmgnTokenSecurity,
+    getGmgnTopHolders,
+    getGmgnWalletHoldings,
+    getGmgnTokenPool,
+    getGmgnKolSignal,
+    getGmgnKolTrades,
+    getGmgnKolHolders,
+    getGmgnDevInfo,
+    getGmgnPumpfunTrending,
+    getGmgnDevCreatedTokens,
+    getGmgnMigratedQuality,
+    getGmgnSmartMoneyBuySignals,
+    getGmgnNearCompletionTokens,
+    getGmgnSmartMoneyExitSignals,
+    getGmgnKolBoughtNewTokens,
+    getTwitterUserInfo,
+    getHotCryptoNews,
+    getDexscreenerData,
+} from './fetchers/index.js';
+import { evaluateCoin } from './filters.js';
+import { PumpPortalStream } from './streams/pumpportal.js';
 
 // ─── Global Crash Guards ──────────────────────────────────────────────────────
 // Prevent stray async errors / rejected promises from killing the bot process
@@ -2146,5 +2181,21 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// Add your bot token here
-client.login('YOUR_BOT_TOKEN');
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isButton()) return;
+    if (interaction.customId.startsWith('copy_ca_')) {
+        const mint = interaction.customId.replace('copy_ca_', '');
+        await interaction.reply({
+            content: `📋 **CA:** \`${mint}\``,
+            ephemeral: true,
+        });
+    }
+});
+
+const discordToken = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN || config.DISCORD_BOT_TOKEN;
+if (!discordToken) {
+    console.error('❌ Neither DISCORD_TOKEN nor DISCORD_BOT_TOKEN is set in environment variables!');
+    process.exit(1);
+}
+
+client.login(discordToken);

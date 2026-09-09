@@ -2,6 +2,8 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import http from 'node:http';
 import fs from 'node:fs';
+import * as config from './config.js';
+import { handleCopilotChat } from './fetchers/copilot.js';
 
 // Ring buffer of last 200 tokens seen by the bot
 const recentTokens = [];
@@ -86,6 +88,60 @@ const server = http.createServer((req, res) => {
     if (url.pathname === '/api/health' || url.pathname === '/healthz') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'ok', tokens: recentTokens.length, uptime: process.uptime() }));
+        return;
+    }
+
+    // Copilot Status
+    if (url.pathname === '/api/copilot/status') {
+        const pass = url.searchParams.get('pass') || req.headers['x-admin-pass'];
+        if (pass !== config.ADMIN_PASSWORD) {
+            res.writeHead(401, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ error: 'Unauthorized. Invalid admin passcode.' }));
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({
+            status: 'ok',
+            uptime: process.uptime(),
+            runtimeConfig: config.RUNTIME_CONFIG,
+            hasGithubToken: Boolean(config.GITHUB_TOKEN || process.env.GITHUB_TOKEN),
+            hasGeminiKey: Boolean(config.GEMINI_API_KEY || process.env.GEMINI_API_KEY),
+            hasAimlKey: Boolean(config.AIMLAPI_KEY || process.env.AIMLAPI_KEY),
+        }));
+        return;
+    }
+
+    // Copilot Chat & Autonomous Code Exec
+    if (url.pathname === '/api/copilot/chat' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk;
+            if (body.length > 500000) req.destroy();
+        });
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body || '{}');
+                const password = data.password || req.headers['x-admin-pass'];
+                if (password !== config.ADMIN_PASSWORD) {
+                    res.writeHead(401, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                    res.end(JSON.stringify({ error: 'Invalid admin passcode. Access denied.' }));
+                    return;
+                }
+
+                const result = await handleCopilotChat({
+                    message: data.message || '',
+                    history: data.history || [],
+                    githubToken: data.githubToken || '',
+                    recentTokens
+                });
+
+                res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ success: true, ...result }));
+            } catch (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ error: err.message }));
+            }
+        });
         return;
     }
 

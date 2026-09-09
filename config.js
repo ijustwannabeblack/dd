@@ -128,6 +128,23 @@ export const RUGCHECK_API_KEY = process.env.RUGCHECK_API_KEY || 'fd28c393-45a5-4
 export const AIMLAPI_KEY = process.env.AIMLAPI_KEY || '';
 export const AIMLAPI_BASE_URL = 'https://api.aimlapi.com/v1';
 export const AI_MODEL = 'gpt-4o-mini';
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 export const MIGRATION_MARKET_CAP_SOL = 85;
 export const FINAL_STRETCH_THRESHOLD_PCT = 0.85;
+
+// ---- Remote Copilot & Cloud Deploy Settings ----
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'blacklarp1';
+export const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
+export const GITHUB_REPO = process.env.GITHUB_REPO || 'ijustwannabeblack/dd';
+
+// Mutable runtime overrides for live copilot adjustments without restarting
+export const RUNTIME_CONFIG = {
+    min_call_mc_usd: MIN_CALL_MC_USD,
+    migrated_min_mc_usd: MIGRATED_MIN_MC_USD,
+    max_mc_usd: MAX_MC_USD,
+    max_dev_holdings_pct: MAX_DEV_HOLDINGS_PCT,
+    max_bundlers_pct: MAX_BUNDLERS_PCT,
+    max_top10_nonpool_pct: MAX_TOP10_NONPOOL_PCT,
+};
+

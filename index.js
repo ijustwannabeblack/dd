@@ -106,12 +106,22 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // Bot Avatar Endpoint
+    if (url.pathname === '/avatar.jpg' || url.pathname === '/avatar.png') {
+        const avatarPath = path.resolve(process.cwd(), 'larpifyy_avatar.jpg');
+        if (fs.existsSync(avatarPath)) {
+            res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400' });
+            fs.createReadStream(avatarPath).pipe(res);
+            return;
+        }
+    }
+
     // Copilot Chat & Autonomous Code Exec
     if (url.pathname === '/api/copilot/chat' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => {
             body += chunk;
-            if (body.length > 500000) req.destroy();
+            if (body.length > 15000000) req.destroy(); // Allow up to 15MB for base64 images
         });
         req.on('end', async () => {
             try {
@@ -120,7 +130,8 @@ const server = http.createServer((req, res) => {
                     message: data.message || '',
                     history: data.history || [],
                     githubToken: data.githubToken || config.GITHUB_TOKEN || process.env.GITHUB_TOKEN || '',
-                    recentTokens
+                    recentTokens,
+                    image: data.image || null,
                 });
 
                 res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });

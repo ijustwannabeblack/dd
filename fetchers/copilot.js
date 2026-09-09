@@ -8,16 +8,30 @@ const execPromise = util.promisify(exec);
 
 /**
  * Call Gemini Flash or AIMLAPI (OpenAI-compatible) to get LLM response.
+ * Supports text and attached images (multimodal analysis).
  */
-async function callLLM(systemPrompt, messages) {
+async function callLLM(systemPrompt, messages, image = null) {
     const aimlKey = (config.AIMLAPI_KEY || process.env.AIMLAPI_KEY || '').trim();
     const geminiKey = (config.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '').trim();
 
-    // 1. Primary: AIMLAPI / OpenAI (Fast & reliable gpt-4o-mini)
+    // 1. Primary: AIMLAPI / OpenAI (Fast & reliable gpt-4o-mini with vision)
     if (aimlKey) {
         try {
             const url = `${config.AIMLAPI_BASE_URL || 'https://api.aimlapi.com/v1'}/chat/completions`;
             const fullMessages = [{ role: 'system', content: systemPrompt }, ...messages];
+
+            const aimlMessages = fullMessages.map((m, idx) => {
+                if (idx === fullMessages.length - 1 && image && m.role === 'user') {
+                    return {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: m.content || 'Analyze this attached image.' },
+                            { type: 'image_url', image_url: { url: image } }
+                        ]
+                    };
+                }
+                return m;
+            });
 
             const resp = await fetch(url, {
                 method: 'POST',
@@ -27,7 +41,7 @@ async function callLLM(systemPrompt, messages) {
                 },
                 body: JSON.stringify({
                     model: config.AI_MODEL || 'gpt-4o-mini',
-                    messages: fullMessages,
+                    messages: aimlMessages,
                     temperature: 0.3,
                     max_tokens: 2048,
                 }),
@@ -46,15 +60,33 @@ async function callLLM(systemPrompt, messages) {
         }
     }
 
-    // 2. Fallback: Google Gemini API
-    // Fallback: Google Gemini API if AIMLAPI failed or missing
+    // 2. Fallback: Google Gemini API (Multimodal Gemini 2.5 Flash)
     if (geminiKey) {
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
-            const contents = messages.map(msg => ({
-                role: msg.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: msg.content }]
-            }));
+            let mimeType = 'image/jpeg';
+            let b64 = image;
+            if (image && image.startsWith('data:')) {
+                const parts = image.split(';base64,');
+                mimeType = parts[0].replace('data:', '');
+                b64 = parts[1];
+            }
+
+            const contents = messages.map((msg, idx) => {
+                const parts = [{ text: msg.content || 'Analyze this attached image.' }];
+                if (idx === messages.length - 1 && msg.role === 'user' && image && b64) {
+                    parts.push({
+                        inline_data: {
+                            mime_type: mimeType,
+                            data: b64
+                        }
+                    });
+                }
+                return {
+                    role: msg.role === 'assistant' ? 'model' : 'user',
+                    parts
+                };
+            });
 
             const resp = await fetch(url, {
                 method: 'POST',
@@ -64,7 +96,7 @@ async function callLLM(systemPrompt, messages) {
                     contents,
                     generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
                 }),
-                signal: AbortSignal.timeout(5000)
+                signal: AbortSignal.timeout(6000)
             });
 
             if (resp.ok) {
@@ -140,7 +172,7 @@ async function commitToGitHub(filePath, content, commitMsg, token, repo = config
 /**
  * Main handler for Copilot Chat
  */
-export async function handleCopilotChat({ message, history = [], githubToken = '', recentTokens = [] }) {
+export async function handleCopilotChat({ message, history = [], githubToken = '', recentTokens = [], image = null }) {
     const cwd = process.cwd();
     const token = (githubToken || config.GITHUB_TOKEN || process.env.GITHUB_TOKEN || '').trim();
     const repo = config.GITHUB_REPO || 'ijustwannabeblack/dd';
@@ -161,9 +193,10 @@ export async function handleCopilotChat({ message, history = [], githubToken = '
         `• [${t.symbol || 'UNK'}] MC: $${Math.round(t.market_cap_usd || 0)} | Status: ${t.status} | Reason: ${t.reason || 'N/A'}`
     ).join('\n');
 
-    const systemPrompt = `You are the DD Solana Radar Autonomous Engineer & Copilot.
+    const systemPrompt = `You are Larpifyy, the autonomous Solana Radar Engineer & Copilot.
 You assist the user with monitoring, tweaking, and coding their Solana caller and sniper bot directly from their remote web dashboard.
 The user is often on their phone away from their PC.
+You can analyze text, code, token metrics, and attached images (charts, bubblemap clusters, screenshots).
 
 CURRENT LIVE BOT CONFIG:
 ${JSON.stringify(currentConfigSummary, null, 2)}
@@ -215,10 +248,11 @@ CRITICAL INSTRUCTIONS:
 - When the user asks to restart the bot or recycle scanners, output the \`restart_bot\` block.
 - Keep explanations concise, professional, and formatted in clean markdown.
 - Highlight git commit hashes and link to the commit if pushed.
+- If an image is attached (chart, bubblemap, error log), analyze it thoroughly and give direct feedback.
 - If the user asks general questions about why coins failed or how the bot works, reference the live parameters and anti-rug rules (sybil bubblemap cluster < 5%, bundlers < 5%, dev < 30%, Raydium LP pool excluded from whale count).`;
 
     // 1st LLM Pass
-    const llmRes = await callLLM(systemPrompt, [...history, { role: 'user', content: message }]);
+    const llmRes = await callLLM(systemPrompt, [...history, { role: 'user', content: message }], image);
     if (!llmRes) {
         return {
             reply: '⚠️ Unable to connect to AI engine (no valid `GEMINI_API_KEY` or `AIMLAPI_KEY` available).',

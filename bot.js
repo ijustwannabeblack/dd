@@ -312,7 +312,7 @@ function buildMigratedEmbed(stats) {
                 inline: false
             }
         )
-        .setFooter({ text: 'DD Terminal • Solana Real-Time Intelligence' })
+        .setFooter({ text: 'Larpifyy • Solana Real-Time Intelligence' })
         .setTimestamp();
 
     if (stats.icon_url) {
@@ -1023,6 +1023,16 @@ async function trackCalledCoinsPerformance() {
 
 client.once('clientReady', async () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
+    try {
+        if (client.user.username !== 'Larpifyy') {
+            await client.user.setUsername('Larpifyy').catch(e => console.warn(`[Bot] setUsername: ${e.message}`));
+        }
+        const avatarPath = path.resolve(process.cwd(), 'larpifyy_avatar.jpg');
+        if (fs.existsSync(avatarPath)) {
+            await client.user.setAvatar(avatarPath).catch(e => console.warn(`[Bot] setAvatar: ${e.message}`));
+        }
+    } catch {}
+
     loadSeen();
     loadTrackers();
 

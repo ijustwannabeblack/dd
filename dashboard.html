@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>DD Copilot</title>
+    <title>Larpifyy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -73,30 +73,37 @@
         }
 
         .avatar {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3390ec, #1d74c9);
+            background: #17212b;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            font-size: 15px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
             flex-shrink: 0;
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
         }
 
         .avatar-dot {
             position: absolute;
-            bottom: 1px;
-            right: 1px;
-            width: 10px;
-            height: 10px;
+            bottom: 0px;
+            right: 0px;
+            width: 11px;
+            height: 11px;
             background: var(--tg-online);
             border: 2px solid var(--tg-header);
             border-radius: 50%;
+            box-shadow: 0 0 6px rgba(79, 174, 78, 0.7);
         }
 
         .profile-info {
@@ -545,6 +552,169 @@
             transform: scale(0.98);
         }
 
+        /* Image attachment preview in messages */
+        .bubble-img-container {
+            margin: 4px 0 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 320px;
+            cursor: pointer;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .bubble-img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+            transition: transform 0.15s;
+        }
+
+        .bubble-img:hover {
+            transform: scale(1.02);
+            opacity: 0.95;
+        }
+
+        /* Image Attachment Preview Bar above input */
+        .attachment-preview-bar {
+            display: none;
+            padding: 8px 14px;
+            background: #141c26;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            align-items: center;
+            gap: 12px;
+            z-index: 101;
+            flex-shrink: 0;
+            animation: slideUp 0.15s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .attachment-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .attachment-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .attachment-name {
+            font-size: 12.5px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .attachment-size {
+            font-size: 11px;
+            color: var(--tg-text-secondary);
+        }
+
+        .btn-remove-attachment {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: background 0.12s;
+        }
+
+        .btn-remove-attachment:hover {
+            background: rgba(239, 68, 68, 0.6);
+        }
+
+        /* Paperclip attach button */
+        .btn-attach {
+            background: transparent;
+            border: none;
+            color: var(--tg-text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.15s, background 0.15s;
+            flex-shrink: 0;
+        }
+
+        .btn-attach:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-attach svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Lightbox modal for viewing images */
+        #lightbox-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            padding: 24px;
+        }
+
+        #lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85);
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         /* ─── Telegram Bottom Input Bar ──────────────────────────────── */
         .input-bar {
             background: var(--tg-surface);
@@ -761,12 +931,12 @@
     <header>
         <div class="header-profile" id="header-profile">
             <div class="avatar">
-                <span>DD</span>
+                <img id="header-avatar-img" class="avatar-img" src="/avatar.jpg" onerror="this.src='https://cdn.discordapp.com/attachments/1526175746169503854/1541165902156791869/86910bfb-61b5-4a7a-abde-0971ab4618b6.jpg?ex=6aa30398&is=6aa1b218&hm=1576e11c235eb8cd1529a64a6fdd2c71bd51ed26a36c9ae3c4a03aadc42bcbcc&'" alt="Larpifyy" />
                 <div class="avatar-dot"></div>
             </div>
             <div class="profile-info">
                 <div class="profile-title-row">
-                    <span class="profile-name">DD AI Copilot</span>
+                    <span class="profile-name">Larpifyy</span>
                     <span class="verified-badge">✓</span>
                 </div>
                 <div class="profile-status">
@@ -805,13 +975,13 @@
             </div>
 
             <div class="chat-scroll" id="chat-stream">
-                <div class="service-badge">DD Autonomous Bot Agent</div>
+                <div class="service-badge">Larpifyy Autonomous Copilot</div>
 
                 <!-- Welcome Message with Telegram Bot Inline Buttons -->
                 <div class="message-row assistant">
                     <div class="bubble assistant">
-                        <p>👋 <b>DD AI Copilot is live.</b></p>
-                        <p>I can adjust live bot parameters in real-time, inspect why tokens were called or rejected, or rewrite code and commit it directly to GitHub while you're away from your PC.</p>
+                        <p>👋 <b>Larpifyy is live.</b></p>
+                        <p>I can inspect tokens and charts, analyze attached images or screenshots, adjust live bot parameters in real-time, or rewrite code and commit it directly to GitHub while you're away from your PC.</p>
                         
                         <div class="inline-keyboard">
                             <button class="inline-btn" data-action="toggle-chart">📈 Live Chart</button>
@@ -830,10 +1000,25 @@
                 </div>
             </div>
 
+            <!-- Attached Image Preview Bar -->
+            <div id="attachment-preview-bar" class="attachment-preview-bar">
+                <img id="attachment-thumb" class="attachment-thumb" src="" alt="preview" />
+                <div class="attachment-info">
+                    <span id="attachment-name" class="attachment-name">image.png</span>
+                    <span id="attachment-size" class="attachment-size">0 KB</span>
+                </div>
+                <button id="btn-remove-attachment" class="btn-remove-attachment" title="Remove attachment">✕</button>
+            </div>
+
             <!-- Input Bar (Telegram Web Style) -->
             <div class="input-bar">
+                <button class="btn-attach" id="btn-attach-file" title="Attach Image (or paste / drag)">
+                    <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3.5 3.5 0 0 0 7 0V5a4.5 4.5 0 0 0-9 0v12.5c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-2z"/></svg>
+                </button>
+                <input type="file" id="file-input" accept="image/*" style="display: none;" />
+
                 <div class="input-wrapper">
-                    <textarea id="chat-input" class="chat-input" placeholder="Message DD Copilot..." rows="1"></textarea>
+                    <textarea id="chat-input" class="chat-input" placeholder="Message Larpifyy..." rows="1"></textarea>
                 </div>
                 <button class="send-btn" id="btn-send" title="Send message">
                     <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -901,6 +1086,12 @@
                 <button class="btn-modal btn-primary" id="btn-save-modal">Save</button>
             </div>
         </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="lightbox-modal">
+        <button class="lightbox-close" id="btn-close-lightbox">✕</button>
+        <img id="lightbox-img" src="" alt="Enlarged view" />
     </div>
 
     <!-- JavaScript Controller -->
@@ -1011,14 +1202,128 @@
                 return html;
             }
 
-            function appendMessage(role, text, actions = []) {
+            // ─── Image Attachment & Lightbox Engine ──────────────────────
+            let attachedImageBase64 = null;
+            let attachedImageName = '';
+            let attachedImageSize = 0;
+
+            const btnAttachFile = document.getElementById('btn-attach-file');
+            const fileInput = document.getElementById('file-input');
+            const attachmentBar = document.getElementById('attachment-preview-bar');
+            const attachmentThumb = document.getElementById('attachment-thumb');
+            const attachmentNameEl = document.getElementById('attachment-name');
+            const attachmentSizeEl = document.getElementById('attachment-size');
+            const btnRemoveAttachment = document.getElementById('btn-remove-attachment');
+
+            const lightboxModal = document.getElementById('lightbox-modal');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const btnCloseLightbox = document.getElementById('btn-close-lightbox');
+
+            function formatBytes(bytes) {
+                if (!bytes) return '0 KB';
+                if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+                return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+            }
+
+            function setAttachedImage(file) {
+                if (!file || !file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    attachedImageBase64 = e.target.result;
+                    attachedImageName = file.name || 'image.png';
+                    attachedImageSize = file.size || 0;
+
+                    attachmentThumb.src = attachedImageBase64;
+                    attachmentNameEl.innerText = attachedImageName;
+                    attachmentSizeEl.innerText = formatBytes(attachedImageSize);
+                    attachmentBar.style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function clearAttachedImage() {
+                attachedImageBase64 = null;
+                attachedImageName = '';
+                attachedImageSize = 0;
+                attachmentThumb.src = '';
+                fileInput.value = '';
+                attachmentBar.style.display = 'none';
+            }
+
+            btnAttachFile.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    setAttachedImage(e.target.files[0]);
+                }
+            });
+
+            btnRemoveAttachment.addEventListener('click', clearAttachedImage);
+
+            // Clipboard Paste support (Ctrl+V)
+            window.addEventListener('paste', (e) => {
+                const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+                if (!items) return;
+                for (const item of items) {
+                    if (item.type && item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        if (file) {
+                            setAttachedImage(file);
+                            e.preventDefault();
+                            break;
+                        }
+                    }
+                }
+            });
+
+            // Drag and Drop support
+            window.addEventListener('dragover', (e) => e.preventDefault());
+            window.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        setAttachedImage(file);
+                    }
+                }
+            });
+
+            // Lightbox Modal
+            function openLightbox(src) {
+                lightboxImg.src = src;
+                lightboxModal.style.display = 'flex';
+            }
+            function closeLightbox() {
+                lightboxModal.style.display = 'none';
+                lightboxImg.src = '';
+            }
+            btnCloseLightbox.addEventListener('click', closeLightbox);
+            lightboxModal.addEventListener('click', (e) => {
+                if (e.target === lightboxModal) closeLightbox();
+            });
+
+            // Clicking any image in chat opens lightbox
+            chatStream.addEventListener('click', (e) => {
+                const imgWrap = e.target.closest('.bubble-img-container');
+                if (imgWrap) {
+                    const src = imgWrap.getAttribute('data-full') || imgWrap.querySelector('img')?.src;
+                    if (src) openLightbox(src);
+                }
+            });
+
+            function appendMessage(role, text, actions = [], imageBase64 = null) {
                 const row = document.createElement('div');
                 row.className = `message-row ${role}`;
 
                 const bubble = document.createElement('div');
                 bubble.className = `bubble ${role}`;
 
-                let html = formatMarkdown(text);
+                let html = '';
+
+                if (imageBase64) {
+                    html += `<div class="bubble-img-container" data-full="${imageBase64}"><img src="${imageBase64}" class="bubble-img" alt="attachment" /></div>`;
+                }
+
+                html += formatMarkdown(text);
 
                 if (actions && actions.length > 0) {
                     html += '<div class="action-tags">';
@@ -1061,12 +1366,20 @@
             // Send Message
             async function sendMessage(text) {
                 const prompt = (text || chatInput.value).trim();
-                if (!prompt) return;
+                const imageToSend = attachedImageBase64;
+                if (!prompt && !imageToSend) return;
 
-                appendMessage('user', prompt);
+                appendMessage('user', prompt, [], imageToSend);
                 chatInput.value = '';
                 chatInput.style.height = '22px';
                 btnSend.disabled = true;
+                clearAttachedImage();
+
+                // If prompt contains Solana CA, auto load the chart!
+                const caMatch = prompt.match(/\b([1-9A-HJ-NP-Za-km-z]{32,44})\b/);
+                if (caMatch && caMatch[1] && (caMatch[1].endsWith('pump') || caMatch[1].length >= 43)) {
+                    applyNewChartCa(caMatch[1]);
+                }
 
                 const typing = showTyping();
 
@@ -1075,10 +1388,11 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message: prompt,
+                            message: prompt || 'Analyze this attached image.',
                             history: chatHistory.slice(-8),
                             password: 'blacklarp1',
-                            githubToken: currentGithubToken
+                            githubToken: currentGithubToken,
+                            image: imageToSend
                         })
                     });
 
@@ -1086,7 +1400,7 @@
 
                     if (res.ok) {
                         const data = await res.json();
-                        chatHistory.push({ role: 'user', content: prompt });
+                        chatHistory.push({ role: 'user', content: prompt || 'Attached image' });
                         chatHistory.push({ role: 'assistant', content: data.reply });
                         appendMessage('assistant', data.reply, data.actions);
 

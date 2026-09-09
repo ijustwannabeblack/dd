@@ -185,16 +185,17 @@ function isPremiumUser(message) {
 
 function sendPremiumRequiredNotice(message, cmdName) {
     const embed = new EmbedBuilder()
-        .setTitle('🔒 Premium Access Required')
+        .setTitle('ACCESS RESTRICTED // PREMIUM REQUIRED')
         .setDescription(
-            `The \`${cmdName}\` command is exclusively available to **Premium** users.\n\n` +
-            `💎 **How to unlock access:**\n` +
+            `The command \`${cmdName}\` requires an active **Premium Intelligence** tier.\n\n` +
+            `**Eligibility:**\n` +
             `• Hold the **Premium** or **VIP** Discord role, or\n` +
-            `• Have your user ID whitelisted by the bot owner.\n\n` +
-            `*Contact <@${AUTHORIZED_DISCORD_USER_ID}> to get Premium access.*`
+            `• Have your user ID whitelisted by the bot administrator.\n\n` +
+            `*Contact <@${AUTHORIZED_DISCORD_USER_ID}> for activation.*`
         )
         .setColor(0xF59E0B)
-        .setFooter({ text: 'Larpifyy Premium Intelligence' });
+        .setFooter({ text: 'DD Terminal • Access Control' })
+        .setTimestamp();
 
     return message.channel.send({ embeds: [embed] });
 }
@@ -212,7 +213,7 @@ function copyCaToClipboard(mint) {
 }
 
 /**
- * Builds the canonical Discord call embed matching user's exact specification.
+ * Builds the canonical Discord call embed with professional institutional layout.
  */
 function buildMigratedEmbed(stats) {
     const name = stats.name || 'Token';
@@ -254,54 +255,68 @@ function buildMigratedEmbed(stats) {
     const pumpUrl = `https://pump.fun/${mint}`;
     const titleUrl = dexUrl.includes('dexscreener') ? dexUrl : pumpUrl;
     const bmapUrl = stats.bubblemap_url || getInsightxAtlasUrl(mint);
-    const websiteUrl = stats.website_url || titleUrl;
-    const twitterUrl = stats.twitter_url || titleUrl;
+    const gmgnUrl = `https://gmgn.ai/sol/token/${mint}`;
+    const axiomUrl = `https://axiom.trade/pair/${mint}`;
 
     const protoBadge = stats.source === 'pons' ? '🅿 ' : (stats.source === 'robinhood' ? '🤝 ' : '');
-    const titleText = `${protoBadge}[${name}] [${mcStr}/${priceChangeM5 >= 0 ? '+' : ''}${priceChangeM5.toFixed(1)}%] - ${symbol}/SOL`;
+    const titleText = `${protoBadge}[${name}] [${mcStr} / ${priceChangeM5 >= 0 ? '+' : ''}${priceChangeM5.toFixed(1)}%] • ${symbol}/SOL`;
 
-    const descLines = [];
-    if (stats.is_live) {
-        const viewers = Number(stats.live_viewers || 0);
-        const hype = viewers >= 8 ? ' 🔥 (Good Viewers)' : '';
-        descLines.push(`🔴 **LIVE ON PUMP.FUN:** [${viewers} Viewers](${pumpUrl})${hype}\n`);
-    }
-
-    const networkBadge = stats.network_badge || '<:solana:1546954132424753182> Solana @ Pump.fun';
-
-    descLines.push(
-        `${networkBadge}\n`,
-        `💰 **USD:** \`${priceStr}\``,
-        `💎 **MC / FDV:** \`${mcStr}\` / \`${fdvStr}\` \`[${ageStr}]\``,
-        `💧 **Liq:** \`${liqStr}\` \`[x1]\``,
-        `📊 **Vol:** \`${volStr}\` · **Age:** \`${ageStr}\`\n`
-    );
+    const liveTag = stats.is_live ? ` • **LIVE** (${stats.live_viewers || 0} viewers)` : '';
+    const networkBadge = stats.network_badge || 'Solana @ Pump.fun';
+    const headerBadge = `\`${networkBadge}\`${liveTag}`;
 
     const kolCount = Number(stats.gmgn_renowned_wallets || 0);
     const smartCount = Number(stats.gmgn_smart_wallets || stats.smart_traders || 0);
-    const proTraders = stats.pro_traders || 'None Detected';
-
-    const badges = [];
-    if (kolCount > 0) badges.push(`👑 **KOL Buyers:** \`${kolCount}\``);
-    if (smartCount > 0) badges.push(`🧠 **Smart Money:** \`${smartCount}\``);
-    if (proTraders && proTraders !== 'None Detected') badges.push(`🎯 **Pro Traders:** \`${proTraders}\``);
-
-    if (badges.length > 0) {
-        descLines.push(badges.join(' · ') + '\n');
-    }
-
-    descLines.push(
-        `📈 **Chart:** [DEX](${dexUrl}) · [DEF](https://defined.fi/sol/${mint}) · [Axiom](https://axiom.trade/pair/${mint})`,
-        `🚘 **More:** [InsightX Atlas](${bmapUrl}) · [Web](${websiteUrl}) · [𝕏](${twitterUrl}) · [Lore](${pumpUrl})\n`,
-        `📋 **CA (tap to copy on mobile):**\n\`${mint}\``
-    );
 
     const embed = new EmbedBuilder()
         .setTitle(titleText)
         .setURL(titleUrl)
-        .setDescription(descLines.join('\n'))
-        .setColor(0xFF8C00)
-        .setFooter({ text: 'dyor before buying any call' });
+        .setDescription(headerBadge)
+        .setColor(0x10B981)
+        .addFields(
+            {
+                name: 'Valuation',
+                value: `MC: \`${mcStr}\`\nFDV: \`${fdvStr}\`\nUSD: \`$${priceStr}\``,
+                inline: true
+            },
+            {
+                name: 'Trading & Liq',
+                value: `Liq: \`${liqStr}\`\nVol 1H: \`${volStr}\`\nAge: \`${ageStr}\``,
+                inline: true
+            },
+            {
+                name: 'Distribution',
+                value: `Holders: \`${Number(stats.holders || 0).toLocaleString()}\`\nTop 10: \`${Number(stats.top10_holders_pct || stats.top10_pct || 0).toFixed(1)}%\`\nDev: \`${Number(stats.dev_holdings_pct || 0).toFixed(1)}%\``,
+                inline: true
+            },
+            {
+                name: 'Anti-Rug Security',
+                value: `Clusters: \`${Number(stats.cluster_pct || 0).toFixed(1)}%\`\nBundlers: \`${Number(stats.bundlers_pct || 0).toFixed(1)}%\`\nLP: \`${stats.lp_burned ? 'Burned' : 'Locked'}\``,
+                inline: true
+            },
+            {
+                name: 'Smart Money & KOLs',
+                value: `Smart: \`${smartCount}\`\nKOLs: \`${kolCount}\`\nSnipers: \`${Number(stats.snipers_pct || 0).toFixed(1)}%\``,
+                inline: true
+            },
+            {
+                name: 'Dev History',
+                value: `Launched: \`${stats.dev_created_count ?? 'N/A'}\`\nMigrated: \`${stats.dev_migration_rate !== undefined ? `${stats.dev_migration_rate}%` : 'N/A'}\`\nATH: \`${stats.dev_highest_ath_mc ? formatMcUsd(stats.dev_highest_ath_mc) : 'N/A'}\``,
+                inline: true
+            },
+            {
+                name: 'Quick Links',
+                value: `[DexScreener](${dexUrl})  •  [Axiom](${axiomUrl})  •  [GMGN](${gmgnUrl})  •  [InsightX Atlas](${bmapUrl})  •  [Pump.fun](${pumpUrl})`,
+                inline: false
+            },
+            {
+                name: 'Contract Address (tap to copy)',
+                value: `\`${mint}\``,
+                inline: false
+            }
+        )
+        .setFooter({ text: 'DD Terminal • Solana Real-Time Intelligence' })
+        .setTimestamp();
 
     if (stats.icon_url) {
         embed.setThumbnail(stats.icon_url);
@@ -923,9 +938,19 @@ async function trackCalledCoinsPerformance() {
                         const currStr = `${formatMcUsd(Math.max(currMc, athMc))} MC`;
 
                         const winEmbed = new EmbedBuilder()
-                            .setTitle('🏆 PROFIT UPDATE')
-                            .setDescription(`**${symbol}** — ${calledStr} → ${currStr} ${mult.toFixed(2)}x`)
-                            .setColor(0xFF8C00);
+                            .setTitle(`PROFIT TARGET REACHED // $${symbol}`)
+                            .setURL(`https://dexscreener.com/solana/${mint}`)
+                            .setDescription(`Target multiple achieved from initial call valuation.`)
+                            .setColor(0x10B981)
+                            .addFields(
+                                { name: 'Initial Call', value: `\`${calledStr}\``, inline: true },
+                                { name: 'Current Valuation', value: `\`${currStr}\``, inline: true },
+                                { name: 'Return Multiplier', value: `\`+${((mult - 1) * 100).toFixed(0)}% (${mult.toFixed(2)}x)\``, inline: true },
+                                { name: 'Quick Links', value: `[DexScreener](https://dexscreener.com/solana/${mint})  •  [GMGN](https://gmgn.ai/sol/token/${mint})  •  [Axiom](https://axiom.trade/pair/${mint})`, inline: false },
+                                { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                            )
+                            .setFooter({ text: 'DD Terminal • Performance Tracker' })
+                            .setTimestamp();
 
                         const wChan = winsChannel || client.channels.cache.get(String(config.WINS_CHANNEL_ID || '1540839154882056363'));
                         if (wChan) {
@@ -948,10 +973,19 @@ async function trackCalledCoinsPerformance() {
 
                     if (athMult > 1.5) {
                         const doneEmbed = new EmbedBuilder()
-                            .setTitle('🏁 COIN DONE')
-                            .setDescription(`**${symbol}** — ${calledStr} → ${athStr} ${athMult.toFixed(2)}x`)
-                            .setColor(0xFF8C00)
-                            .setFooter({ text: 'dyor before buying any call' });
+                            .setTitle(`CYCLE AUDIT // $${symbol}`)
+                            .setURL(`https://dexscreener.com/solana/${mint}`)
+                            .setDescription(`20-minute call lifecycle summary report.`)
+                            .setColor(0x6366F1)
+                            .addFields(
+                                { name: 'Initial Call', value: `\`${calledStr}\``, inline: true },
+                                { name: 'Peak Valuation', value: `\`${athStr}\``, inline: true },
+                                { name: 'Peak Return', value: `\`+${((athMult - 1) * 100).toFixed(0)}% (${athMult.toFixed(2)}x Peak)\``, inline: true },
+                                { name: 'Quick Links', value: `[DexScreener](https://dexscreener.com/solana/${mint})  •  [GMGN](https://gmgn.ai/sol/token/${mint})`, inline: false },
+                                { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                            )
+                            .setFooter({ text: 'DD Terminal • Lifecycle Verification' })
+                            .setTimestamp();
 
                         const dChan = doneChannel || client.channels.cache.get(String(config.DONE_CHANNEL_ID || '1541133072781811712'));
                         if (dChan) {
@@ -1077,33 +1111,41 @@ client.on('messageCreate', async (message) => {
     // 0.5. .help command
     if (content === '.help' || content === '/help') {
         const helpEmbed = new EmbedBuilder()
-            .setTitle('🤖 Larpifyy Memecoin & GMGN Intelligence Bot')
-            .setDescription(
-                `Welcome! Here are all the available commands:\n\n` +
-                `### 🔎 Token Analysis & Anti-Rug Security\n` +
-                `• \`.check <mint>\` — Full audit & InsightX Atlas bubble map\n` +
-                `• \`.mc <mint>\` *(or paste CA)* — Live market cap, price & liquidity\n` +
-                `• \`.predict <mint>\` — AI chart prediction & target MC\n` +
-                `• \`.security <mint>\` — GMGN anti-rug & honeypot audit\n` +
-                `• \`.holders <mint>\` — GMGN Top 100 holders concentration & snipers\n` +
-                `• \`.devinfo <mint>\` — Dev wallet holdings, balance & CTO status\n` +
-                `• \`.devhistory <wallet|ca>\` — Dev historical launches & serial rugger audit\n` +
-                `• \`.pool <mint>\` — Liquidity pool analysis & DEX breakdown\n\n` +
-                `### 👑 KOL, Smart Money & Market Signals\n` +
-                `• \`.sm\` / \`.smartmoney\` — GMGN Smart Money cluster buy signals (Signal 12)\n` +
-                `• \`.nearcurve\` — 80%-95% bonding curve tokens with Smart Money\n` +
-                `• \`.qualitymigrated\` — Server pre-filtered safe migrated tokens\n` +
-                `• \`.signal\` — Latest KOL buy signals (Signal 13)\n` +
-                `• \`.koltrades [buy|sell]\` — Real-time renowned KOL trades\n` +
-                `• \`.kolholders <mint>\` — Renowned KOL holders ranked by profit\n` +
-                `• \`.kol\` / \`.trenches\` — New tokens bought by >=2 renowned KOLs\n` +
-                `• \`.trending\` — Top 5-minute Solana trending tokens\n` +
-                `• \`.pumptop [1h|5m]\` — Top Pump.fun trending tokens\n` +
-                `• \`.wallet <addr>\` — Check any wallet's portfolio holdings\n` +
-                `• \`.news\` / \`.twitter <handle>\` — Crypto breaking news & X search`
+            .setTitle('DD TERMINAL // COMMAND DIRECTORY')
+            .setDescription('Institutional Solana memecoin intelligence, real-time safety verification, and automated signals.')
+            .setColor(0x2563EB)
+            .addFields(
+                {
+                    name: 'Token Security & Verification',
+                    value:
+                        '` .check <ca> ` — Comprehensive audit & InsightX Atlas cluster bubble map\n' +
+                        '` .mc <ca> ` — Real-time valuation, pool liquidity & price\n' +
+                        '` .predict <ca> ` — Algorithmic momentum prediction & price targets\n' +
+                        '` .security <ca> ` — GMGN honeypot, mint & freeze authority check\n' +
+                        '` .holders <ca> ` — Top 100 supply concentration & sniper audit\n' +
+                        '` .devinfo <ca> ` — Dev wallet holdings, balance & CTO status\n' +
+                        '` .devhistory <wallet|ca> ` — Dev launch history & serial rugger audit\n' +
+                        '` .pool <ca> ` — DEX liquidity breakdown & pool reserve depth',
+                    inline: false
+                },
+                {
+                    name: 'KOL, Smart Money & Market Signals',
+                    value:
+                        '` .sm ` — Smart Money cluster buy signals (GMGN Signal 12)\n' +
+                        '` .nearcurve ` — 80%–95% bonding curve tokens with smart money\n' +
+                        '` .qualitymigrated ` — Server pre-filtered safe migrated tokens\n' +
+                        '` .signal ` — Renowned KOL buy signals (GMGN Signal 13)\n' +
+                        '` .koltrades [buy|sell] ` — Real-time renowned KOL transactions\n' +
+                        '` .kolholders <ca> ` — Renowned KOL holders ranked by realized profit\n' +
+                        '` .trending ` — Top 5-minute Solana trending tokens\n' +
+                        '` .pumptop [1h|5m] ` — Pump.fun platform trending rankings\n' +
+                        '` .wallet <addr> ` — Portfolio token holdings & PnL breakdown\n' +
+                        '` .news ` / ` .twitter <handle> ` — Web3 breaking news & X intelligence',
+                    inline: false
+                }
             )
-            .setColor(0x3B82F6)
-            .setFooter({ text: 'Larpifyy Trading Bot • Type any command with a CA' });
+            .setFooter({ text: 'DD Terminal • Enter any command with a contract or wallet address' })
+            .setTimestamp();
         return message.channel.send({ embeds: [helpEmbed] });
     }
 
@@ -1173,43 +1215,59 @@ client.on('messageCreate', async (message) => {
             const devStr = devPct <= 0 ? '❌ (0% Sold)' : `${devPct.toFixed(1)}%`;
             const lpStr = stats.lp_burned ? '100% Burned' : 'Unburned';
 
-            // Verdict and Reason
-            let verdictHeader = '';
-            let verdictReason = '';
-            if (passes) {
-                verdictHeader = '🛡️ **VERDICT:** ✅ **PASSED (SAFE TO TRADE)**';
-                verdictReason = '💡 *Low cluster concentration, dev holdings safe, no honeypot flags.*';
-            } else {
-                verdictHeader = '🛡️ **VERDICT:** 🚨 **HIGH RUG / CONCENTRATION RISK**';
-                const mainReason = reasons.length > 0 ? reasons.slice(-2).join(' • ') : 'Failed anti-rug gate thresholds';
-                verdictReason = `⚠️ **Why:** *${mainReason}*`;
-            }
-
-            const desc = [
-                verdictHeader,
-                verdictReason,
-                '',
-                `⏳ **@ ${stats.launchpad_name || 'Pump.fun'}**`,
-                `💎 **FDV / MC:** \`${mcStr}\``,
-                `📊 **Vol:** \`${volStr}\` · **Age:** \`${ageStr}\``,
-                `🚀 **5M:** \`${vol5mStr}\` · \`${pcM5 >= 0 ? '+' : ''}${pcM5.toFixed(1)}%\` 🅱 \`${buysM5}\` Ⓢ \`${sellsM5}\``,
-                '',
-                `👤 **TH:** \`${thStr}\` \`[${top10Pct.toFixed(1)}%]\``,
-                `🤝 **Total:** \`${holders.toLocaleString()}\` holders`,
-                `🫧 **Clusters:** \`${clusterPct.toFixed(1)}%\` · **Bundlers:** \`${bundlersPct.toFixed(1)}%\` · **Snipers:** \`${snipersPct.toFixed(1)}%\``,
-                `🧑 **DEV:** \`${devStr}\` · **LP:** \`${lpStr}\``,
-                `📈 **Chart:** [DEX](${dexUrl}) · [Axiom](${axiomUrl})`,
-                `🚘 **More:** [InsightX Atlas](${bmapUrl}) · [𝕏](${stats.twitter_url || dexUrl}) · [Lore](${pumpUrl})`,
-                '',
-                `\`${mint}\``,
-            ].join('\n');
+            const verdictDesc = passes
+                ? '● **PASSED ALL ON-CHAIN RISK GATES**\n*Low cluster concentration, dev holdings safe, no critical risk flags.*'
+                : `▲ **HIGH RISK DETECTED**\n*${reasons.length > 0 ? reasons.slice(-2).join(' • ') : 'Failed anti-rug gate thresholds'}*`;
 
             const checkEmbed = new EmbedBuilder()
-                .setTitle(`${passes ? '🟢' : '🚨'} ${name} - $${symbol}`)
+                .setTitle(`${passes ? 'VERIFIED' : 'HIGH RISK'} // $${symbol} (${name})`)
                 .setURL(dexUrl)
-                .setDescription(desc)
+                .setDescription(verdictDesc)
                 .setColor(passes ? 0x10B981 : 0xEF4444)
-                .setFooter({ text: `Audit requested by ${message.author.tag} • InsightX Network` });
+                .addFields(
+                    {
+                        name: 'Valuation & Liquidity',
+                        value: `MC: \`${mcStr}\`\nFDV: \`${stats.market_cap_display || mcStr}\`\nLiq: \`${liqStr}\``,
+                        inline: true
+                    },
+                    {
+                        name: 'Supply Distribution',
+                        value: `Holders: \`${holders.toLocaleString()}\`\nTop 10: \`${top10Pct.toFixed(1)}%\`\nDev: \`${devStr}\``,
+                        inline: true
+                    },
+                    {
+                        name: 'Cluster & Bundlers',
+                        value: `Clusters: \`${clusterPct.toFixed(1)}%\`\nBundlers: \`${bundlersPct.toFixed(1)}%\`\nSnipers: \`${snipersPct.toFixed(1)}%\``,
+                        inline: true
+                    },
+                    {
+                        name: 'Volume & 5M Momentum',
+                        value: `Vol 1H: \`${volStr}\`\n5M: \`${pcM5 >= 0 ? '+' : ''}${pcM5.toFixed(1)}%\`\nTxns: \`${buysM5}B / ${sellsM5}S\``,
+                        inline: true
+                    },
+                    {
+                        name: 'Security & LP',
+                        value: `LP: \`${lpStr}\`\nFreeze: \`Renounced\`\nMint: \`Renounced\``,
+                        inline: true
+                    },
+                    {
+                        name: 'Platform',
+                        value: `Platform: \`${stats.launchpad_name || 'Pump.fun'}\`\nAge: \`${ageStr}\``,
+                        inline: true
+                    },
+                    {
+                        name: 'Quick Links',
+                        value: `[DexScreener](${dexUrl})  •  [Axiom](${axiomUrl})  •  [GMGN](https://gmgn.ai/sol/token/${mint})  •  [InsightX Atlas](${bmapUrl})  •  [Pump.fun](${pumpUrl})`,
+                        inline: false
+                    },
+                    {
+                        name: 'Contract Address',
+                        value: `\`${mint}\``,
+                        inline: false
+                    }
+                )
+                .setFooter({ text: `Audit requested by ${message.author.tag} • DD Terminal Risk Engine` })
+                .setTimestamp();
 
             if (stats.icon_url) {
                 checkEmbed.setThumbnail(stats.icon_url);
@@ -1273,22 +1331,22 @@ client.on('messageCreate', async (message) => {
 
             const pred = stats.chart_prediction || {};
             const predEmbed = new EmbedBuilder()
-                .setTitle(`🤖 AI PRICE & CHART PREDICTION: $${stats.symbol} (${stats.name})`)
-                .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `### ${pred.emoji || '📈'} **${pred.pattern || 'Steady Uptrend'}**\n` +
-                    `🎯 **Target Market Cap:** **${pred.target_mc_str || 'N/A'}**\n` +
-                    `🛡️ **Key Support Level:** **${pred.support_mc_str || 'N/A'}**\n` +
-                    `🧠 **AI Confidence Rating:** **${pred.confidence_pct || 80}%**\n` +
-                    `📊 **Buy Pressure:** **${pred.buy_pressure_pct || 50}% Buys**`
+                .setTitle(`MOMENTUM PREDICTION // $${stats.symbol} (${stats.name})`)
+                .setURL(stats.dex_url || `https://dexscreener.com/solana/${mint}`)
+                .setDescription(`Algorithmic momentum prediction & price targets.`)
+                .setColor(0x6366F1)
+                .addFields(
+                    { name: 'Pattern Assessment', value: `\`${pred.pattern || 'Steady Uptrend'}\``, inline: true },
+                    { name: 'Target Market Cap', value: `\`${pred.target_mc_str || 'N/A'}\``, inline: true },
+                    { name: 'Key Support Level', value: `\`${pred.support_mc_str || 'N/A'}\``, inline: true },
+                    { name: 'Model Confidence', value: `\`${pred.confidence_pct || 80}%\``, inline: true },
+                    { name: 'Buy Pressure', value: `\`${pred.buy_pressure_pct || 50}% Buys\``, inline: true },
+                    { name: '5M Trend', value: `\`${Number(stats.price_change_m5 || 0) >= 0 ? '+' : ''}${Number(stats.price_change_m5 || 0).toFixed(1)}%\``, inline: true },
+                    { name: 'Quick Links', value: `[DexScreener](${stats.dex_url})  •  [GMGN](https://gmgn.ai/sol/token/${mint})  •  [InsightX Atlas](${stats.bubblemap_url})`, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
                 )
-                .setColor(0xFF8C00)
-                .addFields({
-                    name: '🔗 Quick Chart Links',
-                    value: `[DexScreener](${stats.dex_url}) • [InsightX Atlas](${stats.bubblemap_url})`,
-                    inline: false,
-                })
-                .setFooter({ text: 'Always DYOR • AI Trading Analysis' });
+                .setFooter({ text: 'DD Terminal • Algorithmic Momentum Engine' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [predEmbed] });
         } catch (err) {
@@ -1323,15 +1381,19 @@ client.on('messageCreate', async (message) => {
             const athMult = calledMc > 0 ? (athMc / calledMc) : 1.0;
 
             const resEmbed = new EmbedBuilder()
-                .setTitle(`📊 RESULTS: $${pair.symbol} (${pair.name})`)
-                .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `🎯 **Called At:** **${formatMcUsd(calledMc)}**\n` +
-                    `🚀 **Peak ATH:** **${formatMcUsd(athMc)}** (**${athMult.toFixed(2)}x Peak**)\n` +
-                    `💰 **Current Real MC:** **${formatMcUsd(currMc)}** (${mult.toFixed(2)}x)\n\n` +
-                    `[DexScreener Link](${pair.dex_url})`
+                .setTitle(`HISTORICAL AUDIT // $${pair.symbol} (${pair.name})`)
+                .setURL(pair.dex_url)
+                .setDescription(`Historical return metrics verified from initial call.`)
+                .setColor(athMult >= 2.0 ? 0x10B981 : 0x0EA5E9)
+                .addFields(
+                    { name: 'Initial Call MC', value: `\`${formatMcUsd(calledMc)}\``, inline: true },
+                    { name: 'Peak ATH MC', value: `\`${formatMcUsd(athMc)}\` (+${((athMult - 1) * 100).toFixed(0)}% / ${athMult.toFixed(2)}x)`, inline: true },
+                    { name: 'Current Real MC', value: `\`${formatMcUsd(currMc)}\` (${mult.toFixed(2)}x)`, inline: true },
+                    { name: 'Quick Links', value: `[DexScreener](${pair.dex_url})  •  [GMGN](https://gmgn.ai/sol/token/${mint})`, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
                 )
-                .setColor(0xFF8C00);
+                .setFooter({ text: 'DD Terminal • Historical Performance Auditor' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [resEmbed] });
         } catch (err) {
@@ -1363,17 +1425,22 @@ client.on('messageCreate', async (message) => {
 
                 const mcStr = formatMcUsd(pair.market_cap_usd);
                 const mcEmbed = new EmbedBuilder()
-                    .setTitle(`💰 REAL MARKET CAP: $${pair.symbol} (${pair.name})`)
+                    .setTitle(`VALUATION // $${pair.symbol} (${pair.name})`)
                     .setURL(pair.dex_url)
-                    .setDescription(
-                        `**CA:** \`${targetMint}\`\n\n` +
-                        `💰 **Real Market Cap:** **${mcStr}**\n` +
-                        `💵 **Price USD:** \`$${pair.price_usd.toFixed(8)}\`\n` +
-                        `💧 **Liquidity:** \`$${pair.liquidity_usd.toLocaleString()}\`\n` +
-                        `🏛️ **DEX:** \`${pair.dex_id}\``
+                    .setDescription(`Real-time DexScreener pricing and pool reserve depth.`)
+                    .setColor(0x00F0FF)
+                    .addFields(
+                        { name: 'Market Cap', value: `\`${mcStr}\``, inline: true },
+                        { name: 'Price (USD)', value: `\`$${pair.price_usd < 0.0001 ? pair.price_usd.toFixed(8) : pair.price_usd.toFixed(6)}\``, inline: true },
+                        { name: 'Liquidity', value: `\`$${Math.round(pair.liquidity_usd).toLocaleString()}\``, inline: true },
+                        { name: 'DEX Platform', value: `\`${pair.dex_id.toUpperCase()}\``, inline: true },
+                        { name: '5M Price Change', value: `\`${Number(pair.price_change_m5 || 0) >= 0 ? '+' : ''}${Number(pair.price_change_m5 || 0).toFixed(1)}%\``, inline: true },
+                        { name: '24H Volume', value: `\`${formatMcUsd(pair.volume_h24 || pair.volume_h1 || 0)}\``, inline: true },
+                        { name: 'Quick Links', value: `[DexScreener](${pair.dex_url})  •  [GMGN](https://gmgn.ai/sol/token/${targetMint})  •  [Axiom](https://axiom.trade/pair/${targetMint})`, inline: false },
+                        { name: 'Contract Address', value: `\`${targetMint}\``, inline: false }
                     )
-                    .setColor(0xFF8C00)
-                    .setFooter({ text: 'Fresh DexScreener Live Data' });
+                    .setFooter({ text: 'DD Terminal • Real-Time Pricing Feed' })
+                    .setTimestamp();
 
                 await message.channel.send({ embeds: [mcEmbed] });
             } catch {}
@@ -1400,15 +1467,16 @@ client.on('messageCreate', async (message) => {
                 const kols = t.renowned_count || 2;
                 const mint = t.address || t.mint || '';
                 return `**${idx + 1}. [${sym} (${name})](https://dexscreener.com/solana/${mint})**\n` +
-                    `💎 MC: \`${mc}\` · 👑 KOLs: \`${kols}\`\n` +
-                    `CA: \`${mint}\``;
+                    `MC: \`${mc}\`  •  KOL Buyers: \`${kols}\`\n` +
+                    `Contract: \`${mint}\``;
             }).join('\n\n');
 
             const kolEmbed = new EmbedBuilder()
-                .setTitle('👑 GMGN KOL-BOUGHT NEW CREATIONS')
+                .setTitle('KOL ACCUMULATION // FRESH CREATIONS')
                 .setDescription(kolList)
                 .setColor(0xF59E0B)
-                .setFooter({ text: 'GMGN Intelligence • Min 2 Renowned KOL Buyers' });
+                .setFooter({ text: 'DD Terminal • Renowned KOL Accumulation' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [kolEmbed] });
         } catch (err) {
@@ -1437,15 +1505,16 @@ client.on('messageCreate', async (message) => {
                 const pc = Number(t.price_change_pct || 0);
                 const mint = t.mint || '';
                 return `**${idx + 1}. [${sym} (${name})](https://dexscreener.com/solana/${mint})**\n` +
-                    `💎 MC: \`${mc}\` · 📊 Vol: \`${vol}\` · 🚀 \`${pc >= 0 ? '+' : ''}${pc.toFixed(1)}%\`\n` +
-                    `CA: \`${mint}\``;
+                    `MC: \`${mc}\`  •  Vol 5M: \`${vol}\`  •  Change: \`${pc >= 0 ? '+' : ''}${pc.toFixed(1)}%\`\n` +
+                    `Contract: \`${mint}\``;
             }).join('\n\n');
 
             const trendEmbed = new EmbedBuilder()
-                .setTitle('🔥 GMGN 5-MINUTE TRENDING TOKENS')
+                .setTitle('5-MINUTE MOMENTUM // SOLANA TRENDING')
                 .setDescription(trendList)
-                .setColor(0xEF4444)
-                .setFooter({ text: 'GMGN Trending Intelligence' });
+                .setColor(0x06B6D4)
+                .setFooter({ text: 'DD Terminal • Real-Time Volume Screener' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [trendEmbed] });
         } catch (err) {
@@ -1468,17 +1537,18 @@ client.on('messageCreate', async (message) => {
 
             const newsDesc = items.slice(0, 5).map((item, idx) => {
                 const coins = item.coins?.length ? `\`[${item.coins.slice(0, 3).join(', ')}]\` ` : '';
-                const signalEmoji = item.signal === 'long' ? '🟢 LONG' : item.signal === 'short' ? '🔴 SHORT' : '⚪ NEUTRAL';
+                const signalTag = item.signal === 'long' ? '[BULLISH]' : item.signal === 'short' ? '[BEARISH]' : '[NEUTRAL]';
                 const score = item.score ? `Score: ${item.score}` : '';
                 const summary = item.summary || item.title || 'Breaking event';
-                return `**${idx + 1}. ${coins}${signalEmoji} (${score})**\n${summary}`;
+                return `**${idx + 1}. ${coins}${signalTag} (${score})**\n${summary}`;
             }).join('\n\n');
 
             const newsEmbed = new EmbedBuilder()
-                .setTitle('📰 6551 BREAKING WEB3 & CRYPTO NEWS')
+                .setTitle('MARKET WIRE // WEB3 BREAKING NEWS')
                 .setDescription(newsDesc)
                 .setColor(0x3B82F6)
-                .setFooter({ text: 'Powered by 6551 OpenNews AI' });
+                .setFooter({ text: 'DD Terminal • 6551 OpenNews Real-Time Feed' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [newsEmbed] });
         } catch (err) {
@@ -1506,17 +1576,18 @@ client.on('messageCreate', async (message) => {
             }
 
             const twEmbed = new EmbedBuilder()
-                .setTitle(`🐦 @${info.screenName} (${info.name || handle})`)
+                .setTitle(`X INTELLIGENCE // @${info.screenName} (${info.name || handle})`)
                 .setURL(`https://x.com/${info.screenName}`)
-                .setDescription(
-                    (info.description ? `*${info.description}*\n\n` : '') +
-                    `👥 **Followers:** \`${Number(info.followersCount || 0).toLocaleString()}\`\n` +
-                    `👤 **Following:** \`${Number(info.friendsCount || 0).toLocaleString()}\`\n` +
-                    `📝 **Tweets:** \`${Number(info.statusesCount || 0).toLocaleString()}\`\n` +
-                    `✅ **Verified:** \`${info.isBlueVerified ? 'Yes (X Blue)' : 'No'}\``
-                )
+                .setDescription(info.description ? `*${info.description}*` : 'No bio provided.')
                 .setColor(0x1DA1F2)
-                .setFooter({ text: '6551 OpenTwitter Intelligence' });
+                .addFields(
+                    { name: 'Followers', value: `\`${Number(info.followersCount || 0).toLocaleString()}\``, inline: true },
+                    { name: 'Following', value: `\`${Number(info.friendsCount || 0).toLocaleString()}\``, inline: true },
+                    { name: 'Total Posts', value: `\`${Number(info.statusesCount || 0).toLocaleString()}\``, inline: true },
+                    { name: 'Verification', value: `\`${info.isBlueVerified ? 'Verified (Blue)' : 'Standard'}\``, inline: true }
+                )
+                .setFooter({ text: 'DD Terminal • Social Profile Intelligence' })
+                .setTimestamp();
 
             if (info.profileImageUrl) {
                 twEmbed.setThumbnail(info.profileImageUrl);
@@ -1551,24 +1622,25 @@ client.on('messageCreate', async (message) => {
             const mintStr = sec.renounced_mint ? '✅ Renounced (Fixed Supply)' : '🚨 **ACTIVE (Dev can mint)**';
             const hpStr = sec.is_honeypot ? '🚨 **YES (Cannot sell)**' : '✅ No Honeypot';
             const taxStr = (sec.buy_tax > 0 || sec.sell_tax > 0) ? `🚨 Buy ${sec.buy_tax}% / Sell ${sec.sell_tax}%` : '✅ 0% / 0%';
-            const burnStr = `${sec.burn_ratio.toFixed(1)}% (${sec.burn_status})`;
-            const flagsStr = sec.flags.length > 0 ? sec.flags.join(', ') : 'None';
-
             const secEmbed = new EmbedBuilder()
-                .setTitle(`🛡️ GMGN TOKEN SECURITY CHECK`)
-                .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `⚠️ **GMGN Alert Status:** ${alertStr}\n` +
-                    `❄️ **Freeze Authority:** ${freezeStr}\n` +
-                    `🖨️ **Mint Authority:** ${mintStr}\n` +
-                    `🍯 **Honeypot:** ${hpStr}\n` +
-                    `💸 **Taxes:** ${taxStr}\n` +
-                    `🔥 **LP Burned:** \`${burnStr}\`\n` +
-                    `👥 **Top 10 Holder Rate:** \`${sec.top_10_holder_rate.toFixed(1)}%\`\n` +
-                    `🚩 **Risk Flags:** \`${flagsStr}\``
-                )
+                .setTitle(`SECURITY AUDIT // ${mint.slice(0, 6)}...${mint.slice(-4)}`)
+                .setURL(`https://gmgn.ai/sol/token/${mint}`)
+                .setDescription(sec.is_show_alert ? '▲ **CRITICAL SECURITY RISK DETECTED**' : '● **NO CRITICAL EXPLOIT FLAGS DETECTED**')
                 .setColor(sec.is_show_alert || sec.is_honeypot || !sec.renounced_freeze_account ? 0xEF4444 : 0x10B981)
-                .setFooter({ text: 'GMGN Token Security Intelligence' });
+                .addFields(
+                    { name: 'Alert Status', value: sec.is_show_alert ? '`▲ Flagged`' : '`● Clear`', inline: true },
+                    { name: 'Freeze Authority', value: sec.renounced_freeze_account ? '`● Renounced`' : '`▲ Active (Risk)`', inline: true },
+                    { name: 'Mint Authority', value: sec.renounced_mint ? '`● Renounced`' : '`▲ Active (Mintable)`', inline: true },
+                    { name: 'Honeypot Gate', value: sec.is_honeypot ? '`▲ Active Honeypot`' : '`● Verified Sellable`', inline: true },
+                    { name: 'Trading Taxes', value: (sec.buy_tax > 0 || sec.sell_tax > 0) ? `\`▲ ${sec.buy_tax}% / ${sec.sell_tax}%\`` : '`● 0% / 0%`', inline: true },
+                    { name: 'LP Burned', value: `\`${sec.burn_ratio.toFixed(1)}% (${sec.burn_status})\``, inline: true },
+                    { name: 'Top 10 Supply', value: `\`${sec.top_10_holder_rate.toFixed(1)}%\``, inline: true },
+                    { name: 'Risk Flags', value: `\`${sec.flags.length > 0 ? sec.flags.join(', ') : 'None'}\``, inline: true },
+                    { name: 'Quick Links', value: `[GMGN](https://gmgn.ai/sol/token/${mint})  •  [DexScreener](https://dexscreener.com/solana/${mint})`, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                )
+                .setFooter({ text: 'DD Terminal • GMGN Token Security Intelligence' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [secEmbed] });
         } catch (err) {
@@ -1598,24 +1670,29 @@ client.on('messageCreate', async (message) => {
                 const addr = `${h.address.slice(0, 4)}...${h.address.slice(-4)}`;
                 const pct = (Number(h.amount_percentage || 0) * 100).toFixed(2);
                 const usd = h.usd_value ? `$${Math.round(h.usd_value).toLocaleString()}` : '';
-                const susp = h.is_suspicious ? '⚠️ [SUSPICIOUS]' : '';
-                const isNew = h.is_new ? '🌱 [NEW]' : '';
+                const susp = h.is_suspicious ? '[SUSPICIOUS]' : '';
+                const isNew = h.is_new ? '[NEW]' : '';
                 const tag = h.wallet_tag_v2 ? `\`${h.wallet_tag_v2}\`` : '';
                 const name = h.name ? `(${h.name})` : '';
                 return `**${i + 1}.** \`${addr}\` ${tag} ${name} — **${pct}%** ${usd} ${susp} ${isNew}`.trim();
             }).join('\n');
 
             const hEmbed = new EmbedBuilder()
-                .setTitle(`👥 GMGN TOP HOLDERS ANALYSIS`)
+                .setTitle(`SUPPLY DISTRIBUTION // TOP 100 HOLDERS`)
+                .setURL(`https://gmgn.ai/sol/token/${mint}`)
                 .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `📊 **Top 10 Concentration:** \`${data.top10_pct.toFixed(1)}%\`\n` +
-                    `🚨 **Suspicious Wallets:** \`${data.suspicious_count}\` (\`${data.suspicious_pct.toFixed(1)}%\` held)\n` +
-                    `🌱 **New Wallets:** \`${data.new_wallets_pct.toFixed(1)}%\` held\n\n` +
-                    `### Top 10 Largest Holders:\n${topList}`
+                    `**Top 10 Concentration:** \`${data.top10_pct.toFixed(1)}%\`\n` +
+                    `**Suspicious Wallets:** \`${data.suspicious_count}\` (\`${data.suspicious_pct.toFixed(1)}%\` held)\n` +
+                    `**Fresh Wallets:** \`${data.new_wallets_pct.toFixed(1)}%\` held\n\n` +
+                    `**Top 10 Largest Holders:**\n${topList}`
                 )
                 .setColor(data.suspicious_pct > 8.0 || data.top10_pct > 60.0 ? 0xEF4444 : 0x10B981)
-                .setFooter({ text: 'GMGN Top 100 Holders Analysis' });
+                .addFields(
+                    { name: 'Quick Links', value: `[GMGN](https://gmgn.ai/sol/token/${mint})  •  [DexScreener](https://dexscreener.com/solana/${mint})`, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                )
+                .setFooter({ text: 'DD Terminal • GMGN Top 100 Holder Analysis' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [hEmbed] });
         } catch (err) {
@@ -1649,13 +1726,15 @@ client.on('messageCreate', async (message) => {
             }).join('\n');
 
             const wEmbed = new EmbedBuilder()
-                .setTitle(`💼 WALLET PORTFOLIO HOLDINGS`)
-                .setDescription(
-                    `**Wallet:** \`${wallet}\`\n\n` +
-                    `### Top Holdings:\n${holdingsDesc}`
+                .setTitle(`PORTFOLIO HOLDINGS // ${wallet.slice(0, 6)}...${wallet.slice(-4)}`)
+                .setURL(`https://gmgn.ai/sol/address/${wallet}`)
+                .setDescription(`**Active Token Positions:**\n\n${holdingsDesc}`)
+                .setColor(0x6366F1)
+                .addFields(
+                    { name: 'Wallet Address', value: `\`${wallet}\``, inline: false }
                 )
-                .setColor(0x8B5CF6)
-                .setFooter({ text: 'GMGN Wallet Portfolio Intelligence' });
+                .setFooter({ text: 'DD Terminal • GMGN Portfolio Intelligence' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [wEmbed] });
         } catch (err) {
@@ -1677,19 +1756,21 @@ client.on('messageCreate', async (message) => {
                 return message.channel.send(`⚠️ No pool data found for \`${mint}\`.`);
             }
             const poolList = pool.pools.slice(0, 5).map((p, i) =>
-                `**${i + 1}.** \`${p.dex}\` — Liq: \`${formatMcUsd(p.liquidity_usd)}\` · Vol 24h: \`${formatMcUsd(p.volume_24h)}\`\n` +
+                `**${i + 1}.** \`${p.dex}\` — Liq: \`${formatMcUsd(p.liquidity_usd)}\` · Vol 24H: \`${formatMcUsd(p.volume_24h)}\`\n` +
                 `   Pool: \`${p.address ? p.address.slice(0, 20) + '...' : 'N/A'}\``
             ).join('\n');
             const poolEmbed = new EmbedBuilder()
-                .setTitle('🏊 LIQUIDITY POOL ANALYSIS')
-                .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `💧 **Total Liquidity:** \`${formatMcUsd(pool.total_liquidity_usd)}\`\n` +
-                    `🏛️ **Main DEX:** \`${pool.main_dex}\`\n\n` +
-                    `### Pools:\n${poolList}`
-                )
+                .setTitle(`LIQUIDITY POOLS // ${mint.slice(0, 6)}...${mint.slice(-4)}`)
+                .setURL(`https://dexscreener.com/solana/${mint}`)
                 .setColor(0x06B6D4)
-                .setFooter({ text: 'GMGN Liquidity Pool Analysis' });
+                .addFields(
+                    { name: 'Total Liquidity', value: `\`${formatMcUsd(pool.total_liquidity_usd)}\``, inline: true },
+                    { name: 'Primary DEX', value: `\`${pool.main_dex}\``, inline: true },
+                    { name: 'Active Pools', value: poolList, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                )
+                .setFooter({ text: 'DD Terminal • Liquidity Pool Depth' })
+                .setTimestamp();
             await message.channel.send({ embeds: [poolEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1700,7 +1781,7 @@ client.on('messageCreate', async (message) => {
     // 13. .signal — KOL Call Signal (signal-type 13)
     if (content.startsWith('.signal')) {
         if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.signal');
-        await message.channel.send('👑 Fetching latest KOL call signals from GMGN...');
+        await message.channel.send('⚡ Retrieving latest KOL call signals from GMGN...');
         try {
             const signals = await getGmgnKolSignal('sol', true);
             if (!signals || signals.length === 0) {
@@ -1709,16 +1790,17 @@ client.on('messageCreate', async (message) => {
             const sigList = signals.slice(0, 5).map((s, i) => {
                 const mc = s.market_cap_usd ? formatMcUsd(s.market_cap_usd) : 'N/A';
                 const amt = s.buy_amount_usd ? formatMcUsd(s.buy_amount_usd) : 'N/A';
-                const kol = s.kol_name || s.kol_wallet?.slice(0, 8) + '...' || 'Unknown';
+                const kol = s.kol_name || (s.kol_wallet ? `${s.kol_wallet.slice(0, 6)}...${s.kol_wallet.slice(-4)}` : 'Unknown');
                 return `**${i + 1}. [$${s.symbol || 'TOKEN'}](https://dexscreener.com/solana/${s.mint})**\n` +
-                    `👑 KOL: \`${kol}\` · 💎 MC: \`${mc}\` · 💵 Bought: \`${amt}\`\n` +
-                    `CA: \`${s.mint}\``;
+                    `KOL: \`${kol}\` · Valuation: \`${mc}\` · Inflow: \`${amt}\`\n` +
+                    `\`${s.mint}\``;
             }).join('\n\n');
             const sigEmbed = new EmbedBuilder()
-                .setTitle('👑 GMGN KOL CALL SIGNALS')
+                .setTitle('KOL CALL SIGNALS // SIGNAL TYPE 13')
                 .setDescription(sigList)
                 .setColor(0xF59E0B)
-                .setFooter({ text: 'GMGN Signal Type 13 — KOL Buys' });
+                .setFooter({ text: 'DD Terminal • GMGN KOL Accumulation Radar' })
+                .setTimestamp();
             await message.channel.send({ embeds: [sigEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1740,17 +1822,18 @@ client.on('messageCreate', async (message) => {
             const tradeList = trades.slice(0, 5).map((t, i) => {
                 const mc = t.market_cap_usd ? formatMcUsd(t.market_cap_usd) : 'N/A';
                 const amt = t.amount_usd ? formatMcUsd(t.amount_usd) : 'N/A';
-                const kol = t.kol_name || t.kol_wallet?.slice(0, 8) + '...' || 'Unknown';
-                const sideEmoji = t.side === 'sell' ? '🔴 SELL' : '🟢 BUY';
-                return `**${i + 1}. [$${t.symbol || 'TOKEN'}](https://dexscreener.com/solana/${t.mint})** ${sideEmoji}\n` +
-                    `👑 KOL: \`${kol}\` · 💎 MC: \`${mc}\` · 💵 \`${amt}\`\n` +
-                    `CA: \`${t.mint}\``;
+                const kol = t.kol_name || (t.kol_wallet ? `${t.kol_wallet.slice(0, 6)}...${t.kol_wallet.slice(-4)}` : 'Unknown');
+                const tag = t.side === 'sell' ? '[SELL]' : '[BUY]';
+                return `**${i + 1}. \`${tag}\` [$${t.symbol || 'TOKEN'}](https://dexscreener.com/solana/${t.mint})**\n` +
+                    `KOL: \`${kol}\` · Valuation: \`${mc}\` · Size: \`${amt}\`\n` +
+                    `\`${t.mint}\``;
             }).join('\n\n');
             const tradeEmbed = new EmbedBuilder()
-                .setTitle(`👑 GMGN KOL TRADES${side ? ` — ${side.toUpperCase()}S` : ''}`)
+                .setTitle(`KOL TRANSACTION STREAM${side ? ` // ${side.toUpperCase()}` : ''}`)
                 .setDescription(tradeList)
-                .setColor(side === 'sell' ? 0xEF4444 : 0x10B981)
-                .setFooter({ text: 'GMGN KOL Trade Tracker • Usage: .koltrades [buy|sell]' });
+                .setColor(side === 'sell' ? 0xEF4444 : (side === 'buy' ? 0x10B981 : 0x3B82F6))
+                .setFooter({ text: 'DD Terminal • Real-Time KOL Trade Tape' })
+                .setTimestamp();
             await message.channel.send({ embeds: [tradeEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1773,18 +1856,21 @@ client.on('messageCreate', async (message) => {
             const holderList = data.kol_holders.slice(0, 8).map((h, i) => {
                 const addr = h.address ? `${h.address.slice(0, 4)}...${h.address.slice(-4)}` : 'N/A';
                 const profit = h.realized_profit >= 0 ? `+$${Math.round(h.realized_profit).toLocaleString()}` : `-$${Math.abs(Math.round(h.realized_profit)).toLocaleString()}`;
-                return `**${i + 1}.** \`${h.name || addr}\` — **${h.holding_pct.toFixed(2)}%** · Profit: \`${profit}\``;
+                return `**${i + 1}.** \`${h.name || addr}\` — **${h.holding_pct.toFixed(2)}%** · Realized PnL: \`${profit}\``;
             }).join('\n');
             const kolHEmbed = new EmbedBuilder()
-                .setTitle('👑 KOL HOLDERS ANALYSIS')
-                .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `🧠 **KOL Count:** \`${data.kol_count}\`\n` +
-                    `💎 **KOL Total Hold:** \`${data.kol_total_pct.toFixed(2)}%\`\n\n` +
-                    `### KOLs by Realized Profit:\n${holderList}`
+                .setTitle(`KOL HOLDER AUDIT // ${mint.slice(0, 6)}...${mint.slice(-4)}`)
+                .setURL(`https://dexscreener.com/solana/${mint}`)
+                .setColor(0x8B5CF6)
+                .addFields(
+                    { name: 'KOL Count', value: `\`${data.kol_count}\``, inline: true },
+                    { name: 'Total KOL Holdings', value: `\`${data.kol_total_pct.toFixed(2)}%\``, inline: true },
+                    { name: 'Top KOL Holders (Ranked by Realized PnL)', value: holderList, inline: false },
+                    { name: 'Quick Links', value: `[DexScreener](https://dexscreener.com/solana/${mint}) • [Axiom](https://axiom.trade/trade/${mint}) • [GMGN](https://gmgn.ai/sol/token/${mint}) • [Pump.fun](https://pump.fun/${mint})`, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
                 )
-                .setColor(0xA855F7)
-                .setFooter({ text: 'GMGN KOL Holders Analysis • Sorted by profit' });
+                .setFooter({ text: 'DD Terminal • Ranked by Realized Profit' })
+                .setTimestamp();
             await message.channel.send({ embeds: [kolHEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1804,20 +1890,24 @@ client.on('messageCreate', async (message) => {
             if (!dev.dev_checked) {
                 return message.channel.send(`⚠️ Could not retrieve dev info for \`${mint}\`.`);
             }
-            const ctoStr = dev.cto_flag === 1 ? '✅ YES (Community Takeover)' : '❌ No';
-            const devAddr = dev.dev_wallet ? `\`${dev.dev_wallet.slice(0, 6)}...${dev.dev_wallet.slice(-4)}\`` : 'Unknown';
+            const ctoStr = dev.cto_flag === 1 ? '`COMMUNITY TAKEOVER (CTO)`' : '`ORIGINAL DEVELOPER`';
+            const devAddr = dev.dev_wallet ? `\`${dev.dev_wallet.slice(0, 6)}...${dev.dev_wallet.slice(-4)}\`` : '`Unknown`';
             const devEmbed = new EmbedBuilder()
-                .setTitle('🧑 DEV INFO ANALYSIS')
-                .setDescription(
-                    `**CA:** \`${mint}\`\n\n` +
-                    `👤 **Dev Wallet:** ${devAddr}\n` +
-                    `💰 **Dev Holdings:** \`${dev.dev_hold_pct.toFixed(2)}%\`\n` +
-                    `🏢 **Dev Team Holdings:** \`${dev.dev_team_hold_pct.toFixed(2)}%\`\n` +
-                    `💎 **Dev SOL Balance:** \`${dev.dev_sol_balance} SOL\`\n` +
-                    `🏳️ **CTO Flag:** ${ctoStr}`
-                )
+                .setTitle(`DEVELOPER AUDIT // ${mint.slice(0, 6)}...${mint.slice(-4)}`)
+                .setURL(`https://dexscreener.com/solana/${mint}`)
                 .setColor(dev.dev_hold_pct > 10 ? 0xEF4444 : 0x10B981)
-                .setFooter({ text: 'GMGN Dev Info Analysis' });
+                .addFields(
+                    { name: 'Developer Wallet', value: devAddr, inline: true },
+                    { name: 'SOL Balance', value: `\`${dev.dev_sol_balance} SOL\``, inline: true },
+                    { name: 'Project Status', value: ctoStr, inline: true },
+                    { name: 'Dev Holding', value: `\`${dev.dev_hold_pct.toFixed(2)}%\``, inline: true },
+                    { name: 'Team Holdings', value: `\`${dev.dev_team_hold_pct.toFixed(2)}%\``, inline: true },
+                    { name: 'Combined Insider', value: `\`${(dev.dev_hold_pct + dev.dev_team_hold_pct).toFixed(2)}%\``, inline: true },
+                    { name: 'Quick Links', value: `[DexScreener](https://dexscreener.com/solana/${mint}) • [Axiom](https://axiom.trade/trade/${mint}) • [GMGN](https://gmgn.ai/sol/token/${mint}) • [Pump.fun](https://pump.fun/${mint})`, inline: false },
+                    { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                )
+                .setFooter({ text: 'DD Terminal • Developer Risk & Insider Audit' })
+                .setTimestamp();
             await message.channel.send({ embeds: [devEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1842,15 +1932,17 @@ client.on('messageCreate', async (message) => {
                 const vol = t.volume_usd ? formatMcUsd(t.volume_usd) : 'N/A';
                 const pc = Number(t.price_change_pct || 0);
                 const mint = t.mint || '';
-                return `**${idx + 1}. [$${sym}](https://pump.fun/${mint})** — [DEX](https://dexscreener.com/solana/${mint})\n` +
-                    `💎 MC: \`${mc}\` · 📊 Vol: \`${vol}\` · 🚀 \`${pc >= 0 ? '+' : ''}${pc.toFixed(1)}%\`\n` +
-                    `CA: \`${mint}\``;
+                const pcStr = `${pc >= 0 ? '+' : ''}${pc.toFixed(1)}%`;
+                return `**${idx + 1}. [$${sym}](https://dexscreener.com/solana/${mint})** ([Pump.fun](https://pump.fun/${mint}))\n` +
+                    `Valuation: \`${mc}\` · Vol 24H: \`${vol}\` · Change: \`${pcStr}\`\n` +
+                    `\`${mint}\``;
             }).join('\n\n');
             const pumpEmbed = new EmbedBuilder()
-                .setTitle(`🚀 PUMP.FUN TRENDING (${interval.toUpperCase()})`)
+                .setTitle(`PUMP.FUN TRENDING // ${interval.toUpperCase()}`)
                 .setDescription(pumpList)
                 .setColor(0x8B5CF6)
-                .setFooter({ text: `GMGN Pump.fun Trending • Interval: ${interval}` });
+                .setFooter({ text: `DD Terminal • Pump.fun Platform Momentum (${interval.toUpperCase()})` })
+                .setTimestamp();
             await message.channel.send({ embeds: [pumpEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1875,21 +1967,22 @@ client.on('messageCreate', async (message) => {
                 const buyerCount = s.data?.smart_degen_wallets?.length || s.count || 0;
                 const buyers = (s.data?.smart_degen_wallets || []).slice(0, 3).map(w => {
                     const shortAddr = `${w.address.slice(0, 4)}...${w.address.slice(-4)}`;
-                    const amt = w.buy_amount ? `$${Math.round(w.buy_amount)}` : '';
-                    return `\`${shortAddr}\` (${amt})`;
+                    const amt = w.buy_amount ? ` ($${Math.round(w.buy_amount)})` : '';
+                    return `\`${shortAddr}\`${amt}`;
                 }).join(', ') || 'N/A';
 
                 return `**${i + 1}. [$${sym}](https://dexscreener.com/solana/${mint})**\n` +
-                    `💎 **MC:** \`${mc}\` · 💵 **Cluster Total:** \`${totalAmt}\`\n` +
-                    `🧠 **Smart Degens (${buyerCount}):** ${buyers}\n` +
-                    `CA: \`${mint}\``;
+                    `Valuation: \`${mc}\` · Cluster Inflow: \`${totalAmt}\` · Degens: \`${buyerCount}\`\n` +
+                    `Top Buyers: ${buyers}\n` +
+                    `\`${mint}\``;
             }).join('\n\n');
 
             const smEmbed = new EmbedBuilder()
-                .setTitle('🌱 GMGN SMART MONEY CLUSTER BUYS')
+                .setTitle('SMART MONEY CLUSTERS // SIGNAL TYPE 12')
                 .setDescription(smList)
                 .setColor(0x10B981)
-                .setFooter({ text: 'GMGN Signal Type 12 • Coordinated Smart Money Entry' });
+                .setFooter({ text: 'DD Terminal • Coordinated Smart Money Entry' })
+                .setTimestamp();
             await message.channel.send({ embeds: [smEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1921,28 +2014,30 @@ client.on('messageCreate', async (message) => {
             }
 
             const rugVerdict = data.is_serial_rugger
-                ? '🚨 **CONFIRMED SERIAL RUGGER** (4+ tokens launched, 0 migrations)'
-                : (data.migration_rate >= 40.0 ? '🟢 **HIGH QUALITY DEV** (Strong migration track record)' : '⚠️ **CAUTION** (Low migration rate)');
+                ? '`HIGH RISK: SERIAL RUGGER (0% MIGRATION)`'
+                : (data.migration_rate >= 40.0 ? '`VERIFIED HIGH QUALITY DEV`' : '`CAUTION: LOW GRADUATION RATE`');
 
             const tokenList = (data.tokens || []).slice(0, 6).map((t, idx) => {
                 const sym = t.symbol || 'TOKEN';
                 const ath = t.token_ath_mc ? formatMcUsd(Number(t.token_ath_mc)) : 'N/A';
-                const status = t.is_open ? '🚀 Migrated' : '💀 Curve Rug';
-                return `**${idx + 1}.** **${sym}** — Peak ATH: \`${ath}\` · Status: ${status}`;
+                const status = t.is_open ? '`MIGRATED`' : '`CURVE EXPIRED`';
+                return `**${idx + 1}.** **$${sym}** — ATH: \`${ath}\` · Status: ${status}`;
             }).join('\n') || 'None recorded';
 
             const devHistEmbed = new EmbedBuilder()
-                .setTitle('🧑 GMGN DEV LAUNCH HISTORY & RUG AUDIT')
-                .setDescription(
-                    `**Dev Wallet:** \`${devWallet}\`\n\n` +
-                    `🛡️ **Verdict:** ${rugVerdict}\n\n` +
-                    `📊 **Total Tokens Launched:** \`${data.total_created}\`\n` +
-                    `🚀 **Successful Migrations:** \`${data.open_count}\` (\`${data.migration_rate}%\`)\n` +
-                    `🏆 **Highest ATH Market Cap:** \`${data.highest_ath_mc > 0 ? formatMcUsd(data.highest_ath_mc) : 'N/A'}\`\n\n` +
-                    `### Recent Created Tokens:\n${tokenList}`
-                )
+                .setTitle(`DEVELOPER LAUNCH AUDIT // ${devWallet.slice(0, 6)}...${devWallet.slice(-4)}`)
+                .setURL(`https://solscan.io/account/${devWallet}`)
                 .setColor(data.is_serial_rugger ? 0xEF4444 : (data.migration_rate >= 40.0 ? 0x10B981 : 0xF59E0B))
-                .setFooter({ text: 'GMGN Dev Created Tokens Skill' });
+                .addFields(
+                    { name: 'Risk Verdict', value: rugVerdict, inline: false },
+                    { name: 'Total Created', value: `\`${data.total_created}\``, inline: true },
+                    { name: 'Migrations', value: `\`${data.open_count} (${data.migration_rate}%)\``, inline: true },
+                    { name: 'Peak ATH MC', value: `\`${data.highest_ath_mc > 0 ? formatMcUsd(data.highest_ath_mc) : 'N/A'}\``, inline: true },
+                    { name: 'Recent Token Deployments', value: tokenList, inline: false },
+                    { name: 'Developer Wallet', value: `\`${devWallet}\``, inline: false }
+                )
+                .setFooter({ text: 'DD Terminal • Developer Track Record & Rug Audit' })
+                .setTimestamp();
 
             await message.channel.send({ embeds: [devHistEmbed] });
         } catch (err) {
@@ -1966,16 +2061,17 @@ client.on('messageCreate', async (message) => {
                 const mc = t.market_cap ? formatMcUsd(Number(t.market_cap)) : 'N/A';
                 const prog = t.progress ? `${(Number(t.progress) * 100).toFixed(1)}%` : 'N/A';
                 const smCount = t.smart_degen_count || 0;
-                return `**${i + 1}. [$${sym}](https://pump.fun/${mint})** — [DEX](https://dexscreener.com/solana/${mint})\n` +
-                    `⚡ **Progress:** \`${prog}\` · 💎 **MC:** \`${mc}\` · 🧠 **Smart Degens:** \`${smCount}\`\n` +
-                    `CA: \`${mint}\``;
+                return `**${i + 1}. [$${sym}](https://dexscreener.com/solana/${mint})** ([Pump.fun](https://pump.fun/${mint}))\n` +
+                    `Bonding Curve: \`${prog}\` · Valuation: \`${mc}\` · Smart Degens: \`${smCount}\`\n` +
+                    `\`${mint}\``;
             }).join('\n\n');
 
             const curveEmbed = new EmbedBuilder()
-                .setTitle('⚡ PUMP.FUN NEAR COMPLETION (SMART MONEY ACCUMULATION)')
+                .setTitle('BONDING CURVE RADAR // NEAR GRADUATION')
                 .setDescription(curveList)
                 .setColor(0x8B5CF6)
-                .setFooter({ text: 'GMGN Near Completion Tokens Screener' });
+                .setFooter({ text: 'DD Terminal • Pump.fun 80%–95% Curve Screener' })
+                .setTimestamp();
             await message.channel.send({ embeds: [curveEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
@@ -1999,15 +2095,16 @@ client.on('messageCreate', async (message) => {
                 const liq = t.liquidity ? formatMcUsd(Number(t.liquidity)) : 'N/A';
                 const top10 = t.top_10_holder_rate ? `${(Number(t.top_10_holder_rate) * 100).toFixed(1)}%` : 'N/A';
                 return `**${i + 1}. [$${sym}](https://dexscreener.com/solana/${mint})**\n` +
-                    `💎 **MC:** \`${mc}\` · 💧 **Liq:** \`${liq}\` · 👥 **Top 10:** \`${top10}\`\n` +
-                    `CA: \`${mint}\``;
+                    `Valuation: \`${mc}\` · Liquidity: \`${liq}\` · Top 10 Supply: \`${top10}\`\n` +
+                    `\`${mint}\``;
             }).join('\n\n');
 
             const qEmbed = new EmbedBuilder()
-                .setTitle('💎 GMGN QUALITY MIGRATED TOKENS')
+                .setTitle('QUALITY MIGRATED SCREENER // LOW RISK POOLS')
                 .setDescription(qList)
                 .setColor(0x06B6D4)
-                .setFooter({ text: 'Pre-filtered: Low Top10, Low Bundlers, Verified Liquidity' });
+                .setFooter({ text: 'DD Terminal • Filtered: Low Top 10, Low Bundles, Locked Liquidity' })
+                .setTimestamp();
             await message.channel.send({ embeds: [qEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);

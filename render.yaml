@@ -1,0 +1,41 @@
+services:
+  - type: worker
+    name: solana-sniper-bot
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: GMGN_API_KEY
+        sync: false
+      - key: AIMLAPI_KEY
+        sync: false
+      - key: HELIUS_API_KEY
+        sync: false
+      - key: BIRDEYE_API_KEY
+        sync: false
+      - key: RUGCHECK_API_KEY
+        sync: false
+      - key: FLUX_RPC_URL
+        sync: false
+      - key: FLUX_SHIELD_URL
+        sync: false
+      - key: FLUX_WS_URL
+        sync: false
+      - key: INSIGHTX_API_KEYS
+        sync: false
+      - key: INSIGHTX_API_KEY
+        sync: false
+      - key: PUMPPORTAL_API_KEY
+        sync: false
+      - key: SOLANATRACKER_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TWITTER_TOKEN
+        sync: false
+      - key: OPENNEWS_TOKEN
+        sync: false

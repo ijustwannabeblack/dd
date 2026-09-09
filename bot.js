@@ -1077,6 +1077,33 @@ client.on('messageCreate', async (message) => {
     const content = message.content.trim();
     const aiChanId = String(config.AI_CHAT_CHANNEL_ID || '1541166799620542524');
 
+    // 0.0. .uptime Command
+    if (content === '.uptime' || content === '/uptime' || content.toLowerCase() === '.uptime') {
+        const uptimeSec = process.uptime();
+        const hrs = Math.floor(uptimeSec / 3600);
+        const mins = Math.floor((uptimeSec % 3600) / 60);
+        const secs = Math.floor(uptimeSec % 60);
+        const uptimeStr = hrs > 0 ? `${hrs}h ${mins}m ${secs}s` : `${mins}m ${secs}s`;
+        const heapMb = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1);
+        const totalTokens = seen ? seen.size : 0;
+
+        const uptimeEmbed = new EmbedBuilder()
+            .setTitle('BOT STATUS & UPTIME // DD RADAR')
+            .setColor(0x10B981)
+            .addFields(
+                { name: '⏱️ Uptime', value: `\`${uptimeStr}\``, inline: true },
+                { name: '📊 Memory', value: `\`${heapMb} MB / 128 MB\``, inline: true },
+                { name: '🔍 Tokens Tracked', value: `\`${totalTokens} mints\``, inline: true },
+                { name: '⚡ Scanner Pipeline', value: '`ONLINE (PumpPortal, DexScreener, GMGN)`', inline: false },
+                { name: '🎯 Active MC Floor', value: `\`$${Math.round(config.RUNTIME_CONFIG.min_call_mc_usd / 1000)}k+ MC\``, inline: true },
+                { name: '🛡️ Safety Gates', value: '`Sybil Clusters <5% · Dev <30% · Bundlers <35%`', inline: true },
+            )
+            .setFooter({ text: 'DD Terminal • Autonomous Solana Memecoin Radar' })
+            .setTimestamp();
+
+        return message.channel.send({ embeds: [uptimeEmbed] });
+    }
+
     // 0. AI Chat Channel automated responder
     if (message.channel.id === aiChanId) {
         const caMatch = content.match(/\b[1-9A-HJ-NP-Za-km-z]{32,44}\b/);
@@ -1124,6 +1151,7 @@ client.on('messageCreate', async (message) => {
                 {
                     name: 'Token Security & Verification',
                     value:
+                        '` .uptime ` — Real-time bot uptime, process memory & scanner health\n' +
                         '` .check <ca> ` — Comprehensive audit & InsightX Atlas cluster bubble map\n' +
                         '` .mc <ca> ` — Real-time valuation, pool liquidity & price\n' +
                         '` .predict <ca> ` — Algorithmic momentum prediction & price targets\n' +

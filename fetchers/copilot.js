@@ -188,8 +188,8 @@ You can perform autonomous actions by including action code blocks in your respo
 
 3. EDIT & PUSH CODE (writes file to disk, commits & pushes to GitHub branch 'main' to trigger Render auto-deploy):
    Format:
-   \`\`\`edit_file:filepath/to/file.js
-   // Commit message: feat: adjust filters
+   \`\`\`edit_file:config.js
+   // Commit message: feat: adjust min market cap
    <FULL NEW CONTENT OF FILE>
    \`\`\`
 
@@ -199,7 +199,16 @@ You can perform autonomous actions by including action code blocks in your respo
    true
    \`\`\`
 
-GUIDELINES:
+PROJECT REPOSITORY ARCHITECTURE:
+- bot.js: Contains the Discord bot client, prefix commands (.check, .mc, .uptime, .help, etc.), background scanners, and pump.fun stream handlers.
+- config.js: Contains thresholds (MIN_CALL_MC_USD, MAX_DEV_HOLDINGS_PCT), Discord channel IDs, API keys, and runtime parameters.
+- filters.js: Contains token safety evaluation logic.
+- index.js: HTTP server and health check endpoints.
+- dashboard.html: Telegram-style web chat interface.
+
+CRITICAL INSTRUCTIONS:
+- NEVER output dummy placeholder filepaths like "filepath/to/..." or "path/to/...". Always use the exact real filename (e.g. \`bot.js\` or \`config.js\`).
+- When the user asks to add or change a Discord command (like \`.uptime\`), the file to edit is \`bot.js\`.
 - When the user asks to change a configuration value (e.g. "change min mc to 25k"), always do BOTH:
   1) Output the \`runtime_config\` block so the running bot updates instantly.
   2) Output the \`edit_file\` block for \`config.js\` and/or \`filters.js\` so the change is committed & saved to GitHub permanently via the configured GitHub PAT.
@@ -290,6 +299,13 @@ GUIDELINES:
 
         const absPath = path.resolve(cwd, targetPath);
         if (absPath.startsWith(cwd)) {
+            // Safety guard: reject dummy paths like filepath/to/...
+            if (targetPath.includes('filepath') || targetPath.includes('path/to')) {
+                console.warn(`[Copilot] Rejecting dummy path: ${targetPath}`);
+                actions.push(`Skipped invalid dummy path "${targetPath}". Please specify a real file (e.g. bot.js or config.js).`);
+                continue;
+            }
+
             // Safety guard: never overwrite file if content contains placeholder text
             if (fileContent.includes('<EXISTING CONTENT') || fileContent.includes('<REST OF') || fileContent.includes('// ... rest') || fileContent.length < 50) {
                 console.warn(`[Copilot] Aborting edit for ${targetPath}: detected placeholder text`);
@@ -297,10 +313,17 @@ GUIDELINES:
                 continue;
             }
 
-            // Write to local disk
-            fs.writeFileSync(absPath, fileContent, 'utf8');
-            actions.push(`Modified ${targetPath} locally`);
-            diffs.push({ file: targetPath, lines: lines.length });
+            // Write to local disk safely
+            try {
+                fs.mkdirSync(path.dirname(absPath), { recursive: true });
+                fs.writeFileSync(absPath, fileContent, 'utf8');
+                actions.push(`Modified ${targetPath} locally`);
+                diffs.push({ file: targetPath, lines: lines.length });
+            } catch (writeErr) {
+                console.error(`[Copilot] Disk write error for ${targetPath}:`, writeErr.message);
+                actions.push(`Write error on ${targetPath}: ${writeErr.message}`);
+                continue;
+            }
 
             // Push to GitHub via REST API
             const gitRes = await commitToGitHub(targetPath, fileContent, commitMsg, token, repo);

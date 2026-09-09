@@ -2,44 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DD AI COPILOT // AUTONOMOUS AGENT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DD Copilot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #080a0f;
-            --bg-surface: #0e121a;
-            --bg-card: #131824;
-            --bg-input: #151b29;
-            --border-subtle: #1c2436;
-            --border-medium: #27334d;
-            --border-active: #7c3aed;
-            
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            
-            --color-purple: #a855f7;
-            --color-purple-glow: rgba(168, 85, 247, 0.25);
-            --color-emerald: #10b981;
-            --color-rose: #f43f5e;
-            --color-blue: #38bdf8;
-            --color-amber: #f59e0b;
+            --tg-bg: #0e1621;
+            --tg-header: #17212b;
+            --tg-surface: #17212b;
+            --tg-input-bg: #242f3d;
+            --tg-primary: #5288c1;
+            --tg-primary-hover: #437cb5;
+            --tg-primary-active: #3a6f9f;
+            --tg-text-primary: #f5f5f5;
+            --tg-text-secondary: #7f91a4;
+            --tg-msg-in: #182533;
+            --tg-msg-out: #2b5278;
+            --tg-border: #131d27;
+            --tg-btn-bg: #242f3d;
+            --tg-btn-hover: #2e3c4e;
+            --tg-online: #4fae4e;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            height: 100vh;
+        html, body {
+            background-color: var(--tg-bg);
+            color: var(--tg-text-primary);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            height: 100%;
             height: 100dvh;
             overflow: hidden;
             display: flex;
@@ -52,822 +50,723 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* ─── Top Header ─────────────────────────────────────────────── */
+        /* ─── Telegram Header Bar ────────────────────────────────────── */
         header {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-subtle);
-            height: 52px;
+            background: var(--tg-header);
+            height: 56px;
             padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 50;
+            z-index: 100;
             flex-shrink: 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
-        .header-brand {
+        .header-profile {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .brand-pill {
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3390ec, #1d74c9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #fff;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.8px;
-            box-shadow: 0 0 12px rgba(124, 58, 237, 0.35);
-        }
-
-        .brand-title {
-            font-size: 13px;
             font-weight: 700;
-            letter-spacing: 0.6px;
-            color: #fff;
+            font-size: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .avatar-dot {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 10px;
+            height: 10px;
+            background: var(--tg-online);
+            border: 2px solid var(--tg-header);
+            border-radius: 50%;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .profile-title-row {
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .brand-sub {
-            font-size: 10px;
-            color: var(--text-muted);
-            border-left: 1px solid var(--border-subtle);
-            padding-left: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        .header-stats {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-        }
-
-        .stat-item .lbl {
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 10px;
-        }
-
-        .stat-item .val {
+        .profile-name {
+            font-size: 15px;
             font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.1px;
         }
 
-        .stat-item .val.emerald { color: var(--color-emerald); }
-        .stat-item .val.blue { color: var(--color-blue); }
-        .stat-item .val.purple { color: var(--color-purple); }
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #2b77c8;
+            color: #fff;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .profile-status {
+            font-size: 12px;
+            color: var(--tg-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .profile-status .status-online {
+            color: var(--tg-primary);
+        }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
-        .btn-icon {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            height: 32px;
-            padding: 0 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--tg-text-secondary);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            cursor: pointer;
             transition: all 0.15s;
         }
 
-        .btn-icon:hover {
+        .icon-btn:hover {
             color: #fff;
-            border-color: var(--border-medium);
-            background: #182030;
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        /* ─── Main Workspace Container ───────────────────────────────── */
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* ─── Chat Viewport ──────────────────────────────────────────── */
         main {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            background: #0e1621;
         }
 
-        /* ─── Passcode Gate Screen ───────────────────────────────────── */
-        #gate-screen {
+        /* Telegram subtle pattern overlay */
+        .chat-pattern {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at center, rgba(124, 58, 237, 0.08) 0%, var(--bg-base) 70%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            z-index: 100;
+            opacity: 0.035;
+            pointer-events: none;
+            background-image: radial-gradient(#fff 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
-        .gate-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-medium);
-            border-radius: 10px;
-            padding: 32px 28px;
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.15);
-        }
-
-        .gate-icon {
-            font-size: 36px;
-            margin-bottom: 4px;
-        }
-
-        .gate-title {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #fff;
-        }
-
-        .gate-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .gate-input-wrap {
-            position: relative;
-            margin-top: 6px;
-        }
-
-        .gate-input {
-            width: 100%;
-            background: var(--bg-input);
-            border: 1px solid var(--border-medium);
-            border-radius: 6px;
-            color: #fff;
-            padding: 12px 14px;
-            font-size: 14px;
-            font-family: 'JetBrains Mono', monospace;
-            text-align: center;
-            letter-spacing: 2px;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .gate-input:focus {
-            border-color: var(--color-purple);
-            box-shadow: 0 0 15px var(--color-purple-glow);
-        }
-
-        .gate-btn {
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 12px;
-            cursor: pointer;
-            letter-spacing: 0.6px;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
-            transition: all 0.2s;
-        }
-
-        .gate-btn:hover {
-            opacity: 0.92;
-            transform: translateY(-1px);
-        }
-
-        .gate-err {
-            font-size: 12px;
-            color: var(--color-rose);
-            display: none;
-        }
-
-        /* ─── Chat View ──────────────────────────────────────────────── */
-        #chat-view {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            width: 100%;
-            max-width: 960px;
-            margin: 0 auto;
-        }
-
-        /* Sub Status Bar */
-        .chat-subbar {
-            background: #0a0d14;
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 11px;
-            color: var(--text-muted);
-            flex-shrink: 0;
-        }
-
-        .chat-subbar .mono-val {
-            color: var(--color-blue);
-            font-weight: 600;
-        }
-
-        /* Message Scroll Stream */
-        .chat-messages {
+        .chat-scroll {
             flex: 1;
             overflow-y: auto;
-            padding: 20px 16px;
+            padding: 16px 16px 12px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 10px;
+            z-index: 10;
             scroll-behavior: smooth;
         }
 
-        .chat-hero {
-            background: linear-gradient(180deg, rgba(21, 27, 41, 0.7) 0%, rgba(14, 18, 26, 0.4) 100%);
-            border: 1px solid var(--border-medium);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 8px;
-        }
-
-        .chat-hero h2 {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chat-hero p {
+        /* Date / Service Badge */
+        .service-badge {
+            align-self: center;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(4px);
+            color: #8da4be;
             font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .hero-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .hero-feature-card {
-            background: #090c13;
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 11px;
-        }
-
-        .hero-feature-card b {
-            color: #fff;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        .hero-feature-card span {
-            color: var(--text-muted);
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin: 4px 0 8px;
+            user-select: none;
         }
 
         /* Message Bubbles */
-        .msg-row {
+        .message-row {
             display: flex;
             width: 100%;
+            margin-bottom: 2px;
         }
 
-        .msg-row.user {
+        .message-row.user {
             justify-content: flex-end;
         }
 
-        .msg-row.assistant {
+        .message-row.assistant {
             justify-content: flex-start;
         }
 
-        .msg-bubble {
-            max-width: 82%;
-            padding: 12px 16px;
-            border-radius: 8px;
+        .bubble {
+            max-width: 85%;
+            padding: 9px 12px 7px 12px;
+            border-radius: 12px;
+            font-size: 14.5px;
+            line-height: 1.45;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+
+        .bubble.user {
+            background: var(--tg-msg-out);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bubble.assistant {
+            background: var(--tg-msg-in);
+            color: #f1f5f9;
+            border-bottom-left-radius: 4px;
+        }
+
+        .bubble-meta {
+            float: right;
+            margin-left: 8px;
+            margin-top: 4px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.55);
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            user-select: none;
+        }
+
+        .checkmarks {
+            color: #5288c1;
             font-size: 13px;
-            line-height: 1.6;
-            word-break: break-word;
+            line-height: 1;
         }
 
-        .msg-bubble.user {
-            background: #1e293b;
-            color: #f8fafc;
-            border-bottom-right-radius: 2px;
-            border: 1px solid #334155;
+        /* Markdown & Code Formatting */
+        .bubble p {
+            margin-bottom: 6px;
+        }
+        .bubble p:last-child {
+            margin-bottom: 0;
         }
 
-        .msg-bubble.assistant {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-medium);
-            color: #e2e8f0;
-            border-bottom-left-radius: 2px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Code & Markdown Styles */
-        .msg-bubble pre {
-            background: #07090e;
-            border: 1px solid #1a2336;
-            padding: 10px 12px;
+        .bubble pre {
+            background: #090e15;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 6px;
-            margin: 10px 0;
+            padding: 8px 10px;
+            margin: 8px 0;
             overflow-x: auto;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: #38bdf8;
+            font-size: 12px;
+            color: #64b5f6;
             position: relative;
         }
 
-        .msg-bubble code {
+        .bubble code {
             font-family: 'JetBrains Mono', monospace;
-            background: #0a0e16;
-            padding: 2px 5px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 4px;
             border-radius: 4px;
-            font-size: 12px;
-            color: #f472b6;
+            font-size: 12.5px;
+            color: #f48fb1;
         }
 
-        .msg-bubble pre code {
-            padding: 0;
+        .bubble pre code {
             background: transparent;
+            padding: 0;
             color: inherit;
         }
 
-        .action-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(16, 185, 129, 0.12);
+        .bubble a {
+            color: #64b5f6;
+            text-decoration: none;
+        }
+
+        .bubble a:hover {
+            text-decoration: underline;
+        }
+
+        .bubble blockquote {
+            border-left: 3px solid #5288c1;
+            padding-left: 8px;
+            margin: 6px 0;
+            color: #90caf9;
+        }
+
+        /* Action Chips */
+        .action-tags {
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .action-tag {
+            background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #34d399;
+            color: #4ade80;
             font-size: 11px;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            margin: 6px 6px 0 0;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .action-chip.git {
-            background: rgba(56, 189, 248, 0.12);
-            border-color: rgba(56, 189, 248, 0.3);
-            color: #38bdf8;
+        .action-tag.git {
+            background: rgba(82, 136, 193, 0.2);
+            border-color: rgba(82, 136, 193, 0.4);
+            color: #90caf9;
         }
 
-        /* Quick Pills */
-        .quick-pills-bar {
-            padding: 8px 16px;
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            background: #0a0d14;
-            border-top: 1px solid var(--border-subtle);
-            flex-shrink: 0;
-            scrollbar-width: none;
+        /* ─── Telegram Bot Inline Keyboard ───────────────────────────── */
+        .inline-keyboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 8px;
         }
 
-        .quick-pills-bar::-webkit-scrollbar { display: none; }
-
-        .pill-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-size: 11px;
-            font-weight: 500;
-            padding: 6px 12px;
-            border-radius: 14px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .pill-btn:hover {
-            color: #fff;
-            border-color: var(--color-purple);
-            background: #171e2e;
-        }
-
-        /* Input Container */
-        .chat-input-container {
-            padding: 12px 16px;
-            background: var(--bg-surface);
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-            flex-shrink: 0;
-        }
-
-        .chat-textarea {
-            flex: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border-medium);
-            border-radius: 6px;
-            color: #fff;
-            padding: 10px 14px;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            resize: none;
-            height: 44px;
-            max-height: 120px;
-            line-height: 1.4;
-            transition: border 0.15s;
-        }
-
-        .chat-textarea:focus {
-            border-color: var(--color-purple);
-            box-shadow: 0 0 10px var(--color-purple-glow);
-        }
-
-        .chat-send-btn {
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+        .inline-btn {
+            background: var(--tg-btn-bg);
             border: none;
-            color: #fff;
-            width: 44px;
-            height: 44px;
+            color: #64b5f6;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 500;
+            padding: 8px 10px;
             border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            gap: 6px;
+            transition: all 0.12s;
+            user-select: none;
+        }
+
+        .inline-btn:hover {
+            background: var(--tg-btn-hover);
+            color: #90caf9;
+        }
+
+        .inline-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ─── Telegram Bottom Input Bar ──────────────────────────────── */
+        .input-bar {
+            background: var(--tg-surface);
+            padding: 8px 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            z-index: 100;
+            border-top: 1px solid rgba(0, 0, 0, 0.2);
             flex-shrink: 0;
-            box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);
-            transition: all 0.15s;
         }
 
-        .chat-send-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        .input-wrapper {
+            flex: 1;
+            background: var(--tg-input-bg);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 4px 14px;
+            min-height: 40px;
+            max-height: 120px;
         }
 
-        .chat-send-btn:disabled {
-            opacity: 0.4;
+        .chat-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14.5px;
+            line-height: 1.35;
+            outline: none;
+            resize: none;
+            height: 22px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .chat-input::placeholder {
+            color: var(--tg-text-secondary);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--tg-primary);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .send-btn:hover {
+            background: var(--tg-primary-hover);
+        }
+
+        .send-btn:active {
+            transform: scale(0.94);
+        }
+
+        .send-btn:disabled {
+            background: #242f3d;
+            color: #4f5d6f;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
-        /* Settings Modal */
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+            fill: currentColor;
+        }
+
+        /* ─── Settings Modal (Telegram Sheet Style) ──────────────────── */
         #settings-modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 16px;
             z-index: 200;
+            padding: 16px;
         }
 
-        .settings-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-medium);
-            border-radius: 8px;
-            padding: 24px;
+        .modal-card {
+            background: var(--tg-surface);
+            border-radius: 12px;
             width: 100%;
-            max-width: 440px;
+            max-width: 400px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
         }
 
-        .settings-header {
+        .modal-header {
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .settings-title {
-            font-size: 14px;
-            font-weight: 700;
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
             color: #fff;
         }
 
-        .settings-field {
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-body p {
+            font-size: 13px;
+            color: var(--tg-text-secondary);
+            line-height: 1.45;
+        }
+
+        .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
 
-        .settings-field label {
+        .form-group label {
             font-size: 11px;
-            color: var(--text-muted);
+            color: #64b5f6;
+            font-weight: 500;
             text-transform: uppercase;
-            font-weight: 600;
         }
 
-        .settings-input {
-            width: 100%;
-            background: var(--bg-input);
-            border: 1px solid var(--border-medium);
-            border-radius: 4px;
+        .form-input {
+            background: var(--tg-input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: #fff;
             padding: 10px 12px;
-            font-size: 13px;
+            border-radius: 8px;
+            font-size: 13.5px;
             font-family: inherit;
             outline: none;
         }
 
-        .settings-input:focus {
-            border-color: var(--color-purple);
+        .form-input:focus {
+            border-color: var(--tg-primary);
         }
 
-        /* Mobile Adjustments */
-        @media (max-width: 600px) {
-            .brand-sub { display: none; }
-            .header-stats { display: none; }
-            .msg-bubble { max-width: 92%; }
-            .hero-features { grid-template-columns: 1fr; }
+        .modal-footer {
+            padding: 12px 20px 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--tg-text-secondary);
+        }
+
+        .btn-primary {
+            background: var(--tg-primary);
+            color: #fff;
+        }
+
+        /* Typing Dots Animation */
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px 6px;
+        }
+
+        .typing-dots span {
+            width: 5px;
+            height: 5px;
+            background: #7f91a4;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Header -->
+    <!-- Telegram Top App Bar -->
     <header>
-        <div class="header-brand">
-            <span class="brand-pill">DD</span>
-            <div class="brand-title">
-                <span>AI COPILOT</span>
+        <div class="header-profile" id="header-profile">
+            <div class="avatar">
+                <span>DD</span>
+                <div class="avatar-dot"></div>
             </div>
-            <span class="brand-sub">AUTONOMOUS BOT AGENT</span>
-        </div>
-
-        <div class="header-stats">
-            <div class="stat-item">
-                <span class="lbl">Caller Bot:</span>
-                <span class="val emerald mono" id="stat-bot-status">ONLINE</span>
-            </div>
-            <div class="stat-item">
-                <span class="lbl">Min MC Floor:</span>
-                <span class="val blue mono" id="stat-mc-floor">$20k</span>
-            </div>
-            <div class="stat-item">
-                <span class="lbl">Model:</span>
-                <span class="val purple mono" id="stat-model">GPT-4O-MINI</span>
+            <div class="profile-info">
+                <div class="profile-title-row">
+                    <span class="profile-name">DD AI Copilot</span>
+                    <span class="verified-badge">✓</span>
+                </div>
+                <div class="profile-status">
+                    <span class="status-online">bot • online</span>
+                    <span>•</span>
+                    <span id="header-uptime">active</span>
+                </div>
             </div>
         </div>
 
         <div class="header-actions">
-            <button class="btn-icon" id="btn-clear-chat" title="Clear Chat History">
-                <span>🗑️</span>
-                <span>Clear</span>
+            <button class="icon-btn" id="btn-clear" title="Clear Chat">
+                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             </button>
-            <button class="btn-icon" id="btn-open-settings" title="Copilot Settings (GitHub PAT / Passcode)">
-                <span>⚙️</span>
-                <span>Settings</span>
+            <button class="icon-btn" id="btn-settings" title="Settings (GitHub Token)">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             </button>
         </div>
     </header>
 
-    <!-- Main Body Area -->
+    <!-- Main Chat Workspace -->
     <main>
+        <div class="chat-pattern"></div>
 
-        <!-- Passcode Unlock Screen -->
-        <div id="gate-screen">
-            <div class="gate-box">
-                <div class="gate-icon">🔐</div>
-                <div class="gate-title">ADMIN ACCESS REQUIRED</div>
-                <div class="gate-desc">
-                    Enter your admin passcode to access autonomous remote code editing and bot controls.
-                </div>
-                <div class="gate-input-wrap">
-                    <input type="password" id="gate-pass-input" class="gate-input" placeholder="PASSCODE" autofocus>
-                </div>
-                <button class="gate-btn" id="btn-unlock">UNLOCK COPILOT</button>
-                <div class="gate-err" id="gate-error">Invalid passcode. Please try again.</div>
-            </div>
-        </div>
+        <div class="chat-scroll" id="chat-stream">
+            <div class="service-badge">DD Autonomous Bot Agent</div>
 
-        <!-- Chat Workspace Screen -->
-        <div id="chat-view" style="display: none;">
-            
-            <!-- Real-time Status Subbar -->
-            <div class="chat-subbar">
-                <span>Server Uptime: <b class="mono-val" id="bar-uptime">Active</b></span>
-                <span>Active Channels: <b class="mono-val">Calls, Migrated, Plain CAs</b></span>
-                <span>Cloud GitHub: <b class="mono-val" id="bar-github">Ready</b></span>
-            </div>
+            <!-- Welcome Message with Telegram Bot Inline Buttons -->
+            <div class="message-row assistant">
+                <div class="bubble assistant">
+                    <p>👋 <b>DD AI Copilot is live.</b></p>
+                    <p>I can adjust live bot parameters in real-time, inspect why tokens were called or rejected, or rewrite code and commit it directly to GitHub while you're away from your PC.</p>
+                    
+                    <div class="inline-keyboard">
+                        <button class="inline-btn" data-prompt="Show bot status, uptime, and memory">📊 Bot Status</button>
+                        <button class="inline-btn" data-prompt="What are the current filter thresholds and market cap limits?">🛡️ Active Filters</button>
+                        <button class="inline-btn" data-prompt="Set MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Min MC $20k</button>
+                        <button class="inline-btn" data-prompt="Read config.js and summarize live settings">📁 View config.js</button>
+                        <button class="inline-btn" data-prompt="Audit recent scanned coins and tell me why they passed or failed">🔍 Audit Scans</button>
+                        <button class="inline-btn" data-prompt="Check GitHub sync status and latest commit">🚀 Git Status</button>
+                    </div>
 
-            <!-- Messages Stream -->
-            <div class="chat-messages" id="chat-messages">
-                <div class="chat-hero">
-                    <h2><span>⚡</span> Autonomous Remote AI Copilot Online</h2>
-                    <p>
-                        You can manage your Solana caller bot, change filters in real-time, or instruct the AI to modify code and push commits directly to GitHub without needing your PC.
-                    </p>
-                    <div class="hero-features">
-                        <div class="hero-feature-card">
-                            <b>🚀 Remote Code Edits & Push</b>
-                            <span>Modify files and commit directly to GitHub main to auto-redeploy Render.</span>
-                        </div>
-                        <div class="hero-feature-card">
-                            <b>⚡ Live In-Memory Tweaks</b>
-                            <span>Change min MC floor ($20k+), dev holding limits, or bundler gates instantly.</span>
-                        </div>
-                        <div class="hero-feature-card">
-                            <b>🛡️ On-Chain Anti-Rug Audits</b>
-                            <span>Ask why any token failed or passed (Raydium LP pool, bubbles, sybils).</span>
-                        </div>
+                    <div class="bubble-meta">
+                        <span id="init-time">12:00</span>
                     </div>
                 </div>
             </div>
-
-            <!-- Quick Action Prompt Pills -->
-            <div class="quick-pills-bar">
-                <button class="pill-btn" data-prompt="Show current bot status, uptime, and memory">📊 Bot Status</button>
-                <button class="pill-btn" data-prompt="What are our current filter thresholds and market cap limits?">🛡️ Active Filters</button>
-                <button class="pill-btn" data-prompt="Change MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Set Min MC $20k</button>
-                <button class="pill-btn" data-prompt="Read config.js and show me the current settings">📁 View config.js</button>
-                <button class="pill-btn" data-prompt="Audit recent scanned tokens and explain why they passed or failed">🔍 Audit Scans</button>
-            </div>
-
-            <!-- Chat Input Bar -->
-            <div class="chat-input-container">
-                <textarea id="chat-input" class="chat-textarea" placeholder="Instruct AI Copilot (e.g. 'Set min MC to 25k in config.js and push')..."></textarea>
-                <button id="btn-send" class="chat-send-btn" title="Send (Enter)">➤</button>
-            </div>
         </div>
 
+        <!-- Input Bar (Telegram Web Style) -->
+        <div class="input-bar">
+            <div class="input-wrapper">
+                <textarea id="chat-input" class="chat-input" placeholder="Message DD Copilot..." rows="1"></textarea>
+            </div>
+            <button class="send-btn" id="btn-send" title="Send message">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
     </main>
 
     <!-- Settings Modal -->
     <div id="settings-modal">
-        <div class="settings-card">
-            <div class="settings-header">
-                <div class="settings-title">⚙ COPILOT CONFIGURATION</div>
-                <button class="btn-icon" id="btn-close-settings" style="height: 24px; padding: 0 6px;">✕</button>
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-title">Copilot Settings</span>
+                <button class="icon-btn" id="btn-close-modal" style="width: 28px; height: 28px;">✕</button>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                To let the cloud bot on Render commit and push code updates back to GitHub while your PC is off, enter your GitHub Personal Access Token (PAT) with <code>repo</code> write permission.
-            </p>
-            <div class="settings-field">
-                <label>Admin Passcode</label>
-                <input type="password" id="input-cfg-pass" class="settings-input" placeholder="Admin Passcode">
+            <div class="modal-body">
+                <p>
+                    Add your GitHub Personal Access Token (PAT) so the cloud bot can push code updates to <code>ijustwannabeblack/dd</code> when your PC is turned off.
+                </p>
+                <div class="form-group">
+                    <label>GitHub Personal Access Token (PAT)</label>
+                    <input type="password" id="input-github-token" class="form-input" placeholder="ghp_... (repo scope)">
+                </div>
             </div>
-            <div class="settings-field">
-                <label>GitHub Personal Access Token (PAT)</label>
-                <input type="password" id="input-cfg-github" class="settings-input" placeholder="ghp_... (repo scope)">
+            <div class="modal-footer">
+                <button class="btn-modal btn-secondary" id="btn-cancel-modal">Cancel</button>
+                <button class="btn-modal btn-primary" id="btn-save-modal">Save</button>
             </div>
-            <button class="gate-btn" id="btn-save-settings">Save Settings</button>
         </div>
     </div>
 
     <!-- JavaScript Controller -->
     <script>
         (function() {
-            // Elements
-            const gateScreen = document.getElementById('gate-screen');
-            const chatView = document.getElementById('chat-view');
-            const gateInput = document.getElementById('gate-pass-input');
-            const btnUnlock = document.getElementById('btn-unlock');
-            const gateError = document.getElementById('gate-error');
-
-            const chatMessages = document.getElementById('chat-messages');
+            const chatStream = document.getElementById('chat-stream');
             const chatInput = document.getElementById('chat-input');
             const btnSend = document.getElementById('btn-send');
-            const btnClear = document.getElementById('btn-clear-chat');
-
-            const statBotStatus = document.getElementById('stat-bot-status');
-            const statMcFloor = document.getElementById('stat-mc-floor');
-            const statModel = document.getElementById('stat-model');
-            const barUptime = document.getElementById('bar-uptime');
-            const barGithub = document.getElementById('bar-github');
+            const btnClear = document.getElementById('btn-clear');
+            const headerUptime = document.getElementById('header-uptime');
 
             const settingsModal = document.getElementById('settings-modal');
-            const btnOpenSettings = document.getElementById('btn-open-settings');
-            const btnCloseSettings = document.getElementById('btn-close-settings');
-            const btnSaveSettings = document.getElementById('btn-save-settings');
-            const inputCfgPass = document.getElementById('input-cfg-pass');
-            const inputCfgGithub = document.getElementById('input-cfg-github');
+            const btnSettings = document.getElementById('btn-settings');
+            const btnCloseModal = document.getElementById('btn-close-modal');
+            const btnCancelModal = document.getElementById('btn-cancel-modal');
+            const btnSaveModal = document.getElementById('btn-save-modal');
+            const inputGithub = document.getElementById('input-github-token');
 
             let chatHistory = [];
-            let currentPassword = localStorage.getItem('dd_copilot_pass') || 'blacklarp1';
             let currentGithubToken = localStorage.getItem('dd_copilot_github') || '';
 
-            // Format uptime helper
+            // Format current time HH:MM
+            function getTimeStr() {
+                const now = new Date();
+                return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+
+            document.getElementById('init-time').innerText = getTimeStr();
+
+            // Format uptime
             function formatUptime(seconds) {
                 const s = Math.floor(seconds || 0);
                 const h = Math.floor(s / 3600);
                 const m = Math.floor((s % 3600) / 60);
-                if (h > 0) return `${h}h ${m}m`;
-                return `${m}m ${s % 60}s`;
+                if (h > 0) return `${h}h ${m}m uptime`;
+                return `${m}m uptime`;
             }
 
-            // Auth Check
-            async function verifyAuth(passwordToTest) {
+            // Fetch live status on load
+            async function fetchStatus() {
                 try {
-                    const res = await fetch(`/api/copilot/status?pass=${encodeURIComponent(passwordToTest)}`);
+                    const res = await fetch('/api/copilot/status');
                     if (res.ok) {
                         const data = await res.json();
-                        currentPassword = passwordToTest;
-                        localStorage.setItem('dd_copilot_pass', currentPassword);
-
-                        gateScreen.style.display = 'none';
-                        chatView.style.display = 'flex';
-                        gateError.style.display = 'none';
-
-                        if (data.runtimeConfig?.min_call_mc_usd) {
-                            statMcFloor.innerText = `$${Math.round(data.runtimeConfig.min_call_mc_usd / 1000)}k`;
-                        }
-                        if (data.uptime) {
-                            barUptime.innerText = formatUptime(data.uptime);
-                        }
-                        if (data.hasGithubToken || currentGithubToken) {
-                            barGithub.innerText = 'Connected';
-                            barGithub.style.color = '#10b981';
-                        } else {
-                            barGithub.innerText = 'Need PAT';
-                            barGithub.style.color = '#f59e0b';
-                        }
-                        chatInput.focus();
-                        return true;
+                        if (data.uptime) headerUptime.innerText = formatUptime(data.uptime);
                     }
                 } catch {}
-                return false;
             }
-
-            // Unlock Button
-            btnUnlock.addEventListener('click', async () => {
-                const pass = gateInput.value.trim();
-                if (!pass) return;
-                const ok = await verifyAuth(pass);
-                if (!ok) {
-                    gateError.style.display = 'block';
-                }
-            });
-
-            gateInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') btnUnlock.click();
-            });
-
-            // Auto-check stored password
-            if (currentPassword) {
-                verifyAuth(currentPassword).then(ok => {
-                    if (!ok) gateInput.value = 'blacklarp1';
-                });
-            } else {
-                gateInput.value = 'blacklarp1';
-            }
+            fetchStatus();
+            setInterval(fetchStatus, 20000);
 
             // Settings Modal
-            btnOpenSettings.addEventListener('click', () => {
-                inputCfgPass.value = currentPassword;
-                inputCfgGithub.value = currentGithubToken;
+            btnSettings.addEventListener('click', () => {
+                inputGithub.value = currentGithubToken;
                 settingsModal.style.display = 'flex';
             });
 
-            btnCloseSettings.addEventListener('click', () => {
-                settingsModal.style.display = 'none';
-            });
+            function closeModal() { settingsModal.style.display = 'none'; }
+            btnCloseModal.addEventListener('click', closeModal);
+            btnCancelModal.addEventListener('click', closeModal);
 
-            btnSaveSettings.addEventListener('click', () => {
-                currentPassword = inputCfgPass.value.trim();
-                currentGithubToken = inputCfgGithub.value.trim();
-                localStorage.setItem('dd_copilot_pass', currentPassword);
+            btnSaveModal.addEventListener('click', () => {
+                currentGithubToken = inputGithub.value.trim();
                 localStorage.setItem('dd_copilot_github', currentGithubToken);
-                settingsModal.style.display = 'none';
-                verifyAuth(currentPassword);
+                closeModal();
             });
 
             // Clear Chat
             btnClear.addEventListener('click', () => {
                 chatHistory = [];
-                const hero = chatMessages.querySelector('.chat-hero');
-                chatMessages.innerHTML = '';
-                if (hero) chatMessages.appendChild(hero);
+                const first = chatStream.querySelector('.service-badge');
+                const welcome = chatStream.querySelector('.message-row.assistant');
+                chatStream.innerHTML = '';
+                if (first) chatStream.appendChild(first);
+                if (welcome) chatStream.appendChild(welcome);
             });
 
-            // Markdown Formatter
+            // Markdown rendering
             function formatMarkdown(text) {
                 if (!text) return '';
                 let html = text
@@ -887,55 +786,77 @@
                 html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 
                 // Blockquotes
-                html = html.replace(/^>\s+(.+)$/gm, '<blockquote style="border-left: 2px solid #7c3aed; padding-left: 8px; color: #a855f7; margin: 4px 0;">$1</blockquote>');
+                html = html.replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>');
 
-                // List items
-                html = html.replace(/^[•*-]\s+(.+)$/gm, '<li style="margin-left: 16px;">$1</li>');
+                // Lists
+                html = html.replace(/^[•*-]\s+(.+)$/gm, '<li style="margin-left: 14px;">$1</li>');
 
                 // Links [text](url)
-                html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #38bdf8; text-decoration: underline;">$1</a>');
+                html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
                 // Newlines
                 html = html.replace(/\n/g, '<br>');
                 return html;
             }
 
-            function appendMessage(role, content, actions = []) {
+            function appendMessage(role, text, actions = []) {
                 const row = document.createElement('div');
-                row.className = `msg-row ${role}`;
+                row.className = `message-row ${role}`;
 
                 const bubble = document.createElement('div');
-                bubble.className = `msg-bubble ${role}`;
+                bubble.className = `bubble ${role}`;
 
-                let html = formatMarkdown(content);
+                let html = formatMarkdown(text);
 
                 if (actions && actions.length > 0) {
-                    html += '<div style="margin-top: 8px;">';
+                    html += '<div class="action-tags">';
                     actions.forEach(act => {
                         const isGit = act.toLowerCase().includes('git') || act.toLowerCase().includes('pushed');
-                        html += `<span class="action-chip ${isGit ? 'git' : ''}">✓ ${act}</span>`;
+                        html += `<span class="action-tag ${isGit ? 'git' : ''}">✓ ${act}</span>`;
                     });
                     html += '</div>';
                 }
 
+                // Append meta time
+                const meta = document.createElement('div');
+                meta.className = 'bubble-meta';
+                meta.innerHTML = `<span>${getTimeStr()}</span>${role === 'user' ? '<span class="checkmarks">✓✓</span>' : ''}`;
+
                 bubble.innerHTML = html;
+                bubble.appendChild(meta);
                 row.appendChild(bubble);
-                chatMessages.appendChild(row);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                return bubble;
+                chatStream.appendChild(row);
+                chatStream.scrollTop = chatStream.scrollHeight;
+                return row;
             }
 
-            // Send Message Handler
+            // Typing indicator
+            function showTyping() {
+                const row = document.createElement('div');
+                row.className = 'message-row assistant typing-row';
+                row.innerHTML = `
+                    <div class="bubble assistant">
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                `;
+                chatStream.appendChild(row);
+                chatStream.scrollTop = chatStream.scrollHeight;
+                return row;
+            }
+
+            // Send Message
             async function sendMessage(text) {
                 const prompt = (text || chatInput.value).trim();
                 if (!prompt) return;
 
                 appendMessage('user', prompt);
                 chatInput.value = '';
-                chatInput.style.height = '44px';
+                chatInput.style.height = '22px';
                 btnSend.disabled = true;
 
-                const indicator = appendMessage('assistant', '⚡ <i>Copilot is analyzing request and repository...</i>');
+                const typing = showTyping();
 
                 try {
                     const res = await fetch('/api/copilot/chat', {
@@ -944,32 +865,24 @@
                         body: JSON.stringify({
                             message: prompt,
                             history: chatHistory.slice(-8),
-                            password: currentPassword,
+                            password: 'blacklarp1',
                             githubToken: currentGithubToken
                         })
                     });
 
-                    indicator.closest('.msg-row').remove();
+                    typing.remove();
 
                     if (res.ok) {
                         const data = await res.json();
                         chatHistory.push({ role: 'user', content: prompt });
                         chatHistory.push({ role: 'assistant', content: data.reply });
-
-                        if (data.provider) {
-                            statModel.innerText = data.provider.toUpperCase();
-                        }
-                        if (data.updatedConfig?.min_call_mc_usd) {
-                            statMcFloor.innerText = `$${Math.round(data.updatedConfig.min_call_mc_usd / 1000)}k`;
-                        }
-
                         appendMessage('assistant', data.reply, data.actions);
                     } else {
                         const err = await res.json().catch(() => ({}));
                         appendMessage('assistant', `⚠️ Error: ${err.error || 'Request failed'}`);
                     }
                 } catch (e) {
-                    indicator.closest('.msg-row').remove();
+                    typing.remove();
                     appendMessage('assistant', `⚠️ Network error: ${e.message}`);
                 } finally {
                     btnSend.disabled = false;
@@ -986,34 +899,20 @@
                 }
             });
 
-            // Auto resize textarea
+            // Auto resize input textarea
             chatInput.addEventListener('input', () => {
                 chatInput.style.height = 'auto';
-                chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+                chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
             });
 
-            // Quick pills click
-            document.querySelectorAll('.pill-btn').forEach(pill => {
-                pill.addEventListener('click', () => {
-                    const prompt = pill.getAttribute('data-prompt');
+            // Inline buttons click delegation
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.inline-btn');
+                if (btn) {
+                    const prompt = btn.getAttribute('data-prompt');
                     if (prompt) sendMessage(prompt);
-                });
+                }
             });
-
-            // Periodic uptime update
-            setInterval(async () => {
-                if (!currentPassword) return;
-                try {
-                    const res = await fetch(`/api/copilot/status?pass=${encodeURIComponent(currentPassword)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.uptime) barUptime.innerText = formatUptime(data.uptime);
-                        if (data.runtimeConfig?.min_call_mc_usd) {
-                            statMcFloor.innerText = `$${Math.round(data.runtimeConfig.min_call_mc_usd / 1000)}k`;
-                        }
-                    }
-                } catch {}
-            }, 15000);
         })();
     </script>
 </body>

@@ -92,13 +92,8 @@ const server = http.createServer((req, res) => {
     }
 
     // Copilot Status
+    // Copilot Status
     if (url.pathname === '/api/copilot/status') {
-        const pass = url.searchParams.get('pass') || req.headers['x-admin-pass'];
-        if (pass !== config.ADMIN_PASSWORD) {
-            res.writeHead(401, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ error: 'Unauthorized. Invalid admin passcode.' }));
-            return;
-        }
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({
             status: 'ok',
@@ -121,17 +116,10 @@ const server = http.createServer((req, res) => {
         req.on('end', async () => {
             try {
                 const data = JSON.parse(body || '{}');
-                const password = data.password || req.headers['x-admin-pass'];
-                if (password !== config.ADMIN_PASSWORD) {
-                    res.writeHead(401, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                    res.end(JSON.stringify({ error: 'Invalid admin passcode. Access denied.' }));
-                    return;
-                }
-
                 const result = await handleCopilotChat({
                     message: data.message || '',
                     history: data.history || [],
-                    githubToken: data.githubToken || '',
+                    githubToken: data.githubToken || config.GITHUB_TOKEN || process.env.GITHUB_TOKEN || '',
                     recentTokens
                 });
 

@@ -193,10 +193,17 @@ You can perform autonomous actions by including action code blocks in your respo
    <FULL NEW CONTENT OF FILE>
    \`\`\`
 
+4. RESTART CALLER BOT (instantly recycles scanner processes, reconnects WebSockets, and resets memory):
+   Format:
+   \`\`\`restart_bot
+   true
+   \`\`\`
+
 GUIDELINES:
 - When the user asks to change a configuration value (e.g. "change min mc to 25k"), always do BOTH:
   1) Output the \`runtime_config\` block so the running bot updates instantly.
-  2) Output the \`edit_file\` block for \`config.js\` and/or \`filters.js\` so the change is committed & saved to GitHub permanently.
+  2) Output the \`edit_file\` block for \`config.js\` and/or \`filters.js\` so the change is committed & saved to GitHub permanently via the configured GitHub PAT.
+- When the user asks to restart the bot or recycle scanners, output the \`restart_bot\` block.
 - Keep explanations concise, professional, and formatted in clean markdown.
 - Highlight git commit hashes and link to the commit if pushed.
 - If the user asks general questions about why coins failed or how the bot works, reference the live parameters and anti-rug rules (sybil bubblemap cluster < 5%, bundlers < 5%, dev < 30%, Raydium LP pool excluded from whale count).`;
@@ -251,6 +258,18 @@ GUIDELINES:
             }
         } catch (e) {
             console.warn('[Copilot] Runtime config parse error:', e.message);
+        }
+    }
+
+    // Parse restart_bot requests or intent
+    const restartRegex = /```restart_bot\s*\n([\s\S]*?)\n```/i;
+    if (restartRegex.test(responseText) || /restart\s+(the\s+)?(caller\s+)?bot/i.test(message)) {
+        if (typeof globalThis.__restartBot === 'function') {
+            globalThis.__restartBot();
+            actions.push('Caller bot process restarted');
+            if (!responseText.toLowerCase().includes('restarted')) {
+                responseText += '\n\n> 🔄 **Caller Bot Restarted**: Scanner loops, WebSocket feeds, and memory have been refreshed.';
+            }
         }
     }
 

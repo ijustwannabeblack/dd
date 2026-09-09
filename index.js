@@ -133,6 +133,14 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // Restart Bot endpoint
+    if (url.pathname === '/api/copilot/restart' && (req.method === 'POST' || req.method === 'GET')) {
+        restartBot();
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: true, message: 'Caller bot process restarted successfully' }));
+        return;
+    }
+
     // Main Dashboard Web UI
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(getDashboardHtml());
@@ -142,10 +150,33 @@ server.listen(port, () => {
     console.log(`[Dashboard & Health Check] Web server listening on port ${port}`);
 });
 
-// Enforce strict 128MB heap limit so container never OOM crashes
-if (process.env.__MEM_CONSTRAINED !== '1') {
+// Bot Child Process Management with dynamic restart support
+let botChild = null;
+
+export function restartBot() {
+    console.log('[Bot Controller] Restart requested. Terminating current bot process...');
+    if (botChild) {
+        try {
+            botChild.removeAllListeners('exit');
+            botChild.kill('SIGTERM');
+        } catch (e) {
+            console.warn('[Bot Controller] Kill error:', e.message);
+        }
+        botChild = null;
+    }
+    setTimeout(() => {
+        spawnBotChild();
+    }, 500);
+    return true;
+}
+
+globalThis.__restartBot = restartBot;
+
+function spawnBotChild() {
+    if (process.env.__MEM_CONSTRAINED === '1') return;
     const botPath = path.resolve(process.cwd(), 'bot.js');
-    const child = spawn(process.execPath, ['--max-old-space-size=128', botPath, ...process.argv.slice(2)], {
+    console.log('[Bot Controller] Spawning bot child process...');
+    botChild = spawn(process.execPath, ['--max-old-space-size=128', botPath, ...process.argv.slice(2)], {
         stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
         env: {
             ...process.env,
@@ -153,20 +184,24 @@ if (process.env.__MEM_CONSTRAINED !== '1') {
         }
     });
 
-    child.on('message', (msg) => {
+    botChild.on('message', (msg) => {
         if (msg && msg.type === 'TOKEN_FEED') {
             pushToken(msg.data);
         }
     });
 
-    child.on('exit', (code, signal) => {
-        try {
-            if (signal) process.kill(process.pid, signal);
-            else process.exit(code || 0);
-        } catch {
-            process.exit(code || 1);
-        }
+    botChild.on('exit', (code, signal) => {
+        console.log(`[Bot Controller] Bot child exited (code: ${code}, signal: ${signal}). Auto-restarting in 2s...`);
+        setTimeout(() => {
+            spawnBotChild();
+        }, 2000);
     });
+}
+
+// Initial launch
+if (process.env.__MEM_CONSTRAINED !== '1') {
+    spawnBotChild();
 } else {
     await import('./bot.js');
 }
+

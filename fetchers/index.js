@@ -18,6 +18,12 @@ import {
     getGmgnKolHolders,
     getGmgnDevInfo,
     getGmgnPumpfunTrending,
+    getGmgnDevCreatedTokens,
+    getGmgnMigratedQuality,
+    getGmgnSmartMoneyBuySignals,
+    getGmgnNearCompletionTokens,
+    getGmgnSmartMoneyExitSignals,
+    getGmgnKolBoughtNewTokens,
 } from './gmgn.js';
 import { callAimlapi, aiEvaluateToken } from './aimlapi.js';
 import { getTwitterUserInfo, getTwitterUserTweets, searchTwitter, getHotCryptoNews } from './open6551.js';
@@ -45,6 +51,12 @@ export {
     getGmgnKolHolders,
     getGmgnDevInfo,
     getGmgnPumpfunTrending,
+    getGmgnDevCreatedTokens,
+    getGmgnMigratedQuality,
+    getGmgnSmartMoneyBuySignals,
+    getGmgnNearCompletionTokens,
+    getGmgnSmartMoneyExitSignals,
+    getGmgnKolBoughtNewTokens,
     callAimlapi,
     aiEvaluateToken,
     getTwitterUserInfo,
@@ -218,7 +230,7 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
     }
 
     // Dev wallet & holdings
-    let devWallet = coin.creator || rugcheck?.creator || '';
+    let devWallet = coin.creator || rugcheck?.creator || gmgnData?.gmgn_dev_wallet || '';
     let devHoldingsPct = 0.0;
     if (topHolders && devWallet) {
         for (const h of topHolders) {
@@ -366,6 +378,7 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
         mint,
         name,
         symbol: symbol.toUpperCase(),
+        dev_wallet: devWallet,
         price_usd: priceUsd,
         created_timestamp: coin.created_timestamp || (dexPair?.pair_created_at ? dexPair.pair_created_at : Date.now()),
         top_holders_pcts: topHoldersPcts,

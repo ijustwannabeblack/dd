@@ -226,6 +226,11 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ MC too high for early entry: $${Math.round(mcUsd).toLocaleString()} > $${Math.round(config.MAX_CALL_MC_USD).toLocaleString()} ceiling`], 'rejected'];
     }
 
+    // Gate A: Dev Launch History (Anti-Serial Rugger)
+    if (stats.is_serial_rugger) {
+        return [false, [`❌ Serial Rugger Dev: Dev launched ${stats.dev_created_count || 0} tokens with 0 migrations`], 'rejected'];
+    }
+
     // Gate B: Dev Holdings
     if (devPct > devLimit) {
         return [false, [`❌ High Dev Dump Risk: Dev holds ${devPct.toFixed(1)}% (max ${devLimit.toFixed(1)}%)`], 'rejected'];

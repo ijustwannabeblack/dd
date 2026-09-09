@@ -23,6 +23,12 @@ import {
     getGmgnKolHolders,
     getGmgnDevInfo,
     getGmgnPumpfunTrending,
+    getGmgnDevCreatedTokens,
+    getGmgnMigratedQuality,
+    getGmgnSmartMoneyBuySignals,
+    getGmgnNearCompletionTokens,
+    getGmgnSmartMoneyExitSignals,
+    getGmgnKolBoughtNewTokens,
     getTwitterUserInfo,
     getHotCryptoNews,
     getDexscreenerData,
@@ -430,6 +436,54 @@ async function processCoin(stage, coin, retryCount = 0) {
         }
     }
 
+    // Dev History Guard (Anti-Serial Rugger Check via GMGN Dev Created Tokens skill)
+    const devWallet = stats.dev_wallet || coin.creator;
+    if (devWallet) {
+        try {
+            const devHist = await getGmgnDevCreatedTokens(devWallet, 'sol').catch(() => null);
+            if (devHist && devHist.checked) {
+                stats.dev_created_count = devHist.total_created;
+                stats.dev_migration_rate = devHist.migration_rate;
+                stats.dev_highest_ath_mc = devHist.highest_ath_mc;
+                stats.is_serial_rugger = devHist.is_serial_rugger;
+
+                if (devHist.is_serial_rugger) {
+                    const rugReason = `Serial Rugger Dev (${devHist.total_created} tokens launched, 0% migration rate)`;
+                    console.log(`[${stage}] ${stats.symbol} (${mint}) REJECTED by Dev History Guard: ${rugReason}`);
+                    broadcastFeedEvent({
+                        mint,
+                        symbol: stats.symbol || coin.symbol || 'TOKEN',
+                        name: stats.name || coin.name || 'Token',
+                        status: 'rejected',
+                        market_cap_usd: Number(stats.market_cap_usd || 0),
+                        cluster_pct: Number(stats.cluster_pct || 0),
+                        dev_holdings_pct: Number(stats.dev_holdings_pct || stats.dev_holding_pct || 0),
+                        top10_pct: Number(stats.top10_pct || 0),
+                        bundlers_pct: Number(stats.bundlers_pct || 0),
+                        rugcheck_score: stats.rugcheck_score || 'High Risk',
+                        reason: rugReason,
+                        source: coin.source || stage
+                    });
+
+                    const rejChan = rejectedChannel || client.channels.cache.get(String(config.REJECTED_CHANNEL_ID || '1541182755705065603'));
+                    if (rejChan) {
+                        try {
+                            const rejEmbed = buildMigratedEmbed(stats);
+                            rejEmbed.setFooter({ text: `⚠️ REJECTED COIN: ${rugReason}` });
+                            await rejChan.send({
+                                content: `⚠️ **FAILED / REJECTED COIN**: \`${mint}\`\n**Reason:** ${rugReason}`,
+                                embeds: [rejEmbed],
+                            });
+                        } catch {}
+                    }
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn(`[${stage}] Dev history check error for ${mint}: ${e.message}`);
+        }
+    }
+
     broadcastFeedEvent({
         mint,
         symbol: stats.symbol || coin.symbol || 'TOKEN',
@@ -703,6 +757,136 @@ async function gmgnOpportunityScanner() {
     }
 }
 
+/**
+ * Skill: Smart Money Buy Signals (Signal Type 12)
+ * Continuously discovers tokens being cluster-accumulated by multiple smart money degens.
+ */
+async function gmgnSmartMoneyScanner() {
+    await new Promise(r => setTimeout(r, 20000));
+    console.log('🌱 GMGN Smart Money Signal Scanner started (Cluster Buy Signal 12).');
+
+    while (true) {
+        try {
+            await new Promise(r => setTimeout(r, 75000)); // 75s rate-limit safe interval
+            const signals = await getGmgnSmartMoneyBuySignals('sol').catch(() => []);
+            for (const sig of (signals || []).slice(0, 10)) {
+                const mint = sig.token_address || sig.data?.address || sig.address;
+                if (!mint) continue;
+
+                // Launchpad filter: Pump.fun tokens only
+                const launchpad = String(sig.data?.launchpad || sig.data?.launchpad_platform || '').toLowerCase();
+                const isPump = launchpad.includes('pump') || mint.endsWith('pump');
+                if (!isPump) continue;
+
+                const stage = 'Migrated';
+                const stageKey = `${stage}:${mint}`;
+                if (seen.has(stageKey) || queued.has(stageKey)) continue;
+
+                const coin = {
+                    mint,
+                    symbol: sig.data?.symbol || sig.symbol || 'TOKEN',
+                    name: sig.data?.name || sig.name || 'Token',
+                    created_timestamp: sig.data?.created_timestamp ? (sig.data.created_timestamp * 1000) : Date.now(),
+                    creator: sig.data?.creator || '',
+                    source: 'smart_money_cluster',
+                };
+                processCoin(stage, coin);
+            }
+        } catch (e) {
+            await new Promise(r => setTimeout(r, 15000));
+        }
+    }
+}
+
+/**
+ * Skill: Migrated Token Quality Screener
+ * Scans migrated Pump.fun tokens with strict server-side quality filters.
+ */
+async function gmgnMigratedQualityScanner() {
+    await new Promise(r => setTimeout(r, 35000));
+    console.log('💎 GMGN Migrated Quality Screener started (anti-rug server pre-filtered).');
+
+    while (true) {
+        try {
+            await new Promise(r => setTimeout(r, 90000)); // 90s rate-limit safe interval
+            const tokens = await getGmgnMigratedQuality('sol', {
+                min_mc: 30000,
+                max_mc: 150000,
+                min_liq: 10000,
+                max_top10: 0.22,
+                max_bundle: 0.20,
+                max_fresh: 0.25
+            }).catch(() => []);
+
+            for (const item of (tokens || []).slice(0, 10)) {
+                const mint = item.address || item.token_address;
+                if (!mint) continue;
+
+                const launchpad = String(item.launchpad || item.launchpad_platform || '').toLowerCase();
+                const isPump = launchpad.includes('pump') || mint.endsWith('pump');
+                if (!isPump) continue;
+
+                const stage = 'Migrated';
+                const stageKey = `${stage}:${mint}`;
+                if (seen.has(stageKey) || queued.has(stageKey)) continue;
+
+                const coin = {
+                    mint,
+                    symbol: item.symbol || 'TOKEN',
+                    name: item.name || 'Token',
+                    created_timestamp: item.created_timestamp ? (item.created_timestamp * 1000) : Date.now(),
+                    creator: item.creator || '',
+                    source: 'migrated_quality_screener',
+                };
+                processCoin(stage, coin);
+            }
+        } catch (e) {
+            await new Promise(r => setTimeout(r, 15000));
+        }
+    }
+}
+
+/**
+ * Skill: Near Completion Tokens Screener
+ * Identifies tokens reaching 80%-95% bonding curve completion with smart money backing.
+ */
+async function gmgnNearCompletionScanner() {
+    await new Promise(r => setTimeout(r, 45000));
+    console.log('⚡ GMGN Near Completion Screener started (80%-95% curve with smart money).');
+
+    while (true) {
+        try {
+            await new Promise(r => setTimeout(r, 90000)); // 90s rate-limit safe interval
+            const tokens = await getGmgnNearCompletionTokens('sol', 2).catch(() => []);
+
+            for (const item of (tokens || []).slice(0, 10)) {
+                const mint = item.address || item.token_address;
+                if (!mint) continue;
+
+                const launchpad = String(item.launchpad || item.launchpad_platform || '').toLowerCase();
+                const isPump = launchpad.includes('pump') || mint.endsWith('pump');
+                if (!isPump) continue;
+
+                const stage = 'Final Stretch';
+                const stageKey = `${stage}:${mint}`;
+                if (seen.has(stageKey) || queued.has(stageKey)) continue;
+
+                const coin = {
+                    mint,
+                    symbol: item.symbol || 'TOKEN',
+                    name: item.name || 'Token',
+                    created_timestamp: item.created_timestamp ? (item.created_timestamp * 1000) : Date.now(),
+                    creator: item.creator || '',
+                    source: 'near_completion_screener',
+                };
+                processCoin(stage, coin);
+            }
+        } catch (e) {
+            await new Promise(r => setTimeout(r, 15000));
+        }
+    }
+}
+
 async function trackCalledCoinsPerformance() {
     await new Promise(r => setTimeout(r, 10000));
     console.log('📈 Profit & Performance Tracker started.');
@@ -822,8 +1006,11 @@ client.once('clientReady', async () => {
     activeRunnerScanner();
     ponsRobinhoodScanner();
     gmgnTrenchesScanner();
-    trackCalledCoinsPerformance();
+    gmgnSmartMoneyScanner();
+    gmgnMigratedQualityScanner();
+    gmgnNearCompletionScanner();
     gmgnOpportunityScanner();
+    trackCalledCoinsPerformance();
 
     // Start PumpPortal WebSocket Stream
     const stream = new PumpPortalStream({
@@ -893,16 +1080,20 @@ client.on('messageCreate', async (message) => {
             .setTitle('🤖 Larpifyy Memecoin & GMGN Intelligence Bot')
             .setDescription(
                 `Welcome! Here are all the available commands:\n\n` +
-                `### 🔎 Token Analysis & Security\n` +
+                `### 🔎 Token Analysis & Anti-Rug Security\n` +
                 `• \`.check <mint>\` — Full audit & InsightX Atlas bubble map\n` +
                 `• \`.mc <mint>\` *(or paste CA)* — Live market cap, price & liquidity\n` +
                 `• \`.predict <mint>\` — AI chart prediction & target MC\n` +
                 `• \`.security <mint>\` — GMGN anti-rug & honeypot audit\n` +
                 `• \`.holders <mint>\` — GMGN Top 100 holders concentration & snipers\n` +
                 `• \`.devinfo <mint>\` — Dev wallet holdings, balance & CTO status\n` +
+                `• \`.devhistory <wallet|ca>\` — Dev historical launches & serial rugger audit\n` +
                 `• \`.pool <mint>\` — Liquidity pool analysis & DEX breakdown\n\n` +
-                `### 👑 KOL & Market Signals\n` +
-                `• \`.signal\` — Latest KOL buy signals (type 13)\n` +
+                `### 👑 KOL, Smart Money & Market Signals\n` +
+                `• \`.sm\` / \`.smartmoney\` — GMGN Smart Money cluster buy signals (Signal 12)\n` +
+                `• \`.nearcurve\` — 80%-95% bonding curve tokens with Smart Money\n` +
+                `• \`.qualitymigrated\` — Server pre-filtered safe migrated tokens\n` +
+                `• \`.signal\` — Latest KOL buy signals (Signal 13)\n` +
                 `• \`.koltrades [buy|sell]\` — Real-time renowned KOL trades\n` +
                 `• \`.kolholders <mint>\` — Renowned KOL holders ranked by profit\n` +
                 `• \`.kol\` / \`.trenches\` — New tokens bought by >=2 renowned KOLs\n` +
@@ -1661,6 +1852,163 @@ client.on('messageCreate', async (message) => {
                 .setColor(0x8B5CF6)
                 .setFooter({ text: `GMGN Pump.fun Trending • Interval: ${interval}` });
             await message.channel.send({ embeds: [pumpEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 17.1. .sm / .smartmoney — Smart Money Buy Signals (GMGN Signal Type 12)
+    if (content === '.sm' || content === '.smartmoney' || content.startsWith('.sm ') || content.startsWith('.smartmoney ')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.smartmoney');
+        await message.channel.send('🌱 Fetching latest Smart Money cluster buy signals from GMGN (Signal 12)...');
+        try {
+            const signals = await getGmgnSmartMoneyBuySignals('sol', true);
+            if (!signals || signals.length === 0) {
+                return message.channel.send('⚠️ No smart money cluster buy signals found right now.');
+            }
+            const smList = signals.slice(0, 5).map((s, i) => {
+                const mint = s.token_address || s.data?.address || 'N/A';
+                const sym = s.data?.symbol || s.symbol || 'TOKEN';
+                const mc = s.data?.market_cap ? formatMcUsd(s.data.market_cap) : (s.market_cap ? formatMcUsd(s.market_cap) : 'N/A');
+                const totalAmt = s.data?.total_amount ? `$${Math.round(s.data.total_amount).toLocaleString()}` : 'N/A';
+                const buyerCount = s.data?.smart_degen_wallets?.length || s.count || 0;
+                const buyers = (s.data?.smart_degen_wallets || []).slice(0, 3).map(w => {
+                    const shortAddr = `${w.address.slice(0, 4)}...${w.address.slice(-4)}`;
+                    const amt = w.buy_amount ? `$${Math.round(w.buy_amount)}` : '';
+                    return `\`${shortAddr}\` (${amt})`;
+                }).join(', ') || 'N/A';
+
+                return `**${i + 1}. [$${sym}](https://dexscreener.com/solana/${mint})**\n` +
+                    `💎 **MC:** \`${mc}\` · 💵 **Cluster Total:** \`${totalAmt}\`\n` +
+                    `🧠 **Smart Degens (${buyerCount}):** ${buyers}\n` +
+                    `CA: \`${mint}\``;
+            }).join('\n\n');
+
+            const smEmbed = new EmbedBuilder()
+                .setTitle('🌱 GMGN SMART MONEY CLUSTER BUYS')
+                .setDescription(smList)
+                .setColor(0x10B981)
+                .setFooter({ text: 'GMGN Signal Type 12 • Coordinated Smart Money Entry' });
+            await message.channel.send({ embeds: [smEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 17.2. .devhistory <wallet_or_mint> — Dev Created Tokens Analysis
+    if (content.startsWith('.devhistory') || content.startsWith('.devhist')) {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.devhistory');
+        const parts = content.split(/\s+/);
+        if (parts.length < 2) return message.channel.send('⚠️ Usage: `.devhistory <wallet_address_or_ca>`');
+        const target = parts[1].trim();
+
+        await message.channel.send(`🧑 Inspecting historical token launches for \`${target}\`...`);
+        try {
+            let devWallet = target;
+            // Check if user passed a token mint instead of dev wallet
+            if (target.length >= 32 && target.length <= 44) {
+                const devCheck = await getGmgnDevInfo(target, 'sol', true).catch(() => null);
+                if (devCheck?.dev_wallet) {
+                    devWallet = devCheck.dev_wallet;
+                }
+            }
+
+            const data = await getGmgnDevCreatedTokens(devWallet, 'sol', true);
+            if (!data.checked) {
+                return message.channel.send(`⚠️ Could not retrieve dev history for \`${devWallet}\`.`);
+            }
+
+            const rugVerdict = data.is_serial_rugger
+                ? '🚨 **CONFIRMED SERIAL RUGGER** (4+ tokens launched, 0 migrations)'
+                : (data.migration_rate >= 40.0 ? '🟢 **HIGH QUALITY DEV** (Strong migration track record)' : '⚠️ **CAUTION** (Low migration rate)');
+
+            const tokenList = (data.tokens || []).slice(0, 6).map((t, idx) => {
+                const sym = t.symbol || 'TOKEN';
+                const ath = t.token_ath_mc ? formatMcUsd(Number(t.token_ath_mc)) : 'N/A';
+                const status = t.is_open ? '🚀 Migrated' : '💀 Curve Rug';
+                return `**${idx + 1}.** **${sym}** — Peak ATH: \`${ath}\` · Status: ${status}`;
+            }).join('\n') || 'None recorded';
+
+            const devHistEmbed = new EmbedBuilder()
+                .setTitle('🧑 GMGN DEV LAUNCH HISTORY & RUG AUDIT')
+                .setDescription(
+                    `**Dev Wallet:** \`${devWallet}\`\n\n` +
+                    `🛡️ **Verdict:** ${rugVerdict}\n\n` +
+                    `📊 **Total Tokens Launched:** \`${data.total_created}\`\n` +
+                    `🚀 **Successful Migrations:** \`${data.open_count}\` (\`${data.migration_rate}%\`)\n` +
+                    `🏆 **Highest ATH Market Cap:** \`${data.highest_ath_mc > 0 ? formatMcUsd(data.highest_ath_mc) : 'N/A'}\`\n\n` +
+                    `### Recent Created Tokens:\n${tokenList}`
+                )
+                .setColor(data.is_serial_rugger ? 0xEF4444 : (data.migration_rate >= 40.0 ? 0x10B981 : 0xF59E0B))
+                .setFooter({ text: 'GMGN Dev Created Tokens Skill' });
+
+            await message.channel.send({ embeds: [devHistEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 17.3. .nearcurve — Near Completion Bonding Curve Screener
+    if (content === '.nearcurve' || content === '.nearcompletion') {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.nearcurve');
+        await message.channel.send('⚡ Scanning Pump.fun tokens near curve completion with smart money...');
+        try {
+            const tokens = await getGmgnNearCompletionTokens('sol', 2, true);
+            if (!tokens || tokens.length === 0) {
+                return message.channel.send('⚠️ No tokens near completion found right now.');
+            }
+            const curveList = tokens.slice(0, 5).map((t, i) => {
+                const mint = t.address || t.token_address || 'N/A';
+                const sym = t.symbol || 'TOKEN';
+                const mc = t.market_cap ? formatMcUsd(Number(t.market_cap)) : 'N/A';
+                const prog = t.progress ? `${(Number(t.progress) * 100).toFixed(1)}%` : 'N/A';
+                const smCount = t.smart_degen_count || 0;
+                return `**${i + 1}. [$${sym}](https://pump.fun/${mint})** — [DEX](https://dexscreener.com/solana/${mint})\n` +
+                    `⚡ **Progress:** \`${prog}\` · 💎 **MC:** \`${mc}\` · 🧠 **Smart Degens:** \`${smCount}\`\n` +
+                    `CA: \`${mint}\``;
+            }).join('\n\n');
+
+            const curveEmbed = new EmbedBuilder()
+                .setTitle('⚡ PUMP.FUN NEAR COMPLETION (SMART MONEY ACCUMULATION)')
+                .setDescription(curveList)
+                .setColor(0x8B5CF6)
+                .setFooter({ text: 'GMGN Near Completion Tokens Screener' });
+            await message.channel.send({ embeds: [curveEmbed] });
+        } catch (err) {
+            await message.channel.send(`❌ Error: \`${err.message}\``);
+        }
+        return;
+    }
+
+    // 17.4. .qualitymigrated / .qm — Server-Side Filtered Migrated Tokens
+    if (content === '.qualitymigrated' || content === '.qm') {
+        if (!isPremiumUser(message)) return sendPremiumRequiredNotice(message, '.qualitymigrated');
+        await message.channel.send('💎 Screening top quality migrated tokens from GMGN...');
+        try {
+            const tokens = await getGmgnMigratedQuality('sol', {}, true);
+            if (!tokens || tokens.length === 0) {
+                return message.channel.send('⚠️ No quality migrated tokens matched the filter right now.');
+            }
+            const qList = tokens.slice(0, 5).map((t, i) => {
+                const mint = t.address || t.token_address || 'N/A';
+                const sym = t.symbol || 'TOKEN';
+                const mc = t.market_cap ? formatMcUsd(Number(t.market_cap)) : 'N/A';
+                const liq = t.liquidity ? formatMcUsd(Number(t.liquidity)) : 'N/A';
+                const top10 = t.top_10_holder_rate ? `${(Number(t.top_10_holder_rate) * 100).toFixed(1)}%` : 'N/A';
+                return `**${i + 1}. [$${sym}](https://dexscreener.com/solana/${mint})**\n` +
+                    `💎 **MC:** \`${mc}\` · 💧 **Liq:** \`${liq}\` · 👥 **Top 10:** \`${top10}\`\n` +
+                    `CA: \`${mint}\``;
+            }).join('\n\n');
+
+            const qEmbed = new EmbedBuilder()
+                .setTitle('💎 GMGN QUALITY MIGRATED TOKENS')
+                .setDescription(qList)
+                .setColor(0x06B6D4)
+                .setFooter({ text: 'Pre-filtered: Low Top10, Low Bundlers, Verified Liquidity' });
+            await message.channel.send({ embeds: [qEmbed] });
         } catch (err) {
             await message.channel.send(`❌ Error: \`${err.message}\``);
         }

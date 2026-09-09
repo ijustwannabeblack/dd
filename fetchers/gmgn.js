@@ -157,6 +157,7 @@ export async function getGmgnTokenInfo(mint, chain = 'sol', priority = false) {
         gmgn_bundler_wallets_count: Number(wt.bundler_wallets || stat.bundler_wallets || 0),
         gmgn_rat_wallets_count: Number(wt.rat_trader_wallets || stat.rat_trader_wallets || 0),
         gmgn_dev_team_hold_rate: Number((Number(stat.dev_team_hold_rate || 0) * 100).toFixed(2)),
+        gmgn_dev_wallet: dev.creator_address || dev.creator || dev.address || '',
         gmgn_cto_flag: Number(dev.cto_flag || 0),
         gmgn_checked: true,
     };
@@ -448,4 +449,117 @@ export async function getGmgnDevInfo(mint, chain = 'sol', priority = false) {
 export async function getGmgnPumpfunTrending(interval = '1h', platform = 'Pump.fun', priority = false) {
     return getGmgnTrendingTokens(interval, platform, priority);
 }
+
+/**
+ * Skill: Dev Created Tokens Analysis
+ * Queries dev's historical launches, migration rate, and highest ATH.
+ */
+export async function getGmgnDevCreatedTokens(devWallet, chain = 'sol', priority = false) {
+    const defaultRes = { tokens: [], total_created: 0, open_count: 0, migration_rate: 0, highest_ath_mc: 0, is_serial_rugger: false, checked: false };
+    if (!devWallet) return defaultRes;
+    const data = await execGmgn(['portfolio', 'created-tokens', '--chain', chain, '--wallet', devWallet, '--order-by', 'token_ath_mc'], 15000, false, priority);
+    if (!data || typeof data !== 'object') return defaultRes;
+
+    const openCount = Number(data.creator_created_open_count ?? data.open_count ?? 0);
+    const totalCreated = Number(data.creator_created_count ?? data.inner_count ?? tokensList.length ?? 0);
+    const migrationRate = totalCreated > 0 ? (openCount / totalCreated) : Number(data.creator_created_open_ratio ?? data.open_ratio ?? 0);
+    const highestAth = Number(data.creator_ath_info?.ath_mc || tokensList[0]?.token_ath_mc || 0);
+    const isSerialRugger = totalCreated >= 4 && openCount === 0;
+
+    return {
+        tokens: tokensList.slice(0, 10),
+        total_created: totalCreated,
+        open_count: openCount,
+        migration_rate: Number((migrationRate * 100).toFixed(1)),
+        highest_ath_mc: highestAth,
+        best_token: data.creator_ath_info?.ath_token || tokensList[0]?.symbol || '',
+        is_serial_rugger: isSerialRugger,
+        checked: true
+    };
+}
+
+/**
+ * Skill: Migrated Token Quality Screener
+ * Scans migrated trench tokens with pre-built server-side quality filters.
+ */
+export async function getGmgnMigratedQuality(chain = 'sol', options = {}, priority = false) {
+    const minMc = options.min_mc || 50000;
+    const maxMc = options.max_mc || 250000;
+    const minLiq = options.min_liq || 10000;
+    const maxTop10 = options.max_top10 || 0.2;
+    const maxBundle = options.max_bundle || 0.2;
+    const maxFresh = options.max_fresh || 0.2;
+
+    const args = [
+        'market', 'trenches',
+        '--chain', chain,
+        '--type', 'completed',
+        '--min-marketcap', String(minMc),
+        '--max-marketcap', String(maxMc),
+        '--min-liquidity', String(minLiq),
+        '--max-top-holder-rate', String(maxTop10),
+        '--max-bundler-rate', String(maxBundle),
+        '--max-fresh-wallet-rate', String(maxFresh)
+    ];
+
+    const data = await execGmgn(args, 20000, false, priority);
+    if (!data) return [];
+    if (Array.isArray(data.completed)) return data.completed;
+    if (Array.isArray(data.list)) return data.list;
+    if (Array.isArray(data)) return data;
+    return [];
+}
+
+/**
+ * Skill: Smart Money Buy Signals
+ * Captures signals where multiple smart money wallets cluster-buy the same token.
+ */
+export async function getGmgnSmartMoneyBuySignals(chain = 'sol', priority = false) {
+    const data = await execGmgn(['market', 'signal', '--chain', chain, '--signal-type', '12'], 20000, false, priority);
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.list)) return data.list;
+    return [];
+}
+
+/**
+ * Skill: Near Completion Tokens
+ * Scans Pump.fun tokens near curve completion (80%-95%) with smart money accumulators.
+ */
+export async function getGmgnNearCompletionTokens(chain = 'sol', minSmartMoney = 2, priority = false) {
+    const args = ['market', 'trenches', '--chain', chain, '--type', 'near_completion', '--min-smart-degen-count', String(minSmartMoney)];
+    const data = await execGmgn(args, 20000, false, priority);
+    if (!data) return [];
+    if (Array.isArray(data.near_completion)) return data.near_completion;
+    if (Array.isArray(data.list)) return data.list;
+    if (Array.isArray(data)) return data;
+    return [];
+}
+
+/**
+ * Skill: Smart Money Exit Signals
+ * Tracks smart money sells and large-scale exit dumping across tracked tokens.
+ */
+export async function getGmgnSmartMoneyExitSignals(chain = 'sol', priority = false) {
+    const data = await execGmgn(['track', 'smartmoney', '--chain', chain, '--side', 'sell'], 20000, false, priority);
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.list)) return data.list;
+    return [];
+}
+
+/**
+ * Skill: KOL-Bought New Tokens
+ * Filters newly created tokens where verified KOLs have bought in.
+ */
+export async function getGmgnKolBoughtNewTokens(chain = 'sol', minKol = 2, maxMc = 100000, priority = false) {
+    const args = ['market', 'trenches', '--chain', chain, '--type', 'new_creation', '--min-renowned-count', String(minKol), '--max-marketcap', String(maxMc)];
+    const data = await execGmgn(args, 20000, false, priority);
+    if (!data) return [];
+    if (Array.isArray(data.new_creation)) return data.new_creation;
+    if (Array.isArray(data.list)) return data.list;
+    if (Array.isArray(data)) return data;
+    return [];
+}
+
 

@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DD TERMINAL // SOLANA RADAR & GMGN CHART</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0b0e;
+            --bg-surface: #111318;
+            --bg-card: #161922;
+            --bg-card-hover: #1d212c;
+            --border: #232836;
+            --border-highlight: #343c52;
+            --text-main: #f0f3f8;
+            --text-dim: #8b949e;
+            --text-sub: #586069;
+            --green: #00ff87;
+            --green-glow: rgba(0, 255, 135, 0.25);
+            --red: #ff3366;
+            --red-glow: rgba(255, 51, 102, 0.25);
+            --amber: #ffb800;
+            --cyan: #00e5ff;
+            --purple: #9d4edd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+            z-index: 10;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--green), var(--cyan));
+            color: #000;
+            font-weight: 800;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #fff;
+        }
+
+        .logo-tag {
+            font-size: 11px;
+            color: var(--text-dim);
+            background: var(--bg-card);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .stat-val.green { color: var(--green); text-shadow: 0 0 10px var(--green-glow); }
+        .stat-val.red { color: var(--red); }
+        .stat-val.cyan { color: var(--cyan); }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            background: var(--bg-card);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--amber);
+            box-shadow: 0 0 6px var(--amber);
+            animation: pulse 1.8s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Main Workspace Layout */
+        .workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 56px);
+            overflow: hidden;
+        }
+
+        /* Left Side: Token Stream */
+        .stream-panel {
+            width: 380px;
+            min-width: 340px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .stream-controls {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #fff;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            transition: border 0.15s;
+        }
+
+        .search-input:focus {
+            border-color: var(--cyan);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--border);
+            color: #fff;
+            border-color: var(--border-highlight);
+        }
+
+        .tab-btn.tab-approved.active {
+            background: rgba(0, 255, 135, 0.15);
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .tab-btn.tab-rejected.active {
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .token-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .token-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .token-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-highlight);
+            transform: translateX(2px);
+        }
+
+        .token-card.active {
+            border-color: var(--cyan);
+            background: rgba(0, 229, 255, 0.06);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+        }
+
+        .token-card.status-approved {
+            border-left: 3px solid var(--green);
+        }
+
+        .token-card.status-rejected {
+            border-left: 3px solid var(--red);
+            opacity: 0.85;
+        }
+
+        .token-card.status-evaluating {
+            border-left: 3px solid var(--amber);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .token-identity {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-symbol {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .token-name {
+            font-size: 11px;
+            color: var(--text-dim);
+            max-width: 110px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-approved { background: rgba(0, 255, 135, 0.15); color: var(--green); border: 1px solid var(--green); }
+        .badge-rejected { background: rgba(255, 51, 102, 0.15); color: var(--red); border: 1px solid var(--red); }
+        .badge-evaluating { background: rgba(255, 184, 0, 0.15); color: var(--amber); border: 1px solid var(--amber); }
+
+        .card-mid {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .card-mc {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .card-time {
+            color: var(--text-sub);
+            font-size: 10px;
+        }
+
+        .card-reason {
+            font-size: 10px;
+            color: #ff7597;
+            background: rgba(255, 51, 102, 0.08);
+            padding: 3px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            background: var(--bg-surface);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        .tag.safe { color: var(--green); border-color: rgba(0, 255, 135, 0.3); }
+        .tag.danger { color: var(--red); border-color: rgba(255, 51, 102, 0.3); }
+        .tag.special { color: var(--cyan); border-color: rgba(0, 229, 255, 0.3); }
+
+        /* Right Side: Trading & Token Inspector */
+        .detail-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-base);
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .detail-header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .detail-title-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .detail-symbol {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .detail-name {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .ca-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .ca-pill:hover {
+            border-color: var(--cyan);
+            color: #fff;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.15s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-gmgn { background: #1652f0; }
+        .btn-gmgn:hover { background: #2664ff; box-shadow: 0 0 10px rgba(22, 82, 240, 0.4); }
+
+        .btn-photon { background: #ff5722; }
+        .btn-photon:hover { background: #ff6e3d; box-shadow: 0 0 10px rgba(255, 87, 34, 0.4); }
+
+        .btn-bullx { background: #00d26a; color: #000; }
+        .btn-bullx:hover { background: #15f082; box-shadow: 0 0 10px rgba(0, 210, 106, 0.4); }
+
+        .btn-axiom { background: #7928ca; }
+        .btn-axiom:hover { background: #903be6; box-shadow: 0 0 10px rgba(121, 40, 202, 0.4); }
+
+        .btn-pump { background: #10b981; color: #000; }
+
+        /* Decision Banner */
+        .decision-banner {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .decision-banner.approved {
+            background: rgba(0, 255, 135, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 135, 0.3);
+            color: var(--green);
+        }
+
+        .decision-banner.rejected {
+            background: rgba(255, 51, 102, 0.1);
+            border-bottom: 1px solid rgba(255, 51, 102, 0.3);
+            color: var(--red);
+        }
+
+        .decision-banner.evaluating {
+            background: rgba(255, 184, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 184, 0, 0.3);
+            color: var(--amber);
+        }
+
+        /* Metric Grid */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-surface);
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-title {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .metric-val {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .meter-fill.green { background: var(--green); }
+        .meter-fill.red { background: var(--red); }
+
+        /* Chart Area */
+        .chart-section {
+            flex: 1;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            position: relative;
+        }
+
+        .chart-header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .chart-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .chart-btn.active {
+            background: var(--border-highlight);
+            color: #fff;
+            border-color: var(--cyan);
+        }
+
+        .chart-iframe {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 460px;
+            border: none;
+            background: #0e0f14;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-dim);
+            gap: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-highlight);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-area">
+            <div class="logo-badge">DD RADAR</div>
+            <div class="logo-title">SOLANA CALLS & ANTI-RUG TERMINAL</div>
+            <div class="logo-tag">GMGN ENGINE</div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Scanned</span>
+                <span class="stat-val cyan" id="stat-scanned">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Approved Calls</span>
+                <span class="stat-val green" id="stat-approved">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Rugs Blocked</span>
+                <span class="stat-val red" id="stat-rejected">0</span>
+            </div>
+            <div class="connection-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">CONNECTING...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+
+        <!-- Left Column: Token Stream -->
+        <div class="stream-panel">
+            <div class="stream-controls">
+                <div class="search-box">
+                    <input type="text" id="search-input" class="search-input" placeholder="🔍 Search Ticker, Name, or CA...">
+                </div>
+                <div class="filter-tabs">
+                    <button class="tab-btn active" data-filter="all">ALL</button>
+                    <button class="tab-btn tab-approved" data-filter="approved">APPROVED</button>
+                    <button class="tab-btn" data-filter="evaluating">WATCHING</button>
+                    <button class="tab-btn tab-rejected" data-filter="rejected">REJECTED</button>
+                </div>
+            </div>
+
+            <div class="token-list" id="token-list">
+                <!-- Tokens will populate here dynamically -->
+                <div class="empty-state" id="list-loading">
+                    <div>📡 Connecting to live token radar...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Trading & Token Inspector -->
+        <div class="detail-panel" id="detail-panel">
+            <div class="empty-state" id="detail-empty">
+                <div style="font-size: 32px;">🎯</div>
+                <div style="font-size: 16px; font-weight: 700; color: #fff;">No Token Selected</div>
+                <div>Click on any token in the feed to inspect live GMGN charts, cluster stats, and anti-rug audits.</div>
+            </div>
+
+            <div id="detail-content" style="display: none; flex-direction: column; flex: 1;">
+                
+                <!-- Detail Header -->
+                <div class="detail-header">
+                    <div class="detail-title-area">
+                        <div>
+                            <span class="detail-symbol" id="d-symbol">SOL</span>
+                            <span class="detail-name" id="d-name">Token Name</span>
+                        </div>
+                        <div class="ca-pill" id="d-ca-btn" title="Click to copy CA">
+                            <span id="d-ca">Loading CA...</span>
+                            <span>📋</span>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <a id="btn-trade-gmgn" href="#" target="_blank" class="btn-action btn-gmgn">⚡ GMGN</a>
+                        <a id="btn-trade-photon" href="#" target="_blank" class="btn-action btn-photon">⚡ Photon</a>
+                        <a id="btn-trade-bullx" href="#" target="_blank" class="btn-action btn-bullx">⚡ BullX</a>
+                        <a id="btn-trade-axiom" href="#" target="_blank" class="btn-action btn-axiom">⚡ Axiom</a>
+                        <a id="btn-trade-pump" href="#" target="_blank" class="btn-action btn-pump">Pump.fun</a>
+                    </div>
+                </div>
+
+                <!-- Decision Banner -->
+                <div class="decision-banner" id="d-banner">
+                    <span id="d-banner-text">STATUS: VERIFIED CALL</span>
+                    <span id="d-banner-time">Just now</span>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <span class="metric-title">Market Cap</span>
+                        <span class="metric-val" id="d-mc">$0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Sybil Cluster</span>
+                        <span class="metric-val" id="d-cluster">0%</span>
+                        <div class="meter-bar">
+                            <div class="meter-fill green" id="d-cluster-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Dev Holdings</span>
+                        <span class="metric-val" id="d-dev">0%</span>
+                        <div class="meter-bar">
+                            <div class="meter-fill green" id="d-dev-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Top 10 (Non-LP)</span>
+                        <span class="metric-val" id="d-top10">0%</span>
+                        <div class="meter-bar">
+                            <div class="meter-fill green" id="d-top10-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Bundlers %</span>
+                        <span class="metric-val" id="d-bundlers">0%</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">RugCheck / Score</span>
+                        <span class="metric-val" id="d-rugcheck">Good</span>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <div class="chart-tabs">
+                            <button class="chart-btn active" id="btn-chart-gmgn">GMGN Kline Chart</button>
+                            <button class="chart-btn" id="btn-chart-dex">DexScreener Chart</button>
+                        </div>
+                        <button class="chart-btn" id="btn-chart-reload">🔄 Reload Chart</button>
+                    </div>
+
+                    <iframe id="chart-frame" class="chart-iframe" src="" allowfullscreen></iframe>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let allTokens = [];
+        let activeFilter = 'all';
+        let searchQuery = '';
+        let selectedToken = null;
+        let chartSource = 'gmgn'; // 'gmgn' or 'dex'
+
+        const tokenListEl = document.getElementById('token-list');
+        const searchInput = document.getElementById('search-input');
+        const filterBtns = document.querySelectorAll('.tab-btn');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        const statScanned = document.getElementById('stat-scanned');
+        const statApproved = document.getElementById('stat-approved');
+        const statRejected = document.getElementById('stat-rejected');
+
+        const detailEmpty = document.getElementById('detail-empty');
+        const detailContent = document.getElementById('detail-content');
+
+        const dSymbol = document.getElementById('d-symbol');
+        const dName = document.getElementById('d-name');
+        const dCa = document.getElementById('d-ca');
+        const dCaBtn = document.getElementById('d-ca-btn');
+        const dBanner = document.getElementById('d-banner');
+        const dBannerText = document.getElementById('d-banner-text');
+        const dBannerTime = document.getElementById('d-banner-time');
+
+        const dMc = document.getElementById('d-mc');
+        const dCluster = document.getElementById('d-cluster');
+        const dClusterBar = document.getElementById('d-cluster-bar');
+        const dDev = document.getElementById('d-dev');
+        const dDevBar = document.getElementById('d-dev-bar');
+        const dTop10 = document.getElementById('d-top10');
+        const dTop10Bar = document.getElementById('d-top10-bar');
+        const dBundlers = document.getElementById('d-bundlers');
+        const dRugcheck = document.getElementById('d-rugcheck');
+
+        const btnGmgn = document.getElementById('btn-trade-gmgn');
+        const btnPhoton = document.getElementById('btn-trade-photon');
+        const btnBullx = document.getElementById('btn-trade-bullx');
+        const btnAxiom = document.getElementById('btn-trade-axiom');
+        const btnPump = document.getElementById('btn-trade-pump');
+
+        const chartFrame = document.getElementById('chart-frame');
+        const btnChartGmgn = document.getElementById('btn-chart-gmgn');
+        const btnChartDex = document.getElementById('btn-chart-dex');
+        const btnChartReload = document.getElementById('btn-chart-reload');
+
+        // Copy CA
+        dCaBtn.addEventListener('click', () => {
+            if (!selectedToken) return;
+            navigator.clipboard.writeText(selectedToken.mint);
+            const orig = dCa.innerText;
+            dCa.innerText = 'COPIED TO CLIPBOARD!';
+            setTimeout(() => dCa.innerText = orig, 1500);
+        });
+
+        // Search Input
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim().toLowerCase();
+            renderTokenList();
+        });
+
+        // Filter Tabs
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeFilter = btn.dataset.filter;
+                renderTokenList();
+            });
+        });
+
+        // Chart Source Toggle
+        btnChartGmgn.addEventListener('click', () => {
+            chartSource = 'gmgn';
+            btnChartGmgn.classList.add('active');
+            btnChartDex.classList.remove('active');
+            updateChart();
+        });
+
+        btnChartDex.addEventListener('click', () => {
+            chartSource = 'dex';
+            btnChartDex.classList.add('active');
+            btnChartGmgn.classList.remove('active');
+            updateChart();
+        });
+
+        btnChartReload.addEventListener('click', updateChart);
+
+        function updateChart() {
+            if (!selectedToken || !selectedToken.mint) return;
+            const mint = selectedToken.mint;
+            if (chartSource === 'gmgn') {
+                chartFrame.src = `https://www.gmgn.cc/kline/sol/${mint}?theme=dark&interval=1`;
+            } else {
+                chartFrame.src = `https://dexscreener.com/solana/${mint}?embed=1&theme=dark&trades=0&info=0`;
+            }
+        }
+
+        function formatMc(mc) {
+            const val = Number(mc || 0);
+            if (val >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
+            if (val >= 1e3) return `$${(val / 1e3).toFixed(1)}k`;
+            return `$${val.toLocaleString()}`;
+        }
+
+        function formatTime(ts) {
+            const sec = Math.floor((Date.now() - (ts || Date.now())) / 1000);
+            if (sec < 5) return 'Just now';
+            if (sec < 60) return `${sec}s ago`;
+            const min = Math.floor(sec / 60);
+            if (min < 60) return `${min}m ago`;
+            return `${Math.floor(min / 60)}h ago`;
+        }
+
+        function selectToken(token) {
+            selectedToken = token;
+            detailEmpty.style.display = 'none';
+            detailContent.style.display = 'flex';
+
+            dSymbol.innerText = `$${token.symbol || 'TOKEN'}`;
+            dName.innerText = token.name || 'Token';
+            dCa.innerText = token.mint ? `${token.mint.slice(0, 8)}...${token.mint.slice(-8)}` : '';
+
+            // Update Quick Trade Links
+            btnGmgn.href = `https://gmgn.ai/sol/token/${token.mint}`;
+            btnPhoton.href = `https://photon-sol.tinyastro.io/en/lp/${token.mint}`;
+            btnBullx.href = `https://bullx.io/terminal?chainId=1399811149&address=${token.mint}`;
+            btnAxiom.href = `https://axiom.trade/token/${token.mint}`;
+            btnPump.href = `https://pump.fun/${token.mint}`;
+
+            // Decision Banner
+            dBanner.className = `decision-banner ${token.status}`;
+            if (token.status === 'approved') {
+                dBannerText.innerText = `🟢 APPROVED CALL // AUDIT PASSED // SENT TO DISCORD`;
+            } else if (token.status === 'rejected') {
+                dBannerText.innerText = `🔴 REJECTED // REASON: ${token.reason || 'Failed cluster / dev gate'}`;
+            } else {
+                dBannerText.innerText = `🟡 AUDITING CANDIDATE // SCREENING ON-CHAIN`;
+            }
+            dBannerTime.innerText = formatTime(token.timestamp);
+
+            // Metrics
+            dMc.innerText = formatMc(token.market_cap_usd);
+
+            const clusterVal = Number(token.cluster_pct || 0);
+            dCluster.innerText = `${clusterVal.toFixed(1)}%`;
+            dCluster.style.color = clusterVal > 5.0 ? 'var(--red)' : 'var(--green)';
+            dClusterBar.style.width = `${Math.min(100, clusterVal * 4)}%`;
+            dClusterBar.className = `meter-fill ${clusterVal > 5.0 ? 'red' : 'green'}`;
+
+            const devVal = Number(token.dev_holdings_pct || 0);
+            dDev.innerText = `${devVal.toFixed(1)}%`;
+            dDev.style.color = devVal > 6.0 ? 'var(--red)' : 'var(--green)';
+            dDevBar.style.width = `${Math.min(100, devVal * 5)}%`;
+            dDevBar.className = `meter-fill ${devVal > 6.0 ? 'red' : 'green'}`;
+
+            const top10Val = Number(token.top10_pct || 0);
+            dTop10.innerText = `${top10Val.toFixed(1)}%`;
+            dTop10.style.color = top10Val > 25.0 ? 'var(--red)' : 'var(--green)';
+            dTop10Bar.style.width = `${Math.min(100, top10Val * 2)}%`;
+            dTop10Bar.className = `meter-fill ${top10Val > 25.0 ? 'red' : 'green'}`;
+
+            dBundlers.innerText = `${Number(token.bundlers_pct || 0).toFixed(1)}%`;
+            dRugcheck.innerText = token.rugcheck_score || (token.status === 'rejected' ? 'High Risk' : 'Passed');
+
+            updateChart();
+            renderTokenList();
+        }
+
+        function renderTokenList() {
+            const filtered = allTokens.filter(token => {
+                if (activeFilter === 'approved' && token.status !== 'approved') return false;
+                if (activeFilter === 'rejected' && token.status !== 'rejected') return false;
+                if (activeFilter === 'evaluating' && token.status !== 'evaluating') return false;
+
+                if (searchQuery) {
+                    const s = (token.symbol || '').toLowerCase();
+                    const n = (token.name || '').toLowerCase();
+                    const m = (token.mint || '').toLowerCase();
+                    return s.includes(searchQuery) || n.includes(searchQuery) || m.includes(searchQuery);
+                }
+                return true;
+            });
+
+            if (!filtered.length) {
+                tokenListEl.innerHTML = `<div class="empty-state">No ${activeFilter === 'all' ? '' : activeFilter} tokens found.</div>`;
+                return;
+            }
+
+            tokenListEl.innerHTML = filtered.map(token => {
+                const isActive = selectedToken && selectedToken.mint === token.mint;
+                const statusClass = `status-${token.status}`;
+                const badgeClass = `badge-${token.status}`;
+                const badgeText = token.status === 'approved' ? 'APPROVED' : (token.status === 'rejected' ? 'REJECTED' : 'AUDITING');
+
+                const clusterPct = Number(token.cluster_pct || 0);
+                const clusterTag = clusterPct > 0 ? `<span class="tag ${clusterPct > 5.0 ? 'danger' : 'safe'}">Cluster ${clusterPct.toFixed(1)}%</span>` : '';
+                const devPct = Number(token.dev_holdings_pct || 0);
+                const devTag = devPct > 0 ? `<span class="tag ${devPct > 6.0 ? 'danger' : 'safe'}">Dev ${devPct.toFixed(1)}%</span>` : '';
+                const sourceTag = token.source ? `<span class="tag special">${token.source.toUpperCase()}</span>` : '';
+
+                return `
+                    <div class="token-card ${statusClass} ${isActive ? 'active' : ''}" onclick="window.handleSelect('${token.mint}')">
+                        <div class="card-top">
+                            <div class="token-identity">
+                                <span class="token-symbol">$${token.symbol || 'TOKEN'}</span>
+                                <span class="token-name">${token.name || 'Token'}</span>
+                            </div>
+                            <span class="card-badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                        <div class="card-mid">
+                            <span class="card-mc">MC: ${formatMc(token.market_cap_usd)}</span>
+                            <span class="card-time">${formatTime(token.timestamp)}</span>
+                        </div>
+                        ${token.status === 'rejected' && token.reason ? `<div class="card-reason">⚠️ ${token.reason}</div>` : ''}
+                        <div class="card-tags">
+                            ${clusterTag}
+                            ${devTag}
+                            ${sourceTag}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.handleSelect = (mint) => {
+            const found = allTokens.find(t => t.mint === mint);
+            if (found) selectToken(found);
+        };
+
+        function updateStats() {
+            statScanned.innerText = allTokens.length;
+            statApproved.innerText = allTokens.filter(t => t.status === 'approved').length;
+            statRejected.innerText = allTokens.filter(t => t.status === 'rejected').length;
+        }
+
+        // Live SSE Stream
+        function connectStream() {
+            statusDot.className = 'status-dot';
+            statusText.innerText = 'CONNECTING...';
+
+            const es = new EventSource('/api/stream');
+
+            es.onopen = () => {
+                statusDot.className = 'status-dot connected';
+                statusText.innerText = 'LIVE RADAR';
+            };
+
+            es.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'SNAPSHOT') {
+                        allTokens = data.tokens || [];
+                        updateStats();
+                        renderTokenList();
+                        if (allTokens.length && !selectedToken) {
+                            selectToken(allTokens[0]);
+                        }
+                    } else if (data.type === 'TOKEN') {
+                        const token = data.token;
+                        // Avoid duplicates or update existing
+                        const existingIdx = allTokens.findIndex(t => t.mint === token.mint);
+                        if (existingIdx >= 0) {
+                            allTokens[existingIdx] = token;
+                        } else {
+                            allTokens.unshift(token);
+                            if (allTokens.length > 200) allTokens.pop();
+                        }
+                        updateStats();
+                        renderTokenList();
+                        if (!selectedToken) {
+                            selectToken(token);
+                        } else if (selectedToken.mint === token.mint) {
+                            selectToken(token);
+                        }
+                    }
+                } catch (e) {}
+            };
+
+            es.onerror = () => {
+                statusDot.className = 'status-dot';
+                statusText.innerText = 'RECONNECTING...';
+                es.close();
+                setTimeout(connectStream, 3000);
+            };
+        }
+
+        connectStream();
+
+        // Refresh relative times every 15s
+        setInterval(() => {
+            renderTokenList();
+            if (selectedToken) {
+                dBannerTime.innerText = formatTime(selectedToken.timestamp);
+            }
+        }, 15000);
+    </script>
+</body>
+</html>

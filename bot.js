@@ -39,6 +39,19 @@ process.on('uncaughtException', (err) => {
     console.error(`[CRASH GUARD] Uncaught Exception:`, err?.message || err);
     // Don't exit — log and keep running
 });
+// ─── Live Web Feed IPC Broadcaster ───────────────────────────────────────────
+export function broadcastFeedEvent(data) {
+    const event = {
+        timestamp: Date.now(),
+        ...data
+    };
+    if (typeof globalThis.__pushToken === 'function') {
+        try { globalThis.__pushToken(event); } catch {}
+    }
+    if (process.send) {
+        try { process.send({ type: 'TOKEN_FEED', data: event }); } catch {}
+    }
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AUTHORIZED_DISCORD_USER_ID = '1415022792214052915';
@@ -399,9 +412,38 @@ async function processCoin(stage, coin, retryCount = 0) {
         const mcVal = Number(stats.market_cap_usd || 0);
         if (mcVal < minMc || mcVal > (config.MAX_MC_USD || 100000.0)) {
             console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} outside range`);
+            broadcastFeedEvent({
+                mint,
+                symbol: stats.symbol || coin.symbol || 'TOKEN',
+                name: stats.name || coin.name || 'Token',
+                status: 'rejected',
+                market_cap_usd: mcVal,
+                cluster_pct: Number(stats.cluster_pct || 0),
+                dev_holdings_pct: Number(stats.dev_holdings_pct || stats.dev_holding_pct || 0),
+                top10_pct: Number(stats.top10_pct || 0),
+                bundlers_pct: Number(stats.bundlers_pct || 0),
+                rugcheck_score: stats.rugcheck_score || 'High Risk',
+                reason: `MC $${mcVal.toLocaleString()} outside range`,
+                source: coin.source || stage
+            });
             return;
         }
     }
+
+    broadcastFeedEvent({
+        mint,
+        symbol: stats.symbol || coin.symbol || 'TOKEN',
+        name: stats.name || coin.name || 'Token',
+        status: 'evaluating',
+        market_cap_usd: Number(stats.market_cap_usd || 0),
+        cluster_pct: Number(stats.cluster_pct || 0),
+        dev_holdings_pct: Number(stats.dev_holdings_pct || stats.dev_holding_pct || 0),
+        top10_pct: Number(stats.top10_pct || 0),
+        bundlers_pct: Number(stats.bundlers_pct || 0),
+        rugcheck_score: stats.rugcheck_score || 'Scanning',
+        reason: 'Evaluating on-chain safety',
+        source: coin.source || stage
+    });
 
     const [passes, reasons, alertType] = evaluateCoin(stats, stage);
     let aiFailed = false;
@@ -417,12 +459,27 @@ async function processCoin(stage, coin, retryCount = 0) {
     }
 
     if (!passes || aiFailed) {
+        const reasonStr = aiFailed ? aiRejectReason : (reasons[reasons.length - 1] || 'Filter check failed');
+        broadcastFeedEvent({
+            mint,
+            symbol: stats.symbol || coin.symbol || 'TOKEN',
+            name: stats.name || coin.name || 'Token',
+            status: 'rejected',
+            market_cap_usd: Number(stats.market_cap_usd || 0),
+            cluster_pct: Number(stats.cluster_pct || 0),
+            dev_holdings_pct: Number(stats.dev_holdings_pct || stats.dev_holding_pct || 0),
+            top10_pct: Number(stats.top10_pct || 0),
+            bundlers_pct: Number(stats.bundlers_pct || 0),
+            rugcheck_score: stats.rugcheck_score || 'High Risk',
+            reason: reasonStr,
+            source: coin.source || stage
+        });
+
         console.log(`[${stage}] ${stats.symbol} (${mint}) rejected. Sending to rejected channel...`);
         const rejChan = rejectedChannel || client.channels.cache.get(String(config.REJECTED_CHANNEL_ID || '1541182755705065603'));
         if (rejChan) {
             try {
                 const rejEmbed = buildMigratedEmbed(stats);
-                const reasonStr = aiFailed ? aiRejectReason : (reasons[reasons.length - 1] || 'Filter check failed');
                 rejEmbed.setFooter({ text: `⚠️ REJECTED COIN: ${reasonStr}` });
                 await rejChan.send({
                     content: `⚠️ **FAILED / REJECTED COIN**: \`${mint}\`\n**Reason:** ${reasonStr}`,
@@ -449,6 +506,21 @@ async function processCoin(stage, coin, retryCount = 0) {
         mid_pump_reported: false,
     });
     saveTrackers();
+
+    broadcastFeedEvent({
+        mint,
+        symbol: stats.symbol || 'TOKEN',
+        name: stats.name || 'Token',
+        status: 'approved',
+        market_cap_usd: Number(stats.market_cap_usd || 0),
+        cluster_pct: Number(stats.cluster_pct || 0),
+        dev_holdings_pct: Number(stats.dev_holdings_pct || stats.dev_holding_pct || 0),
+        top10_pct: Number(stats.top10_pct || 0),
+        bundlers_pct: Number(stats.bundlers_pct || 0),
+        rugcheck_score: stats.rugcheck_score || 'Good',
+        reason: 'Approved — all filters passed',
+        source: stats.source || stage
+    });
 
     await sendCallAlertInstantly({
         stats,

@@ -290,6 +290,13 @@ GUIDELINES:
 
         const absPath = path.resolve(cwd, targetPath);
         if (absPath.startsWith(cwd)) {
+            // Safety guard: never overwrite file if content contains placeholder text
+            if (fileContent.includes('<EXISTING CONTENT') || fileContent.includes('<REST OF') || fileContent.includes('// ... rest') || fileContent.length < 50) {
+                console.warn(`[Copilot] Aborting edit for ${targetPath}: detected placeholder text`);
+                actions.push(`Skipped edit for ${targetPath} (contained placeholder instead of complete code)`);
+                continue;
+            }
+
             // Write to local disk
             fs.writeFileSync(absPath, fileContent, 'utf8');
             actions.push(`Modified ${targetPath} locally`);

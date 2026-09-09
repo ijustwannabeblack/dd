@@ -36,8 +36,8 @@
     "excludeKeywords": [],
     "dexPaid": true,
     "age": {
-      "max": null,
-      "min": null,
+      "max": 60,
+      "min": 2,
       "unit": "minutes"
     },
     "userCount": {
@@ -50,31 +50,31 @@
     },
     "imgReuseCount": {
       "min": null,
-      "max": null
+      "max": 1
     },
     "top10Holders": {
-      "max": 20,
+      "max": 18,
       "min": null
     },
     "devHolding": {
-      "max": 3,
+      "max": 1,
       "min": null
     },
     "snipers": {
-      "max": 20,
+      "max": 8,
       "min": null
     },
     "insiders": {
-      "max": 10,
+      "max": 5,
       "min": null
     },
     "bundle": {
-      "max": 8,
+      "max": 5,
       "min": null
     },
     "holders": {
       "max": null,
-      "min": 60
+      "min": 140
     },
     "botUsers": {
       "max": null,
@@ -86,15 +86,15 @@
     },
     "liquidity": {
       "max": null,
-      "min": 15000
+      "min": 18000
     },
     "volume": {
       "max": null,
-      "min": 15000
+      "min": 35000
     },
     "marketCap": {
-      "max": 150000,
-      "min": 35000
+      "max": 300000,
+      "min": 68000
     },
     "fees": {
       "max": null,
@@ -102,11 +102,11 @@
     },
     "txns": {
       "max": null,
-      "min": 50
+      "min": 120
     },
     "numBuys": {
       "max": null,
-      "min": 30
+      "min": 70
     },
     "numSells": {
       "max": null,
@@ -117,7 +117,7 @@
       "min": null
     },
     "numDevPairs": {
-      "max": null,
+      "max": 3,
       "min": null
     },
     "devMigrationsPercent": {
@@ -137,15 +137,15 @@
     "twitterHandles": [],
     "twitterFollowers": {
       "max": null,
-      "min": null
+      "min": 50
     },
     "twitterFollowing": {
       "max": null,
       "min": null
     },
-    "twitterExists": false,
+    "twitterExists": true,
     "website": false,
-    "telegram": false,
+    "telegram": true,
     "tiktok": false,
     "atLeastOneSocial": true,
     "isStreaming": false,

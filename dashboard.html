@@ -3,28 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DD TERMINAL // SOLANA RADAR & GMGN CHART</title>
+    <title>DD TERMINAL // SOLANA RADAR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #0a0b0e;
-            --bg-surface: #111318;
-            --bg-card: #161922;
-            --bg-card-hover: #1d212c;
-            --border: #232836;
-            --border-highlight: #343c52;
-            --text-main: #f0f3f8;
-            --text-dim: #8b949e;
-            --text-sub: #586069;
-            --green: #00ff87;
-            --green-glow: rgba(0, 255, 135, 0.25);
-            --red: #ff3366;
-            --red-glow: rgba(255, 51, 102, 0.25);
-            --amber: #ffb800;
-            --cyan: #00e5ff;
-            --purple: #9d4edd;
+            --bg-primary: #090a0f;
+            --bg-secondary: #0e1118;
+            --bg-card: #131722;
+            --bg-card-hover: #191e2c;
+            --border-subtle: #1c2230;
+            --border-medium: #273044;
+            --border-active: #3b82f6;
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --color-emerald: #10b981;
+            --color-emerald-bg: rgba(16, 185, 129, 0.1);
+            --color-emerald-border: rgba(16, 185, 129, 0.25);
+            
+            --color-rose: #f43f5e;
+            --color-rose-bg: rgba(244, 63, 94, 0.1);
+            --color-rose-border: rgba(244, 63, 94, 0.25);
+            
+            --color-amber: #f59e0b;
+            --color-amber-bg: rgba(245, 158, 11, 0.1);
+            --color-amber-border: rgba(245, 158, 11, 0.25);
+            
+            --color-blue: #38bdf8;
+            --color-blue-bg: rgba(56, 189, 248, 0.1);
         }
 
         * {
@@ -34,521 +44,558 @@
         }
 
         body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             height: 100vh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Navbar */
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ─── Top Navigation Bar ─────────────────────────────────────────── */
         header {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            height: 48px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 56px;
             z-index: 10;
         }
 
-        .logo-area {
+        .header-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .logo-badge {
-            background: linear-gradient(135deg, var(--green), var(--cyan));
-            color: #000;
-            font-weight: 800;
-            font-size: 13px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
-        }
-
-        .logo-title {
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            color: #fff;
-        }
-
-        .logo-tag {
+        .brand-pill {
+            background: #1e293b;
+            color: #f8fafc;
             font-size: 11px;
-            color: var(--text-dim);
-            background: var(--bg-card);
-            padding: 2px 6px;
-            border-radius: 3px;
-            border: 1px solid var(--border);
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.8px;
+            border: 1px solid #334155;
         }
 
-        .header-stats {
+        .brand-name {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #f8fafc;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            border-left: 1px solid var(--border-subtle);
+            padding-left: 8px;
+        }
+
+        .header-center {
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-
-        .stat-label {
-            font-size: 9px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        .stat-val {
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .stat-val.green { color: var(--green); text-shadow: 0 0 10px var(--green-glow); }
-        .stat-val.red { color: var(--red); }
-        .stat-val.cyan { color: var(--cyan); }
-
-        .connection-status {
+        .metric-badge {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 11px;
-            background: var(--bg-card);
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
+        }
+
+        .metric-badge .lbl {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-badge .val {
+            font-weight: 600;
+        }
+
+        .metric-badge .val.emerald { color: var(--color-emerald); }
+        .metric-badge .val.rose { color: var(--color-rose); }
+        .metric-badge .val.blue { color: var(--color-blue); }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .audio-toggle {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .audio-toggle.active {
+            color: var(--color-emerald);
+            border-color: var(--color-emerald-border);
+            background: var(--color-emerald-bg);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            background: #0f172a;
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: var(--amber);
-            box-shadow: 0 0 6px var(--amber);
-            animation: pulse 1.8s infinite;
+            background: var(--color-amber);
         }
 
         .status-dot.connected {
-            background: var(--green);
-            box-shadow: 0 0 8px var(--green);
+            background: var(--color-emerald);
+            box-shadow: 0 0 8px var(--color-emerald);
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        /* Main Workspace Layout */
+        /* ─── Main Content Split ─────────────────────────────────────────── */
         .workspace {
             display: flex;
             flex: 1;
-            height: calc(100vh - 56px);
+            height: calc(100vh - 48px);
             overflow: hidden;
         }
 
-        /* Left Side: Token Stream */
-        .stream-panel {
+        /* ─── Left Sidebar: Token Feed Table ─────────────────────────────── */
+        .feed-panel {
             width: 380px;
-            min-width: 340px;
-            background: var(--bg-surface);
-            border-right: 1px solid var(--border);
+            min-width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
             height: 100%;
         }
 
-        .stream-controls {
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
+        .feed-toolbar {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            background: #0c0f16;
         }
 
-        .search-box {
+        .search-container {
             position: relative;
         }
 
         .search-input {
             width: 100%;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            background: #141924;
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
             color: #fff;
-            padding: 8px 12px;
+            padding: 7px 10px;
+            font-size: 11px;
             font-family: inherit;
-            font-size: 12px;
             outline: none;
             transition: border 0.15s;
         }
 
         .search-input:focus {
-            border-color: var(--cyan);
+            border-color: var(--border-active);
         }
 
-        .filter-tabs {
+        .filter-segmented {
             display: flex;
-            gap: 6px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 6px 4px;
+            background: #141924;
+            border: 1px solid var(--border-subtle);
             border-radius: 4px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .seg-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 5px 2px;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.15s;
             text-align: center;
+            transition: all 0.15s;
         }
 
-        .tab-btn.active {
-            background: var(--border);
+        .seg-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .seg-btn.active {
+            background: #1e293b;
             color: #fff;
-            border-color: var(--border-highlight);
         }
 
-        .tab-btn.tab-approved.active {
-            background: rgba(0, 255, 135, 0.15);
-            color: var(--green);
-            border-color: var(--green);
+        .seg-btn.seg-approved.active {
+            background: var(--color-emerald);
+            color: #000;
         }
 
-        .tab-btn.tab-rejected.active {
-            background: rgba(255, 51, 102, 0.15);
-            color: var(--red);
-            border-color: var(--red);
+        .seg-btn.seg-rejected.active {
+            background: #331f24;
+            color: var(--color-rose);
         }
 
-        .token-list {
+        .feed-header-row {
+            display: flex;
+            padding: 6px 12px;
+            font-size: 10px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+            background: #0c0f16;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .feed-header-row .col-token { flex: 1; }
+        .feed-header-row .col-mc { width: 75px; text-align: right; }
+        .feed-header-row .col-status { width: 75px; text-align: right; }
+
+        .token-feed-list {
             flex: 1;
             overflow-y: auto;
-            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
         }
 
-        .token-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px 12px;
+        .feed-row {
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             cursor: pointer;
-            transition: all 0.15s;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            position: relative;
-            overflow: hidden;
+            gap: 4px;
+            transition: background 0.12s;
         }
 
-        .token-card:hover {
+        .feed-row:hover {
             background: var(--bg-card-hover);
-            border-color: var(--border-highlight);
-            transform: translateX(2px);
         }
 
-        .token-card.active {
-            border-color: var(--cyan);
-            background: rgba(0, 229, 255, 0.06);
-            box-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+        .feed-row.active {
+            background: #182032;
+            border-left: 2px solid var(--color-blue);
         }
 
-        .token-card.status-approved {
-            border-left: 3px solid var(--green);
-        }
-
-        .token-card.status-rejected {
-            border-left: 3px solid var(--red);
-            opacity: 0.85;
-        }
-
-        .token-card.status-evaluating {
-            border-left: 3px solid var(--amber);
-        }
-
-        .card-top {
+        .feed-row-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .token-identity {
+        .token-identity-left {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .token-symbol {
-            font-size: 13px;
+        .row-symbol {
+            font-size: 12px;
             font-weight: 700;
             color: #fff;
         }
 
-        .token-name {
+        .row-name {
             font-size: 11px;
-            color: var(--text-dim);
-            max-width: 110px;
+            color: var(--text-muted);
+            max-width: 100px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .card-badge {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 3px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .badge-approved { background: rgba(0, 255, 135, 0.15); color: var(--green); border: 1px solid var(--green); }
-        .badge-rejected { background: rgba(255, 51, 102, 0.15); color: var(--red); border: 1px solid var(--red); }
-        .badge-evaluating { background: rgba(255, 184, 0, 0.15); color: var(--amber); border: 1px solid var(--amber); }
-
-        .card-mid {
-            display: flex;
-            justify-content: space-between;
+        .row-mc {
             font-size: 11px;
-        }
-
-        .card-mc {
-            color: var(--text-main);
             font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .card-time {
-            color: var(--text-sub);
-            font-size: 10px;
-        }
-
-        .card-reason {
-            font-size: 10px;
-            color: #ff7597;
-            background: rgba(255, 51, 102, 0.08);
-            padding: 3px 6px;
-            border-radius: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-tags {
+        .feed-row-bottom {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+
+        .row-tags {
+            display: flex;
+            align-items: center;
             gap: 4px;
             flex-wrap: wrap;
         }
 
-        .tag {
+        .pill-status {
             font-size: 9px;
-            padding: 1px 5px;
+            font-weight: 700;
+            padding: 1px 6px;
             border-radius: 3px;
-            background: var(--bg-surface);
-            color: var(--text-dim);
-            border: 1px solid var(--border);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
-        .tag.safe { color: var(--green); border-color: rgba(0, 255, 135, 0.3); }
-        .tag.danger { color: var(--red); border-color: rgba(255, 51, 102, 0.3); }
-        .tag.special { color: var(--cyan); border-color: rgba(0, 229, 255, 0.3); }
+        .pill-approved {
+            background: var(--color-emerald-bg);
+            color: var(--color-emerald);
+            border: 1px solid var(--color-emerald-border);
+        }
 
-        /* Right Side: Trading & Token Inspector */
-        .detail-panel {
+        .pill-rejected {
+            background: var(--color-rose-bg);
+            color: var(--color-rose);
+            border: 1px solid var(--color-rose-border);
+        }
+
+        .pill-evaluating {
+            background: var(--color-amber-bg);
+            color: var(--color-amber);
+            border: 1px solid var(--color-amber-border);
+        }
+
+        .row-risk-tag {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .row-risk-tag.danger {
+            color: #fb7185;
+        }
+
+        .row-time {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        /* ─── Right Panel: Trading & Chart Inspector ─────────────────────── */
+        .stage-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: var(--bg-base);
+            background: var(--bg-primary);
             height: 100%;
             overflow-y: auto;
         }
 
-        .detail-header {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 20px;
+        .empty-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .stage-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stage-token-info {
+            display: flex;
+            align-items: center;
             gap: 12px;
         }
 
-        .detail-title-area {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .detail-symbol {
-            font-size: 20px;
-            font-weight: 800;
+        .stage-symbol {
+            font-size: 18px;
+            font-weight: 700;
             color: #fff;
         }
 
-        .detail-name {
-            font-size: 13px;
-            color: var(--text-dim);
+        .stage-name {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .ca-pill {
+        .ca-button {
             display: flex;
             align-items: center;
             gap: 6px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 4px 10px;
+            background: #141924;
+            border: 1px solid var(--border-subtle);
+            padding: 4px 8px;
             border-radius: 4px;
             font-size: 11px;
-            color: var(--text-dim);
+            color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.15s;
         }
 
-        .ca-pill:hover {
-            border-color: var(--cyan);
+        .ca-button:hover {
+            border-color: var(--border-medium);
             color: #fff;
+            background: #1c2333;
         }
 
-        .quick-actions {
+        .trade-buttons {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
-        .btn-action {
+        .btn-broker {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
+            gap: 4px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-family: inherit;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 600;
             text-decoration: none;
-            color: #fff;
+            color: var(--text-primary);
+            background: #161c28;
+            border: 1px solid var(--border-subtle);
             transition: all 0.15s;
-            cursor: pointer;
-            border: none;
         }
 
-        .btn-gmgn { background: #1652f0; }
-        .btn-gmgn:hover { background: #2664ff; box-shadow: 0 0 10px rgba(22, 82, 240, 0.4); }
+        .btn-broker:hover {
+            background: #1e2638;
+            border-color: #3b82f6;
+            color: #fff;
+        }
 
-        .btn-photon { background: #ff5722; }
-        .btn-photon:hover { background: #ff6e3d; box-shadow: 0 0 10px rgba(255, 87, 34, 0.4); }
+        .btn-broker.primary-gmgn {
+            background: #1d4ed8;
+            border-color: #2563eb;
+            color: #fff;
+        }
 
-        .btn-bullx { background: #00d26a; color: #000; }
-        .btn-bullx:hover { background: #15f082; box-shadow: 0 0 10px rgba(0, 210, 106, 0.4); }
+        .btn-broker.primary-gmgn:hover {
+            background: #2563eb;
+        }
 
-        .btn-axiom { background: #7928ca; }
-        .btn-axiom:hover { background: #903be6; box-shadow: 0 0 10px rgba(121, 40, 202, 0.4); }
-
-        .btn-pump { background: #10b981; color: #000; }
-
-        /* Decision Banner */
-        .decision-banner {
-            padding: 10px 20px;
+        /* ─── Risk & Decision Strip ──────────────────────────────────────── */
+        .decision-strip {
+            padding: 8px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .decision-banner.approved {
-            background: rgba(0, 255, 135, 0.1);
-            border-bottom: 1px solid rgba(0, 255, 135, 0.3);
-            color: var(--green);
+        .decision-strip.approved {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: var(--color-emerald);
         }
 
-        .decision-banner.rejected {
-            background: rgba(255, 51, 102, 0.1);
-            border-bottom: 1px solid rgba(255, 51, 102, 0.3);
-            color: var(--red);
+        .decision-strip.rejected {
+            background: rgba(244, 63, 94, 0.08);
+            border-color: rgba(244, 63, 94, 0.2);
+            color: #fb7185;
         }
 
-        .decision-banner.evaluating {
-            background: rgba(255, 184, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 184, 0, 0.3);
-            color: var(--amber);
+        .decision-strip.evaluating {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.2);
+            color: var(--color-amber);
         }
 
-        /* Metric Grid */
-        .metric-grid {
+        /* ─── Financial & On-Chain Audit Grid ────────────────────────────── */
+        .metrics-strip {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-surface);
+            gap: 1px;
+            background: var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .metric-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+        .metric-cell {
+            background: #0d1017;
             padding: 8px 12px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
 
-        .metric-title {
+        .metric-cell .label {
             font-size: 10px;
-            color: var(--text-dim);
+            color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .metric-val {
-            font-size: 15px;
-            font-weight: 700;
+        .metric-cell .value {
+            font-size: 13px;
+            font-weight: 600;
         }
 
-        .meter-bar {
+        .progress-micro {
             width: 100%;
-            height: 4px;
-            background: var(--border);
+            height: 3px;
+            background: #1e2535;
             border-radius: 2px;
             overflow: hidden;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
-        .meter-fill {
+        .progress-bar {
             height: 100%;
             border-radius: 2px;
-            transition: width 0.3s;
         }
 
-        .meter-fill.green { background: var(--green); }
-        .meter-fill.red { background: var(--red); }
+        .progress-bar.green { background: var(--color-emerald); }
+        .progress-bar.red { background: var(--color-rose); }
 
-        /* Chart Area */
-        .chart-section {
+        /* ─── Kline Chart Section ────────────────────────────────────────── */
+        .chart-wrapper {
             flex: 1;
             min-height: 480px;
             display: flex;
             flex-direction: column;
             background: #000;
-            position: relative;
         }
 
-        .chart-header {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 20px;
+        .chart-toolbar {
+            background: #0e121a;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 6px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -556,25 +603,24 @@
 
         .chart-tabs {
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
 
-        .chart-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            font-family: inherit;
+        .chart-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
             font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.12s;
         }
 
-        .chart-btn.active {
-            background: var(--border-highlight);
+        .chart-tab-btn.active {
+            background: #1c2436;
             color: #fff;
-            border-color: var(--cyan);
+            border-color: #2e3b56;
         }
 
         .chart-iframe {
@@ -583,62 +629,67 @@
             height: 100%;
             min-height: 460px;
             border: none;
-            background: #0e0f14;
+            background: #0a0d14;
         }
 
-        /* Empty State */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--text-dim);
-            gap: 12px;
-            padding: 40px;
-            text-align: center;
+        /* Keyboard hint badge */
+        .kb-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            background: #161c28;
+            border: 1px solid var(--border-subtle);
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 4px;
         }
 
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
-            background: var(--bg-base);
+            background: #090a0f;
         }
         ::-webkit-scrollbar-thumb {
-            background: var(--border-highlight);
-            border-radius: 3px;
+            background: #273044;
+            border-radius: 2px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Top Header -->
     <header>
-        <div class="logo-area">
-            <div class="logo-badge">DD RADAR</div>
-            <div class="logo-title">SOLANA CALLS & ANTI-RUG TERMINAL</div>
-            <div class="logo-tag">GMGN ENGINE</div>
+        <div class="header-brand">
+            <span class="brand-pill">DD</span>
+            <span class="brand-name">SOLANA RADAR</span>
+            <span class="brand-sub">GMGN INTEGRATED</span>
         </div>
 
-        <div class="header-stats">
-            <div class="stat-item">
-                <span class="stat-label">Total Scanned</span>
-                <span class="stat-val cyan" id="stat-scanned">0</span>
+        <div class="header-center">
+            <div class="metric-badge">
+                <span class="lbl">Tokens Tracked</span>
+                <span class="val mono blue" id="count-total">0</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Approved Calls</span>
-                <span class="stat-val green" id="stat-approved">0</span>
+            <div class="metric-badge">
+                <span class="lbl">Approved Calls</span>
+                <span class="val mono emerald" id="count-approved">0</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Rugs Blocked</span>
-                <span class="stat-val red" id="stat-rejected">0</span>
+            <div class="metric-badge">
+                <span class="lbl">Rugs Filtered</span>
+                <span class="val mono rose" id="count-rejected">0</span>
             </div>
-            <div class="connection-status">
+        </div>
+
+        <div class="header-actions">
+            <button class="audio-toggle" id="btn-audio" title="Play sound alert when an approved call occurs">
+                <span>🔔</span>
+                <span id="audio-lbl">ALERTS ON</span>
+            </button>
+            <div class="status-pill">
                 <span class="status-dot" id="status-dot"></span>
-                <span id="status-text">CONNECTING...</span>
+                <span class="mono" id="status-text">CONNECTING</span>
             </div>
         </div>
     </header>
@@ -646,114 +697,116 @@
     <!-- Main Workspace -->
     <div class="workspace">
 
-        <!-- Left Column: Token Stream -->
-        <div class="stream-panel">
-            <div class="stream-controls">
-                <div class="search-box">
-                    <input type="text" id="search-input" class="search-input" placeholder="🔍 Search Ticker, Name, or CA...">
+        <!-- Left Column: Token Feed Table -->
+        <div class="feed-panel">
+            <div class="feed-toolbar">
+                <div class="search-container">
+                    <input type="text" id="search-box" class="search-input" placeholder="Search ticker, name, CA...">
                 </div>
-                <div class="filter-tabs">
-                    <button class="tab-btn active" data-filter="all">ALL</button>
-                    <button class="tab-btn tab-approved" data-filter="approved">APPROVED</button>
-                    <button class="tab-btn" data-filter="evaluating">WATCHING</button>
-                    <button class="tab-btn tab-rejected" data-filter="rejected">REJECTED</button>
+                <div class="filter-segmented">
+                    <button class="seg-btn active" data-filter="all">ALL</button>
+                    <button class="seg-btn seg-approved" data-filter="approved">APPROVED</button>
+                    <button class="seg-btn" data-filter="evaluating">AUDITING</button>
+                    <button class="seg-btn seg-rejected" data-filter="rejected">FILTERED</button>
                 </div>
             </div>
 
-            <div class="token-list" id="token-list">
-                <!-- Tokens will populate here dynamically -->
-                <div class="empty-state" id="list-loading">
-                    <div>📡 Connecting to live token radar...</div>
+            <div class="feed-header-row">
+                <span class="col-token">Token</span>
+                <span class="col-mc">Market Cap</span>
+                <span class="col-status">Status</span>
+            </div>
+
+            <div class="token-feed-list" id="feed-list">
+                <div class="empty-placeholder">
+                    <span>Awaiting token stream...</span>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Trading & Token Inspector -->
-        <div class="detail-panel" id="detail-panel">
-            <div class="empty-state" id="detail-empty">
-                <div style="font-size: 32px;">🎯</div>
-                <div style="font-size: 16px; font-weight: 700; color: #fff;">No Token Selected</div>
-                <div>Click on any token in the feed to inspect live GMGN charts, cluster stats, and anti-rug audits.</div>
+        <!-- Right Column: Inspector & GMGN Kline Chart -->
+        <div class="stage-panel" id="stage-panel">
+            <div class="empty-placeholder" id="placeholder-empty">
+                <span style="font-size: 15px; font-weight: 600; color: var(--text-secondary);">Select a token from the radar feed</span>
+                <span>Click any row or use keyboard shortcuts to inspect GMGN Kline charts and anti-rug audits.</span>
             </div>
 
-            <div id="detail-content" style="display: none; flex-direction: column; flex: 1;">
+            <div id="inspector-content" style="display: none; flex-direction: column; flex: 1;">
                 
-                <!-- Detail Header -->
-                <div class="detail-header">
-                    <div class="detail-title-area">
-                        <div>
-                            <span class="detail-symbol" id="d-symbol">SOL</span>
-                            <span class="detail-name" id="d-name">Token Name</span>
-                        </div>
-                        <div class="ca-pill" id="d-ca-btn" title="Click to copy CA">
-                            <span id="d-ca">Loading CA...</span>
-                            <span>📋</span>
-                        </div>
+                <!-- Token Identity Strip -->
+                <div class="stage-header">
+                    <div class="stage-token-info">
+                        <span class="stage-symbol mono" id="t-symbol">$TOKEN</span>
+                        <span class="stage-name" id="t-name">Token Name</span>
+                        <button class="ca-button mono" id="btn-copy-ca" title="Click to copy CA (Shortcut: C)">
+                            <span id="t-ca">CA...</span>
+                            <span style="font-size: 12px;">⧉</span>
+                        </button>
                     </div>
 
-                    <div class="quick-actions">
-                        <a id="btn-trade-gmgn" href="#" target="_blank" class="btn-action btn-gmgn">⚡ GMGN</a>
-                        <a id="btn-trade-photon" href="#" target="_blank" class="btn-action btn-photon">⚡ Photon</a>
-                        <a id="btn-trade-bullx" href="#" target="_blank" class="btn-action btn-bullx">⚡ BullX</a>
-                        <a id="btn-trade-axiom" href="#" target="_blank" class="btn-action btn-axiom">⚡ Axiom</a>
-                        <a id="btn-trade-pump" href="#" target="_blank" class="btn-action btn-pump">Pump.fun</a>
+                    <div class="trade-buttons">
+                        <a id="btn-gmgn" href="#" target="_blank" class="btn-broker primary-gmgn">GMGN.ai ↗<span class="kb-hint">G</span></a>
+                        <a id="btn-photon" href="#" target="_blank" class="btn-broker">Photon ↗<span class="kb-hint">P</span></a>
+                        <a id="btn-bullx" href="#" target="_blank" class="btn-broker">BullX ↗</a>
+                        <a id="btn-axiom" href="#" target="_blank" class="btn-broker">Axiom ↗<span class="kb-hint">A</span></a>
+                        <a id="btn-pump" href="#" target="_blank" class="btn-broker">Pump.fun ↗</a>
                     </div>
                 </div>
 
-                <!-- Decision Banner -->
-                <div class="decision-banner" id="d-banner">
-                    <span id="d-banner-text">STATUS: VERIFIED CALL</span>
-                    <span id="d-banner-time">Just now</span>
+                <!-- Decision & Security Status Strip -->
+                <div class="decision-strip" id="t-decision-strip">
+                    <span id="t-decision-text">CALL VERIFIED // AUDIT PASSED</span>
+                    <span class="mono" id="t-decision-time">Just now</span>
                 </div>
 
-                <!-- Metrics Grid -->
-                <div class="metric-grid">
-                    <div class="metric-card">
-                        <span class="metric-title">Market Cap</span>
-                        <span class="metric-val" id="d-mc">$0</span>
+                <!-- Metrics & Anti-Rug Table Strip -->
+                <div class="metrics-strip">
+                    <div class="metric-cell">
+                        <span class="label">Market Cap</span>
+                        <span class="value mono" id="m-mc">$0</span>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Sybil Cluster</span>
-                        <span class="metric-val" id="d-cluster">0%</span>
-                        <div class="meter-bar">
-                            <div class="meter-fill green" id="d-cluster-bar" style="width: 0%;"></div>
+                    <div class="metric-cell">
+                        <span class="label">Sybil Cluster</span>
+                        <span class="value mono" id="m-cluster">0%</span>
+                        <div class="progress-micro">
+                            <div class="progress-bar green" id="bar-cluster" style="width: 0%;"></div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Dev Holdings</span>
-                        <span class="metric-val" id="d-dev">0%</span>
-                        <div class="meter-bar">
-                            <div class="meter-fill green" id="d-dev-bar" style="width: 0%;"></div>
+                    <div class="metric-cell">
+                        <span class="label">Dev Holding</span>
+                        <span class="value mono" id="m-dev">0%</span>
+                        <div class="progress-micro">
+                            <div class="progress-bar green" id="bar-dev" style="width: 0%;"></div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Top 10 (Non-LP)</span>
-                        <span class="metric-val" id="d-top10">0%</span>
-                        <div class="meter-bar">
-                            <div class="meter-fill green" id="d-top10-bar" style="width: 0%;"></div>
+                    <div class="metric-cell">
+                        <span class="label">Top 10 (Non-LP)</span>
+                        <span class="value mono" id="m-top10">0%</span>
+                        <div class="progress-micro">
+                            <div class="progress-bar green" id="bar-top10" style="width: 0%;"></div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Bundlers %</span>
-                        <span class="metric-val" id="d-bundlers">0%</span>
+                    <div class="metric-cell">
+                        <span class="label">Bundlers</span>
+                        <span class="value mono" id="m-bundlers">0%</span>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-title">RugCheck / Score</span>
-                        <span class="metric-val" id="d-rugcheck">Good</span>
+                    <div class="metric-cell">
+                        <span class="label">RugCheck</span>
+                        <span class="value mono" id="m-rugcheck">Good</span>
                     </div>
                 </div>
 
-                <!-- Chart Section -->
-                <div class="chart-section">
-                    <div class="chart-header">
+                <!-- Embedded Chart Section -->
+                <div class="chart-wrapper">
+                    <div class="chart-toolbar">
                         <div class="chart-tabs">
-                            <button class="chart-btn active" id="btn-chart-gmgn">GMGN Kline Chart</button>
-                            <button class="chart-btn" id="btn-chart-dex">DexScreener Chart</button>
+                            <button class="chart-tab-btn active" id="tab-chart-gmgn">GMGN Kline Chart</button>
+                            <button class="chart-tab-btn" id="tab-chart-dex">DexScreener</button>
                         </div>
-                        <button class="chart-btn" id="btn-chart-reload">🔄 Reload Chart</button>
+                        <button class="chart-tab-btn" id="btn-refresh-chart">↻ Refresh</button>
                     </div>
 
-                    <iframe id="chart-frame" class="chart-iframe" src="" allowfullscreen></iframe>
+                    <iframe id="kline-frame" class="chart-iframe" src="" allowfullscreen></iframe>
                 </div>
 
             </div>
@@ -761,249 +814,306 @@
 
     </div>
 
+    <!-- Professional Web Audio Beep Generator (No external audio files needed) -->
     <script>
-        let allTokens = [];
-        let activeFilter = 'all';
-        let searchQuery = '';
-        let selectedToken = null;
-        let chartSource = 'gmgn'; // 'gmgn' or 'dex'
+        let audioContext = null;
+        let audioAlerts = true;
 
-        const tokenListEl = document.getElementById('token-list');
-        const searchInput = document.getElementById('search-input');
-        const filterBtns = document.querySelectorAll('.tab-btn');
+        function playCallChime() {
+            if (!audioAlerts) return;
+            try {
+                if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioContext.state === 'suspended') audioContext.resume();
+
+                const now = audioContext.currentTime;
+                // Double harmonic chime
+                [523.25, 659.25, 783.99].forEach((freq, i) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + (i * 0.08));
+                    gain.gain.setValueAtTime(0.08, now + (i * 0.08));
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (i * 0.08) + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.start(now + (i * 0.08));
+                    osc.stop(now + (i * 0.08) + 0.35);
+                });
+            } catch (e) {}
+        }
+    </script>
+
+    <!-- Application Controller -->
+    <script>
+        let tokens = [];
+        let filterMode = 'all';
+        let filterQuery = '';
+        let currentToken = null;
+        let chartProvider = 'gmgn';
+
+        const feedListEl = document.getElementById('feed-list');
+        const searchBox = document.getElementById('search-box');
+        const segButtons = document.querySelectorAll('.seg-btn');
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
 
-        const statScanned = document.getElementById('stat-scanned');
-        const statApproved = document.getElementById('stat-approved');
-        const statRejected = document.getElementById('stat-rejected');
+        const countTotal = document.getElementById('count-total');
+        const countApproved = document.getElementById('count-approved');
+        const countRejected = document.getElementById('count-rejected');
 
-        const detailEmpty = document.getElementById('detail-empty');
-        const detailContent = document.getElementById('detail-content');
+        const placeholderEmpty = document.getElementById('placeholder-empty');
+        const inspectorContent = document.getElementById('inspector-content');
 
-        const dSymbol = document.getElementById('d-symbol');
-        const dName = document.getElementById('d-name');
-        const dCa = document.getElementById('d-ca');
-        const dCaBtn = document.getElementById('d-ca-btn');
-        const dBanner = document.getElementById('d-banner');
-        const dBannerText = document.getElementById('d-banner-text');
-        const dBannerTime = document.getElementById('d-banner-time');
+        const tSymbol = document.getElementById('t-symbol');
+        const tName = document.getElementById('t-name');
+        const tCa = document.getElementById('t-ca');
+        const btnCopyCa = document.getElementById('btn-copy-ca');
+        const tDecisionStrip = document.getElementById('t-decision-strip');
+        const tDecisionText = document.getElementById('t-decision-text');
+        const tDecisionTime = document.getElementById('t-decision-time');
 
-        const dMc = document.getElementById('d-mc');
-        const dCluster = document.getElementById('d-cluster');
-        const dClusterBar = document.getElementById('d-cluster-bar');
-        const dDev = document.getElementById('d-dev');
-        const dDevBar = document.getElementById('d-dev-bar');
-        const dTop10 = document.getElementById('d-top10');
-        const dTop10Bar = document.getElementById('d-top10-bar');
-        const dBundlers = document.getElementById('d-bundlers');
-        const dRugcheck = document.getElementById('d-rugcheck');
+        const mMc = document.getElementById('m-mc');
+        const mCluster = document.getElementById('m-cluster');
+        const barCluster = document.getElementById('bar-cluster');
+        const mDev = document.getElementById('m-dev');
+        const barDev = document.getElementById('bar-dev');
+        const mTop10 = document.getElementById('m-top10');
+        const barTop10 = document.getElementById('bar-top10');
+        const mBundlers = document.getElementById('m-bundlers');
+        const mRugcheck = document.getElementById('m-rugcheck');
 
-        const btnGmgn = document.getElementById('btn-trade-gmgn');
-        const btnPhoton = document.getElementById('btn-trade-photon');
-        const btnBullx = document.getElementById('btn-trade-bullx');
-        const btnAxiom = document.getElementById('btn-trade-axiom');
-        const btnPump = document.getElementById('btn-trade-pump');
+        const btnGmgn = document.getElementById('btn-gmgn');
+        const btnPhoton = document.getElementById('btn-photon');
+        const btnBullx = document.getElementById('btn-bullx');
+        const btnAxiom = document.getElementById('btn-axiom');
+        const btnPump = document.getElementById('btn-pump');
 
-        const chartFrame = document.getElementById('chart-frame');
-        const btnChartGmgn = document.getElementById('btn-chart-gmgn');
-        const btnChartDex = document.getElementById('btn-chart-dex');
-        const btnChartReload = document.getElementById('btn-chart-reload');
+        const klineFrame = document.getElementById('kline-frame');
+        const tabChartGmgn = document.getElementById('tab-chart-gmgn');
+        const tabChartDex = document.getElementById('tab-chart-dex');
+        const btnRefreshChart = document.getElementById('btn-refresh-chart');
 
-        // Copy CA
-        dCaBtn.addEventListener('click', () => {
-            if (!selectedToken) return;
-            navigator.clipboard.writeText(selectedToken.mint);
-            const orig = dCa.innerText;
-            dCa.innerText = 'COPIED TO CLIPBOARD!';
-            setTimeout(() => dCa.innerText = orig, 1500);
+        const btnAudio = document.getElementById('btn-audio');
+        const audioLbl = document.getElementById('audio-lbl');
+
+        btnAudio.addEventListener('click', () => {
+            audioAlerts = !audioAlerts;
+            btnAudio.className = audioAlerts ? 'audio-toggle active' : 'audio-toggle';
+            audioLbl.innerText = audioAlerts ? 'ALERTS ON' : 'MUTED';
+            if (audioAlerts) playCallChime();
         });
 
-        // Search Input
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.trim().toLowerCase();
-            renderTokenList();
+        // Copy CA
+        btnCopyCa.addEventListener('click', () => {
+            if (!currentToken || !currentToken.mint) return;
+            navigator.clipboard.writeText(currentToken.mint);
+            const original = tCa.innerText;
+            tCa.innerText = 'COPIED';
+            setTimeout(() => { tCa.innerText = original; }, 1200);
+        });
+
+        // Search
+        searchBox.addEventListener('input', (e) => {
+            filterQuery = e.target.value.trim().toLowerCase();
+            renderFeed();
         });
 
         // Filter Tabs
-        filterBtns.forEach(btn => {
+        segButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
+                segButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                activeFilter = btn.dataset.filter;
-                renderTokenList();
+                filterMode = btn.dataset.filter;
+                renderFeed();
             });
         });
 
         // Chart Source Toggle
-        btnChartGmgn.addEventListener('click', () => {
-            chartSource = 'gmgn';
-            btnChartGmgn.classList.add('active');
-            btnChartDex.classList.remove('active');
-            updateChart();
+        tabChartGmgn.addEventListener('click', () => {
+            chartProvider = 'gmgn';
+            tabChartGmgn.classList.add('active');
+            tabChartDex.classList.remove('active');
+            loadChart();
         });
 
-        btnChartDex.addEventListener('click', () => {
-            chartSource = 'dex';
-            btnChartDex.classList.add('active');
-            btnChartGmgn.classList.remove('active');
-            updateChart();
+        tabChartDex.addEventListener('click', () => {
+            chartProvider = 'dex';
+            tabChartDex.classList.add('active');
+            tabChartGmgn.classList.remove('active');
+            loadChart();
         });
 
-        btnChartReload.addEventListener('click', updateChart);
+        btnRefreshChart.addEventListener('click', loadChart);
 
-        function updateChart() {
-            if (!selectedToken || !selectedToken.mint) return;
-            const mint = selectedToken.mint;
-            if (chartSource === 'gmgn') {
-                chartFrame.src = `https://www.gmgn.cc/kline/sol/${mint}?theme=dark&interval=1`;
+        function loadChart() {
+            if (!currentToken || !currentToken.mint) return;
+            const ca = currentToken.mint;
+            if (chartProvider === 'gmgn') {
+                klineFrame.src = `https://www.gmgn.cc/kline/sol/${ca}?theme=dark&interval=1`;
             } else {
-                chartFrame.src = `https://dexscreener.com/solana/${mint}?embed=1&theme=dark&trades=0&info=0`;
+                klineFrame.src = `https://dexscreener.com/solana/${ca}?embed=1&theme=dark&trades=0&info=0`;
             }
         }
 
-        function formatMc(mc) {
-            const val = Number(mc || 0);
-            if (val >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
-            if (val >= 1e3) return `$${(val / 1e3).toFixed(1)}k`;
-            return `$${val.toLocaleString()}`;
+        function formatMc(val) {
+            const n = Number(val || 0);
+            if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
+            if (n >= 1e3) return `$${(n / 1e3).toFixed(1)}k`;
+            return `$${n.toFixed(0)}`;
         }
 
-        function formatTime(ts) {
+        function formatTimeAgo(ts) {
             const sec = Math.floor((Date.now() - (ts || Date.now())) / 1000);
-            if (sec < 5) return 'Just now';
+            if (sec < 4) return 'Just now';
             if (sec < 60) return `${sec}s ago`;
-            const min = Math.floor(sec / 60);
-            if (min < 60) return `${min}m ago`;
-            return `${Math.floor(min / 60)}h ago`;
+            const m = Math.floor(sec / 60);
+            if (m < 60) return `${m}m ago`;
+            return `${Math.floor(m / 60)}h ago`;
         }
 
         function selectToken(token) {
-            selectedToken = token;
-            detailEmpty.style.display = 'none';
-            detailContent.style.display = 'flex';
+            currentToken = token;
+            placeholderEmpty.style.display = 'none';
+            inspectorContent.style.display = 'flex';
 
-            dSymbol.innerText = `$${token.symbol || 'TOKEN'}`;
-            dName.innerText = token.name || 'Token';
-            dCa.innerText = token.mint ? `${token.mint.slice(0, 8)}...${token.mint.slice(-8)}` : '';
+            tSymbol.innerText = `$${token.symbol || 'TOKEN'}`;
+            tName.innerText = token.name || 'Token';
+            tCa.innerText = token.mint ? `${token.mint.slice(0, 6)}...${token.mint.slice(-6)}` : '';
 
-            // Update Quick Trade Links
+            // Update external links
             btnGmgn.href = `https://gmgn.ai/sol/token/${token.mint}`;
             btnPhoton.href = `https://photon-sol.tinyastro.io/en/lp/${token.mint}`;
             btnBullx.href = `https://bullx.io/terminal?chainId=1399811149&address=${token.mint}`;
             btnAxiom.href = `https://axiom.trade/token/${token.mint}`;
             btnPump.href = `https://pump.fun/${token.mint}`;
 
-            // Decision Banner
-            dBanner.className = `decision-banner ${token.status}`;
+            // Decision Strip
+            tDecisionStrip.className = `decision-strip ${token.status}`;
             if (token.status === 'approved') {
-                dBannerText.innerText = `🟢 APPROVED CALL // AUDIT PASSED // SENT TO DISCORD`;
+                tDecisionText.innerText = `VERIFIED CALL // Passed Sybil cluster (<5%), dev dump (<6%), and liquidity verification`;
             } else if (token.status === 'rejected') {
-                dBannerText.innerText = `🔴 REJECTED // REASON: ${token.reason || 'Failed cluster / dev gate'}`;
+                tDecisionText.innerText = `FILTER REJECTED // Reason: ${token.reason || 'Failed cluster / dev gate'}`;
             } else {
-                dBannerText.innerText = `🟡 AUDITING CANDIDATE // SCREENING ON-CHAIN`;
+                tDecisionText.innerText = `AUDITING CANDIDATE // Screening on-chain cluster & holder distribution`;
             }
-            dBannerTime.innerText = formatTime(token.timestamp);
+            tDecisionTime.innerText = formatTimeAgo(token.timestamp);
 
             // Metrics
-            dMc.innerText = formatMc(token.market_cap_usd);
+            mMc.innerText = formatMc(token.market_cap_usd);
 
             const clusterVal = Number(token.cluster_pct || 0);
-            dCluster.innerText = `${clusterVal.toFixed(1)}%`;
-            dCluster.style.color = clusterVal > 5.0 ? 'var(--red)' : 'var(--green)';
-            dClusterBar.style.width = `${Math.min(100, clusterVal * 4)}%`;
-            dClusterBar.className = `meter-fill ${clusterVal > 5.0 ? 'red' : 'green'}`;
+            mCluster.innerText = `${clusterVal.toFixed(1)}%`;
+            mCluster.style.color = clusterVal > 5.0 ? 'var(--color-rose)' : 'var(--color-emerald)';
+            barCluster.style.width = `${Math.min(100, clusterVal * 4)}%`;
+            barCluster.className = `progress-bar ${clusterVal > 5.0 ? 'red' : 'green'}`;
 
             const devVal = Number(token.dev_holdings_pct || 0);
-            dDev.innerText = `${devVal.toFixed(1)}%`;
-            dDev.style.color = devVal > 6.0 ? 'var(--red)' : 'var(--green)';
-            dDevBar.style.width = `${Math.min(100, devVal * 5)}%`;
-            dDevBar.className = `meter-fill ${devVal > 6.0 ? 'red' : 'green'}`;
+            mDev.innerText = `${devVal.toFixed(1)}%`;
+            mDev.style.color = devVal > 6.0 ? 'var(--color-rose)' : 'var(--color-emerald)';
+            barDev.style.width = `${Math.min(100, devVal * 5)}%`;
+            barDev.className = `progress-bar ${devVal > 6.0 ? 'red' : 'green'}`;
 
             const top10Val = Number(token.top10_pct || 0);
-            dTop10.innerText = `${top10Val.toFixed(1)}%`;
-            dTop10.style.color = top10Val > 25.0 ? 'var(--red)' : 'var(--green)';
-            dTop10Bar.style.width = `${Math.min(100, top10Val * 2)}%`;
-            dTop10Bar.className = `meter-fill ${top10Val > 25.0 ? 'red' : 'green'}`;
+            mTop10.innerText = `${top10Val.toFixed(1)}%`;
+            mTop10.style.color = top10Val > 25.0 ? 'var(--color-rose)' : 'var(--color-emerald)';
+            barTop10.style.width = `${Math.min(100, top10Val * 2)}%`;
+            barTop10.className = `progress-bar ${top10Val > 25.0 ? 'red' : 'green'}`;
 
-            dBundlers.innerText = `${Number(token.bundlers_pct || 0).toFixed(1)}%`;
-            dRugcheck.innerText = token.rugcheck_score || (token.status === 'rejected' ? 'High Risk' : 'Passed');
+            mBundlers.innerText = `${Number(token.bundlers_pct || 0).toFixed(1)}%`;
+            mRugcheck.innerText = token.rugcheck_score || (token.status === 'rejected' ? 'High Risk' : 'Passed');
 
-            updateChart();
-            renderTokenList();
+            loadChart();
+            renderFeed();
         }
 
-        function renderTokenList() {
-            const filtered = allTokens.filter(token => {
-                if (activeFilter === 'approved' && token.status !== 'approved') return false;
-                if (activeFilter === 'rejected' && token.status !== 'rejected') return false;
-                if (activeFilter === 'evaluating' && token.status !== 'evaluating') return false;
+        function renderFeed() {
+            const filtered = tokens.filter(t => {
+                if (filterMode === 'approved' && t.status !== 'approved') return false;
+                if (filterMode === 'rejected' && t.status !== 'rejected') return false;
+                if (filterMode === 'evaluating' && t.status !== 'evaluating') return false;
 
-                if (searchQuery) {
-                    const s = (token.symbol || '').toLowerCase();
-                    const n = (token.name || '').toLowerCase();
-                    const m = (token.mint || '').toLowerCase();
-                    return s.includes(searchQuery) || n.includes(searchQuery) || m.includes(searchQuery);
+                if (filterQuery) {
+                    const s = (t.symbol || '').toLowerCase();
+                    const n = (t.name || '').toLowerCase();
+                    const m = (t.mint || '').toLowerCase();
+                    return s.includes(filterQuery) || n.includes(filterQuery) || m.includes(filterQuery);
                 }
                 return true;
             });
 
             if (!filtered.length) {
-                tokenListEl.innerHTML = `<div class="empty-state">No ${activeFilter === 'all' ? '' : activeFilter} tokens found.</div>`;
+                feedListEl.innerHTML = `<div class="empty-placeholder">No matching tokens found</div>`;
                 return;
             }
 
-            tokenListEl.innerHTML = filtered.map(token => {
-                const isActive = selectedToken && selectedToken.mint === token.mint;
-                const statusClass = `status-${token.status}`;
-                const badgeClass = `badge-${token.status}`;
-                const badgeText = token.status === 'approved' ? 'APPROVED' : (token.status === 'rejected' ? 'REJECTED' : 'AUDITING');
+            feedListEl.innerHTML = filtered.map(t => {
+                const isSelected = currentToken && currentToken.mint === t.mint;
+                const statusPillClass = `pill-${t.status}`;
+                const statusLabel = t.status === 'approved' ? 'CALL' : (t.status === 'rejected' ? 'REJECTED' : 'AUDIT');
 
-                const clusterPct = Number(token.cluster_pct || 0);
-                const clusterTag = clusterPct > 0 ? `<span class="tag ${clusterPct > 5.0 ? 'danger' : 'safe'}">Cluster ${clusterPct.toFixed(1)}%</span>` : '';
-                const devPct = Number(token.dev_holdings_pct || 0);
-                const devTag = devPct > 0 ? `<span class="tag ${devPct > 6.0 ? 'danger' : 'safe'}">Dev ${devPct.toFixed(1)}%</span>` : '';
-                const sourceTag = token.source ? `<span class="tag special">${token.source.toUpperCase()}</span>` : '';
+                const clusterPct = Number(t.cluster_pct || 0);
+                const devPct = Number(t.dev_holdings_pct || 0);
+
+                let riskSnippet = '';
+                if (t.status === 'rejected' && t.reason) {
+                    riskSnippet = `<span class="row-risk-tag danger">${t.reason}</span>`;
+                } else if (clusterPct > 0 || devPct > 0) {
+                    riskSnippet = `<span class="row-risk-tag">Cluster ${clusterPct.toFixed(1)}% · Dev ${devPct.toFixed(1)}%</span>`;
+                }
 
                 return `
-                    <div class="token-card ${statusClass} ${isActive ? 'active' : ''}" onclick="window.handleSelect('${token.mint}')">
-                        <div class="card-top">
-                            <div class="token-identity">
-                                <span class="token-symbol">$${token.symbol || 'TOKEN'}</span>
-                                <span class="token-name">${token.name || 'Token'}</span>
+                    <div class="feed-row ${isSelected ? 'active' : ''}" onclick="window.onSelectRow('${t.mint}')">
+                        <div class="feed-row-top">
+                            <div class="token-identity-left">
+                                <span class="row-symbol mono">$${t.symbol || 'TOKEN'}</span>
+                                <span class="row-name">${t.name || 'Token'}</span>
                             </div>
-                            <span class="card-badge ${badgeClass}">${badgeText}</span>
+                            <span class="row-mc mono">${formatMc(t.market_cap_usd)}</span>
                         </div>
-                        <div class="card-mid">
-                            <span class="card-mc">MC: ${formatMc(token.market_cap_usd)}</span>
-                            <span class="card-time">${formatTime(token.timestamp)}</span>
-                        </div>
-                        ${token.status === 'rejected' && token.reason ? `<div class="card-reason">⚠️ ${token.reason}</div>` : ''}
-                        <div class="card-tags">
-                            ${clusterTag}
-                            ${devTag}
-                            ${sourceTag}
+                        <div class="feed-row-bottom">
+                            <div class="row-tags">
+                                <span class="pill-status ${statusPillClass}">${statusLabel}</span>
+                                ${riskSnippet}
+                            </div>
+                            <span class="row-time mono">${formatTimeAgo(t.timestamp)}</span>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        window.handleSelect = (mint) => {
-            const found = allTokens.find(t => t.mint === mint);
+        window.onSelectRow = (mint) => {
+            const found = tokens.find(t => t.mint === mint);
             if (found) selectToken(found);
         };
 
-        function updateStats() {
-            statScanned.innerText = allTokens.length;
-            statApproved.innerText = allTokens.filter(t => t.status === 'approved').length;
-            statRejected.innerText = allTokens.filter(t => t.status === 'rejected').length;
+        function updateCounterMetrics() {
+            countTotal.innerText = tokens.length;
+            countApproved.innerText = tokens.filter(t => t.status === 'approved').length;
+            countRejected.innerText = tokens.filter(t => t.status === 'rejected').length;
         }
 
-        // Live SSE Stream
-        function connectStream() {
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            const key = e.key.toLowerCase();
+            if (key === 'c' && currentToken) {
+                navigator.clipboard.writeText(currentToken.mint);
+                tCa.innerText = 'COPIED';
+                setTimeout(() => { tCa.innerText = `${currentToken.mint.slice(0, 6)}...${currentToken.mint.slice(-6)}`; }, 1200);
+            } else if (key === 'g' && currentToken) {
+                window.open(`https://gmgn.ai/sol/token/${currentToken.mint}`, '_blank');
+            } else if (key === 'p' && currentToken) {
+                window.open(`https://photon-sol.tinyastro.io/en/lp/${currentToken.mint}`, '_blank');
+            } else if (key === 'a' && currentToken) {
+                window.open(`https://axiom.trade/token/${currentToken.mint}`, '_blank');
+            }
+        });
+
+        // SSE Connection
+        function startEventStream() {
             statusDot.className = 'status-dot';
-            statusText.innerText = 'CONNECTING...';
+            statusText.innerText = 'CONNECTING';
 
             const es = new EventSource('/api/stream');
 
@@ -1014,52 +1124,51 @@
 
             es.onmessage = (event) => {
                 try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'SNAPSHOT') {
-                        allTokens = data.tokens || [];
-                        updateStats();
-                        renderTokenList();
-                        if (allTokens.length && !selectedToken) {
-                            selectToken(allTokens[0]);
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'SNAPSHOT') {
+                        tokens = msg.tokens || [];
+                        updateCounterMetrics();
+                        renderFeed();
+                        if (tokens.length && !currentToken) {
+                            selectToken(tokens[0]);
                         }
-                    } else if (data.type === 'TOKEN') {
-                        const token = data.token;
-                        // Avoid duplicates or update existing
-                        const existingIdx = allTokens.findIndex(t => t.mint === token.mint);
-                        if (existingIdx >= 0) {
-                            allTokens[existingIdx] = token;
+                    } else if (msg.type === 'TOKEN') {
+                        const token = msg.token;
+                        const idx = tokens.findIndex(t => t.mint === token.mint);
+                        if (idx >= 0) {
+                            tokens[idx] = token;
                         } else {
-                            allTokens.unshift(token);
-                            if (allTokens.length > 200) allTokens.pop();
+                            tokens.unshift(token);
+                            if (tokens.length > 200) tokens.pop();
+                            if (token.status === 'approved') playCallChime();
                         }
-                        updateStats();
-                        renderTokenList();
-                        if (!selectedToken) {
+                        updateCounterMetrics();
+                        renderFeed();
+                        if (!currentToken) {
                             selectToken(token);
-                        } else if (selectedToken.mint === token.mint) {
+                        } else if (currentToken.mint === token.mint) {
                             selectToken(token);
                         }
                     }
-                } catch (e) {}
+                } catch (err) {}
             };
 
             es.onerror = () => {
                 statusDot.className = 'status-dot';
-                statusText.innerText = 'RECONNECTING...';
+                statusText.innerText = 'RECONNECTING';
                 es.close();
-                setTimeout(connectStream, 3000);
+                setTimeout(startEventStream, 3000);
             };
         }
 
-        connectStream();
+        startEventStream();
 
-        // Refresh relative times every 15s
         setInterval(() => {
-            renderTokenList();
-            if (selectedToken) {
-                dBannerTime.innerText = formatTime(selectedToken.timestamp);
+            renderFeed();
+            if (currentToken) {
+                tDecisionTime.innerText = formatTimeAgo(currentToken.timestamp);
             }
-        }, 15000);
+        }, 12000);
     </script>
 </body>
 </html>

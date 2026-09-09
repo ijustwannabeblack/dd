@@ -55,9 +55,25 @@ export async function getRugcheckReport(mint) {
         const topHoldersRaw = Array.isArray(data.topHolders) ? data.topHolders : [];
         const holders = Number(data.totalHolders || topHoldersRaw.length);
 
-        const top10Pct = topHoldersRaw.slice(0, 10).reduce((acc, h) => acc + Number(h?.pct || 0), 0);
+        const knownAccounts = data.knownAccounts || {};
+        const isAmmOrLp = (addr, owner) => {
+            if (addr && knownAccounts[addr]) {
+                const t = String(knownAccounts[addr].type || '').toUpperCase();
+                const n = String(knownAccounts[addr].name || '').toLowerCase();
+                if (t === 'AMM' || t === 'LOCKER' || n.includes('amm') || n.includes('pool') || n.includes('raydium') || n.includes('meteora')) return true;
+            }
+            if (owner && knownAccounts[owner]) {
+                const t = String(knownAccounts[owner].type || '').toUpperCase();
+                const n = String(knownAccounts[owner].name || '').toLowerCase();
+                if (t === 'AMM' || t === 'LOCKER' || n.includes('amm') || n.includes('pool') || n.includes('raydium') || n.includes('meteora')) return true;
+            }
+            return false;
+        };
+
+        const nonPoolHolders = topHoldersRaw.filter(h => !isAmmOrLp(h?.address, h?.owner) && Number(h?.pct || 0) < 60.0);
+        const top10Pct = (nonPoolHolders.length ? nonPoolHolders : topHoldersRaw).slice(0, 10).reduce((acc, h) => acc + Number(h?.pct || 0), 0);
         const insidersPct = topHoldersRaw
-            .filter(h => h && typeof h === 'object' && h.insider)
+            .filter(h => h && typeof h === 'object' && h.insider && !isAmmOrLp(h?.address, h?.owner))
             .reduce((acc, h) => acc + Number(h?.pct || 0), 0);
 
         const creatorAddr = String(
@@ -102,6 +118,7 @@ export async function getRugcheckReport(mint) {
 
         return {
             holders,
+            top_holders: nonPoolHolders,
             top10_holders_pct: Number(top10Pct.toFixed(2)),
             insiders_pct: Number(insidersPct.toFixed(2)),
             dev_holdings_pct: devHoldingsPct,

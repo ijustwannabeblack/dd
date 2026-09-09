@@ -220,10 +220,13 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
         }
     }
 
+    const poolAddr = String(dexPair?.pair_address || '').toLowerCase();
     if (topHolders && topHolders.length > 0) {
         for (const h of topHolders) {
+            const hAddr = String(h.address || '').toLowerCase();
+            if (poolAddr && hAddr === poolAddr) continue;
             const p = Number(h.pct || 0);
-            if (p < 70.0 && p > maxSingleHolderPct) {
+            if (p < 50.0 && p > maxSingleHolderPct) {
                 maxSingleHolderPct = Math.round(p * 10) / 10;
             }
         }

@@ -406,13 +406,15 @@ async function processCoin(stage, coin, retryCount = 0) {
         return;
     }
 
-    // Post-restart protection: Do NOT blast old coins (>15m)
+    // Post-restart protection: Do NOT blast ancient coins
     const createdTs = Number(stats.created_timestamp || 0);
     if (createdTs > 0) {
         const tsSec = createdTs > 1e11 ? createdTs / 1000 : createdTs;
         const ageMins = ((Date.now() / 1000) - tsSec) / 60;
-        if (ageMins > 15.0) {
-            console.log(`[${stage}] ${stats.symbol} (${mint}) skipped: old coin (${ageMins.toFixed(0)}m old)`);
+        // New pairs must be fresh (<15m). Migrated tokens take time to complete bonding curve, allow up to 24h.
+        const maxAgeMins = stage === 'New Pair' ? 15.0 : (stage === 'Final Stretch' ? 120.0 : 1440.0);
+        if (ageMins > maxAgeMins) {
+            console.log(`[${stage}] ${stats.symbol} (${mint}) skipped: old coin (${ageMins.toFixed(0)}m old, max ${maxAgeMins}m)`);
             return;
         }
     }
@@ -429,10 +431,21 @@ async function processCoin(stage, coin, retryCount = 0) {
 
     // Market cap range check
     if (!config.IGNORE_MARKET_CAP) {
-        const minMc = stage === 'Final Stretch' ? 28000.0 : (config.MIGRATED_MIN_MC_USD || 30000);
+        let minMc = 1000.0;
+        let maxMc = config.MAX_CALL_MC_USD || config.MAX_MC_USD || 1_500_000.0;
+        if (stage === 'New Pair') {
+            minMc = 1000.0;
+            maxMc = 70000.0;
+        } else if (stage === 'Final Stretch') {
+            minMc = 25000.0;
+            maxMc = 85000.0;
+        } else if (stage === 'Migrated') {
+            minMc = config.MIGRATED_MIN_MC_USD || 28000.0;
+            maxMc = config.MAX_CALL_MC_USD || config.MAX_MC_USD || 1_500_000.0;
+        }
         const mcVal = Number(stats.market_cap_usd || 0);
-        if (mcVal < minMc || mcVal > (config.MAX_MC_USD || 100000.0)) {
-            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} outside range`);
+        if (mcVal < minMc || mcVal > maxMc) {
+            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} outside range ($${minMc.toLocaleString()} - $${maxMc.toLocaleString()})`);
             broadcastFeedEvent({
                 mint,
                 symbol: stats.symbol || coin.symbol || 'TOKEN',
@@ -626,7 +639,8 @@ async function activeRunnerScanner() {
 
                 const mc = Number(pair.market_cap_usd || 0);
                 if (!config.IGNORE_MARKET_CAP) {
-                    if (mc < 28000 || mc > (config.MAX_MC_USD || 100000)) continue;
+                    const maxCap = config.MAX_CALL_MC_USD || config.MAX_MC_USD || 1500000;
+                    if (mc < 28000 || mc > maxCap) continue;
                 }
 
                 const pcM5 = Number(pair.price_change_m5 || 0);
@@ -825,12 +839,12 @@ async function gmgnMigratedQualityScanner() {
         try {
             await new Promise(r => setTimeout(r, 90000)); // 90s rate-limit safe interval
             const tokens = await getGmgnMigratedQuality('sol', {
-                min_mc: 30000,
-                max_mc: 150000,
+                min_mc: 28000,
+                max_mc: 300000,
                 min_liq: 10000,
-                max_top10: 0.22,
-                max_bundle: 0.20,
-                max_fresh: 0.25
+                max_top10: 0.45,
+                max_bundle: 0.25,
+                max_fresh: 0.35
             }).catch(() => []);
 
             for (const item of (tokens || []).slice(0, 10)) {
@@ -838,7 +852,8 @@ async function gmgnMigratedQualityScanner() {
                 if (!mint) continue;
 
                 const launchpad = String(item.launchpad || item.launchpad_platform || '').toLowerCase();
-                const isPump = launchpad.includes('pump') || mint.endsWith('pump');
+                const exchange = String(item.exchange || '').toLowerCase();
+                const isPump = launchpad.includes('pump') || mint.endsWith('pump') || exchange.includes('pump');
                 if (!isPump) continue;
 
                 const stage = 'Migrated';

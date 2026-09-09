@@ -68,7 +68,9 @@ export const STAGES = {
 };
 
 // ---- Market Cap Limits & Early Entry Ceiling ----
-export const MAX_CALL_MC_USD = 1_500_000;  // 1.5M USD hard early-entry ceiling
+export const MIGRATED_MIN_MC_USD = 28_000;  // 28k minimum for migrated pairs
+export const MAX_MC_USD = 1_500_000;        // 1.5M USD ceiling
+export const MAX_CALL_MC_USD = 1_500_000;   // 1.5M USD hard early-entry ceiling
 export const MAX_DEV_HOLDINGS_PCT = 30.0;  // Max 30% dev limit (synced to Axiom devHolding.max = 30)
 export const MAX_SINGLE_HOLDER_PCT = 35.0;
 export const MAX_BUNDLERS_PCT = 35.0;

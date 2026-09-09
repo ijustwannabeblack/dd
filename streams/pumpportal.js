@@ -90,7 +90,7 @@ export class PumpPortalStream {
         const txType = data.txType;
         if (txType === 'create') {
             await this.handleNewToken(data);
-        } else if (txType === 'migrate') {
+        } else if (txType === 'migrate' || txType === 'migration' || data.event === 'migration' || String(txType || '').toLowerCase().includes('migrat')) {
             await this.handleMigration(data);
         } else if (txType === 'buy' || txType === 'sell') {
             await this.handleTrade(data);

@@ -1,41 +1,164 @@
 {
-  "presetName": "DD Sniper - New Pairs (Pump.fun)",
-  "category": "new_pairs",
-  "targetChain": "solana",
   "filters": {
-    "minMarketCapUSD": 5000,
-    "maxMarketCapUSD": 45000,
-    "minLiquidityUSD": 4000,
-    "maxDevHoldingPct": 5.0,
-    "maxTop10HoldingPct": 25.0,
-    "maxBundlersPct": 12.0,
-    "minHoldersCount": 15,
-    "min5mVolumeUSD": 3000,
-    "requireSocials": true,
-    "requireTwitter": false,
-    "requireTelegram": false,
-    "lpBurned": true,
-    "mintAuthDisabled": true,
-    "freezeAuthDisabled": true
+    "protocols": {
+      "raydium": false,
+      "pump": true,
+      "moonshot": false,
+      "pumpAmm": false,
+      "mayhem": false,
+      "launchLab": false,
+      "virtualCurve": false,
+      "bonk": false,
+      "bonkers": false,
+      "surge": true,
+      "boop": false,
+      "launchACoin": false,
+      "moonshotApp": false,
+      "daosFun": false,
+      "candle": false,
+      "heaven": false,
+      "sugar": false,
+      "meteoraAmm": false,
+      "meteoraAmmV2": false,
+      "jupiterStudio": false,
+      "bags": false,
+      "soar": false,
+      "printr": false,
+      "orca": false,
+      "wavebreak": false,
+      "liquidAf": false,
+      "liquidAfAmm": true,
+      "riseRich": true,
+      "stonkfun": true,
+      "pve": true
+    },
+    "searchKeywords": [],
+    "excludeKeywords": [],
+    "dexPaid": false,
+    "age": {
+      "max": null,
+      "min": null,
+      "unit": "minutes"
+    },
+    "userCount": {
+      "max": null,
+      "min": null
+    },
+    "axiomCommunityMembers": {
+      "max": null,
+      "min": null
+    },
+    "imgReuseCount": {
+      "min": null,
+      "max": 2
+    },
+    "top10Holders": {
+      "max": 25,
+      "min": null
+    },
+    "devHolding": {
+      "max": 5,
+      "min": null
+    },
+    "snipers": {
+      "max": 15,
+      "min": null
+    },
+    "insiders": {
+      "max": 10,
+      "min": null
+    },
+    "bundle": {
+      "max": 12,
+      "min": null
+    },
+    "holders": {
+      "max": null,
+      "min": 15
+    },
+    "botUsers": {
+      "max": null,
+      "min": null
+    },
+    "bondingCurve": {
+      "max": 85,
+      "min": 5
+    },
+    "liquidity": {
+      "max": null,
+      "min": 4000
+    },
+    "volume": {
+      "max": null,
+      "min": 2000
+    },
+    "marketCap": {
+      "max": 45000,
+      "min": 5000
+    },
+    "fees": {
+      "max": null,
+      "min": null
+    },
+    "txns": {
+      "max": null,
+      "min": 20
+    },
+    "numBuys": {
+      "max": null,
+      "min": 15
+    },
+    "numSells": {
+      "max": null,
+      "min": null
+    },
+    "numMigrations": {
+      "max": null,
+      "min": null
+    },
+    "numDevPairs": {
+      "max": null,
+      "min": null
+    },
+    "devMigrationsPercent": {
+      "min": null,
+      "max": null
+    },
+    "devMigrationsMinLaunches": null,
+    "tweetAgeMins": {
+      "max": null,
+      "min": null,
+      "unit": "minutes"
+    },
+    "twitter": {
+      "max": null,
+      "min": null
+    },
+    "twitterHandles": [],
+    "twitterFollowers": {
+      "max": null,
+      "min": null
+    },
+    "twitterFollowing": {
+      "max": null,
+      "min": null
+    },
+    "twitterExists": false,
+    "website": false,
+    "telegram": false,
+    "tiktok": false,
+    "atLeastOneSocial": true,
+    "isStreaming": false,
+    "showQuoteTokens": {
+      "sol": true,
+      "usdc": false,
+      "usd1": false,
+      "stock": false,
+      "other": true
+    },
+    "showPumpOffchain": true,
+    "showCashback": true,
+    "showBoosted": true
   },
-  "tradeSettings": {
-    "buyAmountSOL": 0.5,
-    "slippagePct": 20.0,
-    "priorityFeeSOL": 0.0075,
-    "jitoTipSOL": 0.005,
-    "antiMevEnabled": true,
-    "privateTx": true,
-    "autoBuy": false
-  },
-  "exitStrategy": {
-    "takeProfitLevels": [
-      { "gainPct": 50, "sellAmountPct": 30 },
-      { "gainPct": 100, "sellAmountPct": 40 },
-      { "gainPct": 250, "sellAmountPct": 30 }
-    ],
-    "stopLossPct": 35.0,
-    "trailingStopEnabled": true,
-    "trailingTriggerPct": 60.0,
-    "trailingDistancePct": 20.0
-  }
+  "tab": "newPairs"
 }

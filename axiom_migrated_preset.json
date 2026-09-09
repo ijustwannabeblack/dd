@@ -1,41 +1,164 @@
 {
-  "presetName": "DD Sniper - Migrated (Raydium)",
-  "category": "migrated_pairs",
-  "targetChain": "solana",
   "filters": {
-    "minMarketCapUSD": 40000,
-    "maxMarketCapUSD": 150000,
-    "minLiquidityUSD": 15000,
-    "min5mVolumeUSD": 15000,
-    "maxDevHoldingPct": 3.0,
-    "maxTop10HoldingPct": 20.0,
-    "maxClusterPct": 5.0,
-    "maxBundlersPct": 8.0,
-    "minHoldersCount": 60,
-    "requireSocials": true,
-    "lpBurned": true,
-    "mintAuthDisabled": true,
-    "freezeAuthDisabled": true
+    "protocols": {
+      "raydium": true,
+      "pump": false,
+      "moonshot": false,
+      "pumpAmm": true,
+      "mayhem": false,
+      "launchLab": false,
+      "virtualCurve": false,
+      "bonk": false,
+      "bonkers": false,
+      "surge": false,
+      "boop": false,
+      "launchACoin": false,
+      "moonshotApp": false,
+      "daosFun": false,
+      "candle": false,
+      "heaven": false,
+      "sugar": false,
+      "meteoraAmm": true,
+      "meteoraAmmV2": true,
+      "jupiterStudio": false,
+      "bags": false,
+      "soar": false,
+      "printr": false,
+      "orca": true,
+      "wavebreak": false,
+      "liquidAf": false,
+      "liquidAfAmm": false,
+      "riseRich": false,
+      "stonkfun": false,
+      "pve": false
+    },
+    "searchKeywords": [],
+    "excludeKeywords": [],
+    "dexPaid": true,
+    "age": {
+      "max": null,
+      "min": null,
+      "unit": "minutes"
+    },
+    "userCount": {
+      "max": null,
+      "min": null
+    },
+    "axiomCommunityMembers": {
+      "max": null,
+      "min": null
+    },
+    "imgReuseCount": {
+      "min": null,
+      "max": null
+    },
+    "top10Holders": {
+      "max": 20,
+      "min": null
+    },
+    "devHolding": {
+      "max": 3,
+      "min": null
+    },
+    "snipers": {
+      "max": 20,
+      "min": null
+    },
+    "insiders": {
+      "max": 10,
+      "min": null
+    },
+    "bundle": {
+      "max": 8,
+      "min": null
+    },
+    "holders": {
+      "max": null,
+      "min": 60
+    },
+    "botUsers": {
+      "max": null,
+      "min": null
+    },
+    "bondingCurve": {
+      "max": null,
+      "min": null
+    },
+    "liquidity": {
+      "max": null,
+      "min": 15000
+    },
+    "volume": {
+      "max": null,
+      "min": 15000
+    },
+    "marketCap": {
+      "max": 150000,
+      "min": 35000
+    },
+    "fees": {
+      "max": null,
+      "min": null
+    },
+    "txns": {
+      "max": null,
+      "min": 50
+    },
+    "numBuys": {
+      "max": null,
+      "min": 30
+    },
+    "numSells": {
+      "max": null,
+      "min": null
+    },
+    "numMigrations": {
+      "max": null,
+      "min": null
+    },
+    "numDevPairs": {
+      "max": null,
+      "min": null
+    },
+    "devMigrationsPercent": {
+      "min": null,
+      "max": null
+    },
+    "devMigrationsMinLaunches": null,
+    "tweetAgeMins": {
+      "max": null,
+      "min": null,
+      "unit": "minutes"
+    },
+    "twitter": {
+      "max": null,
+      "min": null
+    },
+    "twitterHandles": [],
+    "twitterFollowers": {
+      "max": null,
+      "min": null
+    },
+    "twitterFollowing": {
+      "max": null,
+      "min": null
+    },
+    "twitterExists": false,
+    "website": false,
+    "telegram": false,
+    "tiktok": false,
+    "atLeastOneSocial": true,
+    "isStreaming": false,
+    "showQuoteTokens": {
+      "sol": true,
+      "usdc": false,
+      "usd1": false,
+      "stock": false,
+      "other": true
+    },
+    "showPumpOffchain": true,
+    "showCashback": true,
+    "showBoosted": true
   },
-  "tradeSettings": {
-    "buyAmountSOL": 1.0,
-    "slippagePct": 8.0,
-    "priorityFeeSOL": 0.005,
-    "jitoTipSOL": 0.004,
-    "antiMevEnabled": true,
-    "privateTx": true,
-    "autoBuy": false
-  },
-  "exitStrategy": {
-    "takeProfitLevels": [
-      { "gainPct": 40, "sellAmountPct": 25 },
-      { "gainPct": 80, "sellAmountPct": 35 },
-      { "gainPct": 150, "sellAmountPct": 25 },
-      { "gainPct": 300, "sellAmountPct": 15 }
-    ],
-    "stopLossPct": 25.0,
-    "trailingStopEnabled": true,
-    "trailingTriggerPct": 50.0,
-    "trailingDistancePct": 15.0
-  }
+  "tab": "migrated"
 }

@@ -1,0 +1,41 @@
+{
+  "presetName": "DD Sniper - Migrated (Raydium)",
+  "category": "migrated_pairs",
+  "targetChain": "solana",
+  "filters": {
+    "minMarketCapUSD": 40000,
+    "maxMarketCapUSD": 150000,
+    "minLiquidityUSD": 15000,
+    "min5mVolumeUSD": 15000,
+    "maxDevHoldingPct": 3.0,
+    "maxTop10HoldingPct": 20.0,
+    "maxClusterPct": 5.0,
+    "maxBundlersPct": 8.0,
+    "minHoldersCount": 60,
+    "requireSocials": true,
+    "lpBurned": true,
+    "mintAuthDisabled": true,
+    "freezeAuthDisabled": true
+  },
+  "tradeSettings": {
+    "buyAmountSOL": 1.0,
+    "slippagePct": 8.0,
+    "priorityFeeSOL": 0.005,
+    "jitoTipSOL": 0.004,
+    "antiMevEnabled": true,
+    "privateTx": true,
+    "autoBuy": false
+  },
+  "exitStrategy": {
+    "takeProfitLevels": [
+      { "gainPct": 40, "sellAmountPct": 25 },
+      { "gainPct": 80, "sellAmountPct": 35 },
+      { "gainPct": 150, "sellAmountPct": 25 },
+      { "gainPct": 300, "sellAmountPct": 15 }
+    ],
+    "stopLossPct": 25.0,
+    "trailingStopEnabled": true,
+    "trailingTriggerPct": 50.0,
+    "trailingDistancePct": 15.0
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "generatedBy": "DD Solana Intelligence",
+  "presets": {
+    "new_pairs_pumpfun": {
+      "name": "DD - New Pairs (Pump.fun)",
+      "minMC": 5000,
+      "maxMC": 45000,
+      "minLiquidity": 4000,
+      "maxDevHolding": 5.0,
+      "maxTop10": 25.0,
+      "maxBundled": 12.0,
+      "minHolders": 15,
+      "minVolume5m": 3000,
+      "requireSocials": true,
+      "lpBurned": true,
+      "mintDisabled": true,
+      "freezeDisabled": true,
+      "slippage": 20.0,
+      "priorityFee": 0.0075,
+      "jitoTip": 0.005,
+      "antiMev": true,
+      "takeProfit": "50% (sell 30%), 100% (sell 40%), 250% (sell 30%)",
+      "stopLoss": 35.0,
+      "trailingStop": "Trigger at +60%, distance 20%"
+    },
+    "migrated_raydium": {
+      "name": "DD - Migrated (Raydium Breakout)",
+      "minMC": 40000,
+      "maxMC": 150000,
+      "minLiquidity": 15000,
+      "maxDevHolding": 3.0,
+      "maxTop10": 20.0,
+      "maxCluster": 5.0,
+      "maxBundled": 8.0,
+      "minHolders": 60,
+      "minVolume5m": 15000,
+      "requireSocials": true,
+      "lpBurned": true,
+      "mintDisabled": true,
+      "freezeDisabled": true,
+      "slippage": 8.0,
+      "priorityFee": 0.005,
+      "jitoTip": 0.004,
+      "antiMev": true,
+      "takeProfit": "40% (sell 25%), 80% (sell 35%), 150% (sell 25%), 300% (sell 15%)",
+      "stopLoss": 25.0,
+      "trailingStop": "Trigger at +50%, distance 15%"
+    }
+  }
+}

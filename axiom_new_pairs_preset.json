@@ -1,0 +1,41 @@
+{
+  "presetName": "DD Sniper - New Pairs (Pump.fun)",
+  "category": "new_pairs",
+  "targetChain": "solana",
+  "filters": {
+    "minMarketCapUSD": 5000,
+    "maxMarketCapUSD": 45000,
+    "minLiquidityUSD": 4000,
+    "maxDevHoldingPct": 5.0,
+    "maxTop10HoldingPct": 25.0,
+    "maxBundlersPct": 12.0,
+    "minHoldersCount": 15,
+    "min5mVolumeUSD": 3000,
+    "requireSocials": true,
+    "requireTwitter": false,
+    "requireTelegram": false,
+    "lpBurned": true,
+    "mintAuthDisabled": true,
+    "freezeAuthDisabled": true
+  },
+  "tradeSettings": {
+    "buyAmountSOL": 0.5,
+    "slippagePct": 20.0,
+    "priorityFeeSOL": 0.0075,
+    "jitoTipSOL": 0.005,
+    "antiMevEnabled": true,
+    "privateTx": true,
+    "autoBuy": false
+  },
+  "exitStrategy": {
+    "takeProfitLevels": [
+      { "gainPct": 50, "sellAmountPct": 30 },
+      { "gainPct": 100, "sellAmountPct": 40 },
+      { "gainPct": 250, "sellAmountPct": 30 }
+    ],
+    "stopLossPct": 35.0,
+    "trailingStopEnabled": true,
+    "trailingTriggerPct": 60.0,
+    "trailingDistancePct": 20.0
+  }
+}

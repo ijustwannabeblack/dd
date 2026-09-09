@@ -10,54 +10,10 @@ const execPromise = util.promisify(exec);
  * Call Gemini Flash or AIMLAPI (OpenAI-compatible) to get LLM response.
  */
 async function callLLM(systemPrompt, messages) {
-    const geminiKey = (config.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '').trim();
     const aimlKey = (config.AIMLAPI_KEY || process.env.AIMLAPI_KEY || '').trim();
+    const geminiKey = (config.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '').trim();
 
-    // 1. Try Google Gemini API if key is present
-    if (geminiKey) {
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
-            const contents = [];
-
-            // Add conversation history
-            for (const msg of messages) {
-                contents.push({
-                    role: msg.role === 'assistant' ? 'model' : 'user',
-                    parts: [{ text: msg.content }]
-                });
-            }
-
-            const payload = {
-                system_instruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-                contents,
-                generationConfig: {
-                    temperature: 0.3,
-                    maxOutputTokens: 2048,
-                }
-            };
-
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                signal: AbortSignal.timeout(4000)
-            });
-
-            if (resp.ok) {
-                const data = await resp.json();
-                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) return { text, provider: 'Gemini 2.5 Flash' };
-            } else {
-                console.warn(`[Copilot] Gemini API error ${resp.status}:`, await resp.text());
-            }
-        } catch (e) {
-            console.warn(`[Copilot] Gemini call failed: ${e.message}`);
-        }
-    }
-
-    // 2. Fallback to AIMLAPI / OpenAI
+    // 1. Primary: AIMLAPI / OpenAI (Fast & reliable gpt-4o-mini)
     if (aimlKey) {
         try {
             const url = `${config.AIMLAPI_BASE_URL || 'https://api.aimlapi.com/v1'}/chat/completions`;
@@ -87,6 +43,37 @@ async function callLLM(systemPrompt, messages) {
             }
         } catch (e) {
             console.warn(`[Copilot] AIMLAPI call failed: ${e.message}`);
+        }
+    }
+
+    // 2. Fallback: Google Gemini API
+    // Fallback: Google Gemini API if AIMLAPI failed or missing
+    if (geminiKey) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+            const contents = messages.map(msg => ({
+                role: msg.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: msg.content }]
+            }));
+
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system_instruction: { parts: [{ text: systemPrompt }] },
+                    contents,
+                    generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
+                }),
+                signal: AbortSignal.timeout(5000)
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) return { text, provider: 'Gemini 2.5 Flash' };
+            }
+        } catch (e) {
+            console.warn(`[Copilot] Gemini call failed: ${e.message}`);
         }
     }
 

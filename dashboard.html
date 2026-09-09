@@ -2,39 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DD TERMINAL // SOLANA RADAR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DD AI COPILOT // AUTONOMOUS AGENT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #090a0f;
-            --bg-secondary: #0e1118;
-            --bg-card: #131722;
-            --bg-card-hover: #191e2c;
-            --border-subtle: #1c2230;
-            --border-medium: #273044;
-            --border-active: #3b82f6;
+            --bg-base: #080a0f;
+            --bg-surface: #0e121a;
+            --bg-card: #131824;
+            --bg-input: #151b29;
+            --border-subtle: #1c2436;
+            --border-medium: #27334d;
+            --border-active: #7c3aed;
             
-            --text-primary: #f1f5f9;
+            --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
             
+            --color-purple: #a855f7;
+            --color-purple-glow: rgba(168, 85, 247, 0.25);
             --color-emerald: #10b981;
-            --color-emerald-bg: rgba(16, 185, 129, 0.1);
-            --color-emerald-border: rgba(16, 185, 129, 0.25);
-            
             --color-rose: #f43f5e;
-            --color-rose-bg: rgba(244, 63, 94, 0.1);
-            --color-rose-border: rgba(244, 63, 94, 0.25);
-            
-            --color-amber: #f59e0b;
-            --color-amber-bg: rgba(245, 158, 11, 0.1);
-            --color-amber-border: rgba(245, 158, 11, 0.25);
-            
             --color-blue: #38bdf8;
-            --color-blue-bg: rgba(56, 189, 248, 0.1);
+            --color-amber: #f59e0b;
         }
 
         * {
@@ -44,10 +36,11 @@
         }
 
         body {
-            background-color: var(--bg-primary);
+            background-color: var(--bg-base);
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -59,16 +52,17 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* ─── Top Navigation Bar ─────────────────────────────────────────── */
+        /* ─── Top Header ─────────────────────────────────────────────── */
         header {
-            background: var(--bg-secondary);
+            background: var(--bg-surface);
             border-bottom: 1px solid var(--border-subtle);
-            height: 48px;
+            height: 52px;
             padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 10;
+            z-index: 50;
+            flex-shrink: 0;
         }
 
         .header-brand {
@@ -78,1527 +72,778 @@
         }
 
         .brand-pill {
-            background: #1e293b;
-            color: #f8fafc;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff;
             font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
+            font-weight: 800;
+            padding: 4px 8px;
             border-radius: 4px;
             letter-spacing: 0.8px;
-            border: 1px solid #334155;
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.35);
         }
 
-        .brand-name {
+        .brand-title {
             font-size: 13px;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #f8fafc;
+            letter-spacing: 0.6px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .brand-sub {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
             border-left: 1px solid var(--border-subtle);
             padding-left: 8px;
+            letter-spacing: 0.5px;
         }
 
-        .header-center {
+        .header-stats {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
-        .metric-badge {
+        .stat-item {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 11px;
         }
 
-        .metric-badge .lbl {
+        .stat-item .lbl {
             color: var(--text-muted);
             text-transform: uppercase;
             font-size: 10px;
-            letter-spacing: 0.5px;
         }
 
-        .metric-badge .val {
+        .stat-item .val {
             font-weight: 600;
         }
 
-        .metric-badge .val.emerald { color: var(--color-emerald); }
-        .metric-badge .val.rose { color: var(--color-rose); }
-        .metric-badge .val.blue { color: var(--color-blue); }
+        .stat-item .val.emerald { color: var(--color-emerald); }
+        .stat-item .val.blue { color: var(--color-blue); }
+        .stat-item .val.purple { color: var(--color-purple); }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
-        .audio-toggle {
-            background: transparent;
+        .btn-icon {
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 4px;
+            height: 32px;
+            padding: 0 10px;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 6px;
             transition: all 0.15s;
         }
 
-        .audio-toggle.active {
-            color: var(--color-emerald);
-            border-color: var(--color-emerald-border);
-            background: var(--color-emerald-bg);
+        .btn-icon:hover {
+            color: #fff;
+            border-color: var(--border-medium);
+            background: #182030;
         }
 
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--text-secondary);
-            padding: 4px 8px;
-            background: #0f172a;
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--color-amber);
-        }
-
-        .status-dot.connected {
-            background: var(--color-emerald);
-            box-shadow: 0 0 8px var(--color-emerald);
-        }
-
-        /* ─── Main Content Split ─────────────────────────────────────────── */
-        .workspace {
-            display: flex;
+        /* ─── Main Workspace Container ───────────────────────────────── */
+        main {
             flex: 1;
-            height: calc(100vh - 48px);
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-        }
-
-        /* ─── Left Sidebar: Token Feed Table ─────────────────────────────── */
-        .feed-panel {
-            width: 380px;
-            min-width: 320px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .feed-toolbar {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background: #0c0f16;
-        }
-
-        .search-container {
             position: relative;
         }
 
-        .search-input {
-            width: 100%;
-            background: #141924;
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
-            color: #fff;
-            padding: 7px 10px;
-            font-size: 11px;
-            font-family: inherit;
-            outline: none;
-            transition: border 0.15s;
-        }
-
-        .search-input:focus {
-            border-color: var(--border-active);
-        }
-
-        .filter-segmented {
+        /* ─── Passcode Gate Screen ───────────────────────────────────── */
+        #gate-screen {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(124, 58, 237, 0.08) 0%, var(--bg-base) 70%);
             display: flex;
-            background: #141924;
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
-            padding: 2px;
-            gap: 2px;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
         }
 
-        .seg-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-family: inherit;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 5px 2px;
-            border-radius: 3px;
-            cursor: pointer;
+        .gate-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: 10px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 380px;
             text-align: center;
-            transition: all 0.15s;
-        }
-
-        .seg-btn:hover {
-            color: var(--text-secondary);
-        }
-
-        .seg-btn.active {
-            background: #1e293b;
-            color: #fff;
-        }
-
-        .seg-btn.seg-approved.active {
-            background: var(--color-emerald);
-            color: #000;
-        }
-
-        .seg-btn.seg-rejected.active {
-            background: #331f24;
-            color: var(--color-rose);
-        }
-
-        .feed-header-row {
             display: flex;
-            padding: 6px 12px;
-            font-size: 10px;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border-subtle);
-            background: #0c0f16;
-            text-transform: uppercase;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.15);
+        }
+
+        .gate-icon {
+            font-size: 36px;
+            margin-bottom: 4px;
+        }
+
+        .gate-title {
+            font-size: 16px;
+            font-weight: 700;
             letter-spacing: 0.5px;
+            color: #fff;
         }
 
-        .feed-header-row .col-token { flex: 1; }
-        .feed-header-row .col-mc { width: 75px; text-align: right; }
-        .feed-header-row .col-status { width: 75px; text-align: right; }
-
-        .token-feed-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .feed-row {
-            padding: 9px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            transition: background 0.12s;
-        }
-
-        .feed-row:hover {
-            background: var(--bg-card-hover);
-        }
-
-        .feed-row.active {
-            background: #182032;
-            border-left: 2px solid var(--color-blue);
-        }
-
-        .feed-row-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .token-identity-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .row-symbol {
+        .gate-desc {
             font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .row-name {
-            font-size: 11px;
-            color: var(--text-muted);
-            max-width: 100px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .row-mc {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .feed-row-bottom {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 10px;
-        }
-
-        .row-tags {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-
-        .pill-status {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 1px 6px;
-            border-radius: 3px;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-
-        .pill-approved {
-            background: var(--color-emerald-bg);
-            color: var(--color-emerald);
-            border: 1px solid var(--color-emerald-border);
-        }
-
-        .pill-rejected {
-            background: var(--color-rose-bg);
-            color: var(--color-rose);
-            border: 1px solid var(--color-rose-border);
-        }
-
-        .pill-evaluating {
-            background: var(--color-amber-bg);
-            color: var(--color-amber);
-            border: 1px solid var(--color-amber-border);
-        }
-
-        .row-risk-tag {
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        .row-risk-tag.danger {
-            color: #fb7185;
-        }
-
-        .row-time {
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        /* ─── Right Panel: Trading & Chart Inspector ─────────────────────── */
-        .stage-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-primary);
-            height: 100%;
-            overflow-y: auto;
-        }
-
-        .empty-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--text-muted);
-            gap: 10px;
-            font-size: 13px;
-        }
-
-        .stage-header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .stage-token-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .stage-symbol {
-            font-size: 18px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .stage-name {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .ca-button {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: #141924;
-            border: 1px solid var(--border-subtle);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
             color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s;
+            line-height: 1.5;
         }
 
-        .ca-button:hover {
-            border-color: var(--border-medium);
-            color: #fff;
-            background: #1c2333;
-        }
-
-        .trade-buttons {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .btn-broker {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-decoration: none;
-            color: var(--text-primary);
-            background: #161c28;
-            border: 1px solid var(--border-subtle);
-            transition: all 0.15s;
-        }
-
-        .btn-broker:hover {
-            background: #1e2638;
-            border-color: #3b82f6;
-            color: #fff;
-        }
-
-        .btn-broker.primary-gmgn {
-            background: #1d4ed8;
-            border-color: #2563eb;
-            color: #fff;
-        }
-
-        .btn-broker.primary-gmgn:hover {
-            background: #2563eb;
-        }
-
-        /* ─── Risk & Decision Strip ──────────────────────────────────────── */
-        .decision-strip {
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: 500;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .decision-strip.approved {
-            background: rgba(16, 185, 129, 0.08);
-            border-color: rgba(16, 185, 129, 0.2);
-            color: var(--color-emerald);
-        }
-
-        .decision-strip.rejected {
-            background: rgba(244, 63, 94, 0.08);
-            border-color: rgba(244, 63, 94, 0.2);
-            color: #fb7185;
-        }
-
-        .decision-strip.evaluating {
-            background: rgba(245, 158, 11, 0.08);
-            border-color: rgba(245, 158, 11, 0.2);
-            color: var(--color-amber);
-        }
-
-        /* ─── Financial & On-Chain Audit Grid ────────────────────────────── */
-        .metrics-strip {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 1px;
-            background: var(--border-subtle);
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .metric-cell {
-            background: #0d1017;
-            padding: 8px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .metric-cell .label {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .metric-cell .value {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .progress-micro {
-            width: 100%;
-            height: 3px;
-            background: #1e2535;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 3px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            border-radius: 2px;
-        }
-
-        .progress-bar.green { background: var(--color-emerald); }
-        .progress-bar.red { background: var(--color-rose); }
-
-        /* ─── Kline Chart Section ────────────────────────────────────────── */
-        .chart-wrapper {
-            flex: 1;
-            min-height: 480px;
-            display: flex;
-            flex-direction: column;
-            background: #000;
-        }
-
-        .chart-toolbar {
-            background: #0e121a;
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 6px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .chart-tabs {
-            display: flex;
-            gap: 4px;
-        }
-
-        .chart-tab-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-secondary);
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.12s;
-        }
-
-        .chart-tab-btn.active {
-            background: #1c2436;
-            color: #fff;
-            border-color: #2e3b56;
-        }
-
-        .chart-iframe {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            min-height: 460px;
-            border: none;
-            background: #0a0d14;
-        }
-
-        /* Keyboard hint badge */
-        .kb-hint {
-            font-size: 10px;
-            color: var(--text-muted);
-            background: #161c28;
-            border: 1px solid var(--border-subtle);
-            padding: 2px 5px;
-            border-radius: 3px;
-            margin-left: 4px;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #090a0f;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #273044;
-            border-radius: 2px;
-        }
-
-        /* ─── AI Copilot Drawer & Terminal Styles ─────────────────────────── */
-        .copilot-toggle-btn {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.2));
-            border: 1px solid rgba(147, 51, 234, 0.4);
-            color: #c084fc;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            letter-spacing: 0.5px;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .copilot-toggle-btn:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(147, 51, 234, 0.35));
-            border-color: #a855f7;
-            color: #f3e8ff;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
-        }
-
-        .copilot-pulse {
-            animation: pulse-glow 2s infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.15); }
-        }
-
-        #copilot-drawer {
-            position: fixed;
-            top: 0;
-            right: -520px;
-            width: 500px;
-            max-width: 100vw;
-            height: 100vh;
-            background: rgba(11, 14, 21, 0.98);
-            backdrop-filter: blur(16px);
-            border-left: 1px solid #222c3d;
-            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        #copilot-drawer.open {
-            right: 0;
-        }
-
-        .copilot-header {
-            background: #0d121b;
-            border-bottom: 1px solid #1c2433;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .copilot-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            color: #f8fafc;
-        }
-
-        .copilot-badge {
-            background: rgba(168, 85, 247, 0.15);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            color: #d8b4fe;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 600;
-        }
-
-        .copilot-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .copilot-icon-btn {
-            background: transparent;
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            transition: all 0.15s;
-        }
-
-        .copilot-icon-btn:hover {
-            color: #fff;
-            border-color: #3b82f6;
-            background: #141a26;
-        }
-
-        .copilot-subbar {
-            background: #090c12;
-            border-bottom: 1px solid #171f2c;
-            padding: 6px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .copilot-subbar span b {
-            color: #38bdf8;
-            font-weight: 600;
-        }
-
-        /* Passcode Gate */
-        .copilot-gate {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            text-align: center;
-            background: radial-gradient(circle at center, rgba(147, 51, 234, 0.05) 0%, transparent 70%);
-        }
-
-        .gate-card {
-            background: #101520;
-            border: 1px solid #232d3f;
-            border-radius: 8px;
-            padding: 24px;
-            width: 100%;
-            max-width: 360px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        .gate-input-wrap {
+            position: relative;
+            margin-top: 6px;
         }
 
         .gate-input {
             width: 100%;
-            background: #080b11;
-            border: 1px solid #222d3e;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
             color: #fff;
-            padding: 10px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-family: 'JetBrains Mono', monospace;
             text-align: center;
             letter-spacing: 2px;
+            outline: none;
+            transition: all 0.2s;
         }
 
         .gate-input:focus {
-            border-color: #a855f7;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+            border-color: var(--color-purple);
+            box-shadow: 0 0 15px var(--color-purple-glow);
         }
 
         .gate-btn {
             background: linear-gradient(135deg, #7c3aed, #4f46e5);
             border: none;
+            border-radius: 6px;
             color: #fff;
-            font-weight: 600;
-            padding: 10px;
-            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 12px;
             cursor: pointer;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            transition: opacity 0.15s;
+            letter-spacing: 0.6px;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            transition: all 0.2s;
         }
 
         .gate-btn:hover {
-            opacity: 0.9;
+            opacity: 0.92;
+            transform: translateY(-1px);
         }
 
-        /* Chat Body */
-        .copilot-body {
+        .gate-err {
+            font-size: 12px;
+            color: var(--color-rose);
+            display: none;
+        }
+
+        /* ─── Chat View ──────────────────────────────────────────────── */
+        #chat-view {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
         }
 
-        .copilot-messages {
+        /* Sub Status Bar */
+        .chat-subbar {
+            background: #0a0d14;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .chat-subbar .mono-val {
+            color: var(--color-blue);
+            font-weight: 600;
+        }
+
+        /* Message Scroll Stream */
+        .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 20px 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-hero {
+            background: linear-gradient(180deg, rgba(21, 27, 41, 0.7) 0%, rgba(14, 18, 26, 0.4) 100%);
+            border: 1px solid var(--border-medium);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 8px;
+        }
+
+        .chat-hero h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-hero p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .hero-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .hero-feature-card {
+            background: #090c13;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 11px;
+        }
+
+        .hero-feature-card b {
+            color: #fff;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .hero-feature-card span {
+            color: var(--text-muted);
+        }
+
+        /* Message Bubbles */
+        .msg-row {
+            display: flex;
+            width: 100%;
+        }
+
+        .msg-row.user {
+            justify-content: flex-end;
+        }
+
+        .msg-row.assistant {
+            justify-content: flex-start;
         }
 
         .msg-bubble {
-            max-width: 90%;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            line-height: 1.55;
+            max-width: 82%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
             word-break: break-word;
         }
 
         .msg-bubble.user {
-            align-self: flex-end;
             background: #1e293b;
             color: #f8fafc;
             border-bottom-right-radius: 2px;
+            border: 1px solid #334155;
         }
 
         .msg-bubble.assistant {
-            align-self: flex-start;
-            background: #101520;
-            border: 1px solid #1f283a;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
             color: #e2e8f0;
             border-bottom-left-radius: 2px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
         }
 
+        /* Code & Markdown Styles */
         .msg-bubble pre {
             background: #07090e;
-            border: 1px solid #1a2230;
-            padding: 8px 10px;
-            border-radius: 4px;
-            margin: 8px 0;
+            border: 1px solid #1a2336;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin: 10px 0;
             overflow-x: auto;
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             color: #38bdf8;
+            position: relative;
         }
 
         .msg-bubble code {
             font-family: 'JetBrains Mono', monospace;
-            background: #080b11;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-size: 11px;
+            background: #0a0e16;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 12px;
             color: #f472b6;
         }
 
-        .action-tag {
+        .msg-bubble pre code {
+            padding: 0;
+            background: transparent;
+            color: inherit;
+        }
+
+        .action-chip {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             background: rgba(16, 185, 129, 0.12);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: #34d399;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin: 4px 4px 0 0;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin: 6px 6px 0 0;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .action-tag.git {
+        .action-chip.git {
             background: rgba(56, 189, 248, 0.12);
             border-color: rgba(56, 189, 248, 0.3);
             color: #38bdf8;
         }
 
         /* Quick Pills */
-        .copilot-quick-pills {
-            padding: 6px 12px;
+        .quick-pills-bar {
+            padding: 8px 16px;
             display: flex;
-            gap: 6px;
+            gap: 8px;
             overflow-x: auto;
-            background: #090c12;
-            border-top: 1px solid #161c28;
+            background: #0a0d14;
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
             scrollbar-width: none;
         }
 
-        .copilot-quick-pills::-webkit-scrollbar { display: none; }
+        .quick-pills-bar::-webkit-scrollbar { display: none; }
 
-        .quick-pill {
-            background: #131924;
-            border: 1px solid #202a3a;
+        .pill-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 14px;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.15s;
-        }
-
-        .quick-pill:hover {
-            color: #fff;
-            border-color: #38bdf8;
-            background: #1a2232;
-        }
-
-        /* Chat Input Bar */
-        .copilot-input-bar {
-            padding: 10px 14px;
-            background: #0d111a;
-            border-top: 1px solid #1d2536;
             display: flex;
-            gap: 8px;
             align-items: center;
+            gap: 5px;
         }
 
-        .copilot-textarea {
-            flex: 1;
-            background: #141924;
-            border: 1px solid #232c3d;
-            border-radius: 4px;
+        .pill-btn:hover {
             color: #fff;
-            padding: 8px 10px;
-            font-size: 12px;
+            border-color: var(--color-purple);
+            background: #171e2e;
+        }
+
+        /* Input Container */
+        .chat-input-container {
+            padding: 12px 16px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .chat-textarea {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 14px;
             font-family: inherit;
             outline: none;
             resize: none;
-            height: 38px;
-            max-height: 90px;
+            height: 44px;
+            max-height: 120px;
+            line-height: 1.4;
             transition: border 0.15s;
         }
 
-        .copilot-textarea:focus {
-            border-color: #a855f7;
+        .chat-textarea:focus {
+            border-color: var(--color-purple);
+            box-shadow: 0 0 10px var(--color-purple-glow);
         }
 
-        .copilot-send-btn {
-            background: #7c3aed;
+        .chat-send-btn {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
             border: none;
             color: #fff;
-            width: 38px;
-            height: 38px;
-            border-radius: 4px;
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            transition: opacity 0.15s;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);
+            transition: all 0.15s;
         }
 
-        .copilot-send-btn:hover {
+        .chat-send-btn:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
         }
 
-        .copilot-send-btn:disabled {
-            opacity: 0.5;
+        .chat-send-btn:disabled {
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none;
         }
 
         /* Settings Modal */
-        #copilot-settings-modal {
-            position: absolute;
-            top: 50px;
-            left: 16px;
-            right: 16px;
-            background: #111622;
-            border: 1px solid #283449;
-            border-radius: 6px;
-            padding: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            z-index: 10001;
+        #settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
             display: none;
-            flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 200;
         }
 
-        @media (max-width: 768px) {
-            #copilot-drawer {
-                width: 100vw;
-            }
+        .settings-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: 8px;
+            padding: 24px;
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .settings-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .settings-field label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .settings-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;
+            color: #fff;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .settings-input:focus {
+            border-color: var(--color-purple);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .brand-sub { display: none; }
+            .header-stats { display: none; }
+            .msg-bubble { max-width: 92%; }
+            .hero-features { grid-template-columns: 1fr; }
         }
     </style>
-
 </head>
 <body>
 
-    <!-- Top Header -->
+    <!-- Top Navigation Header -->
     <header>
         <div class="header-brand">
             <span class="brand-pill">DD</span>
-            <span class="brand-name">SOLANA RADAR</span>
-            <span class="brand-sub">GMGN INTEGRATED</span>
+            <div class="brand-title">
+                <span>AI COPILOT</span>
+            </div>
+            <span class="brand-sub">AUTONOMOUS BOT AGENT</span>
         </div>
 
-        <div class="header-center">
-            <div class="metric-badge">
-                <span class="lbl">Tokens Tracked</span>
-                <span class="val mono blue" id="count-total">0</span>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="lbl">Caller Bot:</span>
+                <span class="val emerald mono" id="stat-bot-status">ONLINE</span>
             </div>
-            <div class="metric-badge">
-                <span class="lbl">Approved Calls</span>
-                <span class="val mono emerald" id="count-approved">0</span>
+            <div class="stat-item">
+                <span class="lbl">Min MC Floor:</span>
+                <span class="val blue mono" id="stat-mc-floor">$20k</span>
             </div>
-            <div class="metric-badge">
-                <span class="lbl">Rugs Filtered</span>
-                <span class="val mono rose" id="count-rejected">0</span>
+            <div class="stat-item">
+                <span class="lbl">Model:</span>
+                <span class="val purple mono" id="stat-model">GPT-4O-MINI</span>
             </div>
         </div>
 
         <div class="header-actions">
-            <button class="copilot-toggle-btn" id="btn-open-copilot" title="Open Autonomous AI Copilot & Remote Code Editor">
-                <span class="copilot-pulse">⚡</span>
-                <span>AI COPILOT</span>
+            <button class="btn-icon" id="btn-clear-chat" title="Clear Chat History">
+                <span>🗑️</span>
+                <span>Clear</span>
             </button>
-            <button class="audio-toggle" id="btn-audio" title="Play sound alert when an approved call occurs">
-                <span>🔔</span>
-                <span id="audio-lbl">ALERTS ON</span>
+            <button class="btn-icon" id="btn-open-settings" title="Copilot Settings (GitHub PAT / Passcode)">
+                <span>⚙️</span>
+                <span>Settings</span>
             </button>
-            <div class="status-pill">
-                <span class="status-dot" id="status-dot"></span>
-                <span class="mono" id="status-text">CONNECTING</span>
-            </div>
         </div>
     </header>
 
-    <!-- Main Workspace -->
-    <div class="workspace">
+    <!-- Main Body Area -->
+    <main>
 
-        <!-- Left Column: Token Feed Table -->
-        <div class="feed-panel">
-            <div class="feed-toolbar">
-                <div class="search-container">
-                    <input type="text" id="search-box" class="search-input" placeholder="Search ticker, name, CA...">
+        <!-- Passcode Unlock Screen -->
+        <div id="gate-screen">
+            <div class="gate-box">
+                <div class="gate-icon">🔐</div>
+                <div class="gate-title">ADMIN ACCESS REQUIRED</div>
+                <div class="gate-desc">
+                    Enter your admin passcode to access autonomous remote code editing and bot controls.
                 </div>
-                <div class="filter-segmented">
-                    <button class="seg-btn active" data-filter="all">ALL</button>
-                    <button class="seg-btn seg-approved" data-filter="approved">APPROVED</button>
-                    <button class="seg-btn" data-filter="evaluating">AUDITING</button>
-                    <button class="seg-btn seg-rejected" data-filter="rejected">FILTERED</button>
+                <div class="gate-input-wrap">
+                    <input type="password" id="gate-pass-input" class="gate-input" placeholder="PASSCODE" autofocus>
                 </div>
-            </div>
-
-            <div class="feed-header-row">
-                <span class="col-token">Token</span>
-                <span class="col-mc">Market Cap</span>
-                <span class="col-status">Status</span>
-            </div>
-
-            <div class="token-feed-list" id="feed-list">
-                <div class="empty-placeholder">
-                    <span>Awaiting token stream...</span>
-                </div>
+                <button class="gate-btn" id="btn-unlock">UNLOCK COPILOT</button>
+                <div class="gate-err" id="gate-error">Invalid passcode. Please try again.</div>
             </div>
         </div>
 
-        <!-- Right Column: Inspector & GMGN Kline Chart -->
-        <div class="stage-panel" id="stage-panel">
-            <div class="empty-placeholder" id="placeholder-empty">
-                <span style="font-size: 15px; font-weight: 600; color: var(--text-secondary);">Select a token from the radar feed</span>
-                <span>Click any row or use keyboard shortcuts to inspect GMGN Kline charts and anti-rug audits.</span>
+        <!-- Chat Workspace Screen -->
+        <div id="chat-view" style="display: none;">
+            
+            <!-- Real-time Status Subbar -->
+            <div class="chat-subbar">
+                <span>Server Uptime: <b class="mono-val" id="bar-uptime">Active</b></span>
+                <span>Active Channels: <b class="mono-val">Calls, Migrated, Plain CAs</b></span>
+                <span>Cloud GitHub: <b class="mono-val" id="bar-github">Ready</b></span>
             </div>
 
-            <div id="inspector-content" style="display: none; flex-direction: column; flex: 1;">
-                
-                <!-- Token Identity Strip -->
-                <div class="stage-header">
-                    <div class="stage-token-info">
-                        <span class="stage-symbol mono" id="t-symbol">$TOKEN</span>
-                        <span class="stage-name" id="t-name">Token Name</span>
-                        <button class="ca-button mono" id="btn-copy-ca" title="Click to copy CA (Shortcut: C)">
-                            <span id="t-ca">CA...</span>
-                            <span style="font-size: 12px;">⧉</span>
-                        </button>
-                    </div>
-
-                    <div class="trade-buttons">
-                        <a id="btn-gmgn" href="#" target="_blank" class="btn-broker primary-gmgn">GMGN.ai ↗<span class="kb-hint">G</span></a>
-                        <a id="btn-photon" href="#" target="_blank" class="btn-broker">Photon ↗<span class="kb-hint">P</span></a>
-                        <a id="btn-bullx" href="#" target="_blank" class="btn-broker">BullX ↗</a>
-                        <a id="btn-axiom" href="#" target="_blank" class="btn-broker">Axiom ↗<span class="kb-hint">A</span></a>
-                        <a id="btn-pump" href="#" target="_blank" class="btn-broker">Pump.fun ↗</a>
-                    </div>
-                </div>
-
-                <!-- Decision & Security Status Strip -->
-                <div class="decision-strip" id="t-decision-strip">
-                    <span id="t-decision-text">CALL VERIFIED // AUDIT PASSED</span>
-                    <span class="mono" id="t-decision-time">Just now</span>
-                </div>
-
-                <!-- Metrics & Anti-Rug Table Strip -->
-                <div class="metrics-strip">
-                    <div class="metric-cell">
-                        <span class="label">Market Cap</span>
-                        <span class="value mono" id="m-mc">$0</span>
-                    </div>
-                    <div class="metric-cell">
-                        <span class="label">Sybil Cluster</span>
-                        <span class="value mono" id="m-cluster">0%</span>
-                        <div class="progress-micro">
-                            <div class="progress-bar green" id="bar-cluster" style="width: 0%;"></div>
+            <!-- Messages Stream -->
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-hero">
+                    <h2><span>⚡</span> Autonomous Remote AI Copilot Online</h2>
+                    <p>
+                        You can manage your Solana caller bot, change filters in real-time, or instruct the AI to modify code and push commits directly to GitHub without needing your PC.
+                    </p>
+                    <div class="hero-features">
+                        <div class="hero-feature-card">
+                            <b>🚀 Remote Code Edits & Push</b>
+                            <span>Modify files and commit directly to GitHub main to auto-redeploy Render.</span>
+                        </div>
+                        <div class="hero-feature-card">
+                            <b>⚡ Live In-Memory Tweaks</b>
+                            <span>Change min MC floor ($20k+), dev holding limits, or bundler gates instantly.</span>
+                        </div>
+                        <div class="hero-feature-card">
+                            <b>🛡️ On-Chain Anti-Rug Audits</b>
+                            <span>Ask why any token failed or passed (Raydium LP pool, bubbles, sybils).</span>
                         </div>
                     </div>
-                    <div class="metric-cell">
-                        <span class="label">Dev Holding</span>
-                        <span class="value mono" id="m-dev">0%</span>
-                        <div class="progress-micro">
-                            <div class="progress-bar green" id="bar-dev" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                    <div class="metric-cell">
-                        <span class="label">Top 10 (Non-LP)</span>
-                        <span class="value mono" id="m-top10">0%</span>
-                        <div class="progress-micro">
-                            <div class="progress-bar green" id="bar-top10" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                    <div class="metric-cell">
-                        <span class="label">Bundlers</span>
-                        <span class="value mono" id="m-bundlers">0%</span>
-                    </div>
-                    <div class="metric-cell">
-                        <span class="label">RugCheck</span>
-                        <span class="value mono" id="m-rugcheck">Good</span>
-                    </div>
                 </div>
+            </div>
 
-                <!-- Embedded Chart Section -->
-                <div class="chart-wrapper">
-                    <div class="chart-toolbar">
-                        <div class="chart-tabs">
-                            <button class="chart-tab-btn active" id="tab-chart-gmgn">GMGN Kline Chart</button>
-                            <button class="chart-tab-btn" id="tab-chart-dex">DexScreener</button>
-                        </div>
-                        <button class="chart-tab-btn" id="btn-refresh-chart">↻ Refresh</button>
-                    </div>
+            <!-- Quick Action Prompt Pills -->
+            <div class="quick-pills-bar">
+                <button class="pill-btn" data-prompt="Show current bot status, uptime, and memory">📊 Bot Status</button>
+                <button class="pill-btn" data-prompt="What are our current filter thresholds and market cap limits?">🛡️ Active Filters</button>
+                <button class="pill-btn" data-prompt="Change MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Set Min MC $20k</button>
+                <button class="pill-btn" data-prompt="Read config.js and show me the current settings">📁 View config.js</button>
+                <button class="pill-btn" data-prompt="Audit recent scanned tokens and explain why they passed or failed">🔍 Audit Scans</button>
+            </div>
 
-                    <iframe id="kline-frame" class="chart-iframe" src="" allowfullscreen></iframe>
-                </div>
-
+            <!-- Chat Input Bar -->
+            <div class="chat-input-container">
+                <textarea id="chat-input" class="chat-textarea" placeholder="Instruct AI Copilot (e.g. 'Set min MC to 25k in config.js and push')..."></textarea>
+                <button id="btn-send" class="chat-send-btn" title="Send (Enter)">➤</button>
             </div>
         </div>
 
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal">
+        <div class="settings-card">
+            <div class="settings-header">
+                <div class="settings-title">⚙ COPILOT CONFIGURATION</div>
+                <button class="btn-icon" id="btn-close-settings" style="height: 24px; padding: 0 6px;">✕</button>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+                To let the cloud bot on Render commit and push code updates back to GitHub while your PC is off, enter your GitHub Personal Access Token (PAT) with <code>repo</code> write permission.
+            </p>
+            <div class="settings-field">
+                <label>Admin Passcode</label>
+                <input type="password" id="input-cfg-pass" class="settings-input" placeholder="Admin Passcode">
+            </div>
+            <div class="settings-field">
+                <label>GitHub Personal Access Token (PAT)</label>
+                <input type="password" id="input-cfg-github" class="settings-input" placeholder="ghp_... (repo scope)">
+            </div>
+            <button class="gate-btn" id="btn-save-settings">Save Settings</button>
+        </div>
     </div>
 
-    <!-- Professional Web Audio Beep Generator (No external audio files needed) -->
+    <!-- JavaScript Controller -->
     <script>
-        let audioContext = null;
-        let audioAlerts = true;
+        (function() {
+            // Elements
+            const gateScreen = document.getElementById('gate-screen');
+            const chatView = document.getElementById('chat-view');
+            const gateInput = document.getElementById('gate-pass-input');
+            const btnUnlock = document.getElementById('btn-unlock');
+            const gateError = document.getElementById('gate-error');
 
-        function playCallChime() {
-            if (!audioAlerts) return;
-            try {
-                if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioContext.state === 'suspended') audioContext.resume();
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const btnSend = document.getElementById('btn-send');
+            const btnClear = document.getElementById('btn-clear-chat');
 
-                const now = audioContext.currentTime;
-                // Double harmonic chime
-                [523.25, 659.25, 783.99].forEach((freq, i) => {
-                    const osc = audioContext.createOscillator();
-                    const gain = audioContext.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now + (i * 0.08));
-                    gain.gain.setValueAtTime(0.08, now + (i * 0.08));
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + (i * 0.08) + 0.3);
-                    osc.connect(gain);
-                    gain.connect(audioContext.destination);
-                    osc.start(now + (i * 0.08));
-                    osc.stop(now + (i * 0.08) + 0.35);
-                });
-            } catch (e) {}
-        }
-    </script>
+            const statBotStatus = document.getElementById('stat-bot-status');
+            const statMcFloor = document.getElementById('stat-mc-floor');
+            const statModel = document.getElementById('stat-model');
+            const barUptime = document.getElementById('bar-uptime');
+            const barGithub = document.getElementById('bar-github');
 
-    <!-- Application Controller -->
-    <script>
-        let tokens = [];
-        let filterMode = 'all';
-        let filterQuery = '';
-        let currentToken = null;
-        let chartProvider = 'gmgn';
-
-        const feedListEl = document.getElementById('feed-list');
-        const searchBox = document.getElementById('search-box');
-        const segButtons = document.querySelectorAll('.seg-btn');
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
-
-        const countTotal = document.getElementById('count-total');
-        const countApproved = document.getElementById('count-approved');
-        const countRejected = document.getElementById('count-rejected');
-
-        const placeholderEmpty = document.getElementById('placeholder-empty');
-        const inspectorContent = document.getElementById('inspector-content');
-
-        const tSymbol = document.getElementById('t-symbol');
-        const tName = document.getElementById('t-name');
-        const tCa = document.getElementById('t-ca');
-        const btnCopyCa = document.getElementById('btn-copy-ca');
-        const tDecisionStrip = document.getElementById('t-decision-strip');
-        const tDecisionText = document.getElementById('t-decision-text');
-        const tDecisionTime = document.getElementById('t-decision-time');
-
-        const mMc = document.getElementById('m-mc');
-        const mCluster = document.getElementById('m-cluster');
-        const barCluster = document.getElementById('bar-cluster');
-        const mDev = document.getElementById('m-dev');
-        const barDev = document.getElementById('bar-dev');
-        const mTop10 = document.getElementById('m-top10');
-        const barTop10 = document.getElementById('bar-top10');
-        const mBundlers = document.getElementById('m-bundlers');
-        const mRugcheck = document.getElementById('m-rugcheck');
-
-        const btnGmgn = document.getElementById('btn-gmgn');
-        const btnPhoton = document.getElementById('btn-photon');
-        const btnBullx = document.getElementById('btn-bullx');
-        const btnAxiom = document.getElementById('btn-axiom');
-        const btnPump = document.getElementById('btn-pump');
-
-        const klineFrame = document.getElementById('kline-frame');
-        const tabChartGmgn = document.getElementById('tab-chart-gmgn');
-        const tabChartDex = document.getElementById('tab-chart-dex');
-        const btnRefreshChart = document.getElementById('btn-refresh-chart');
-
-        const btnAudio = document.getElementById('btn-audio');
-        const audioLbl = document.getElementById('audio-lbl');
-
-        btnAudio.addEventListener('click', () => {
-            audioAlerts = !audioAlerts;
-            btnAudio.className = audioAlerts ? 'audio-toggle active' : 'audio-toggle';
-            audioLbl.innerText = audioAlerts ? 'ALERTS ON' : 'MUTED';
-            if (audioAlerts) playCallChime();
-        });
-
-        // Copy CA
-        btnCopyCa.addEventListener('click', () => {
-            if (!currentToken || !currentToken.mint) return;
-            navigator.clipboard.writeText(currentToken.mint);
-            const original = tCa.innerText;
-            tCa.innerText = 'COPIED';
-            setTimeout(() => { tCa.innerText = original; }, 1200);
-        });
-
-        // Search
-        searchBox.addEventListener('input', (e) => {
-            filterQuery = e.target.value.trim().toLowerCase();
-            renderFeed();
-        });
-
-        // Filter Tabs
-        segButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                segButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                filterMode = btn.dataset.filter;
-                renderFeed();
-            });
-        });
-
-        // Chart Source Toggle
-        tabChartGmgn.addEventListener('click', () => {
-            chartProvider = 'gmgn';
-            tabChartGmgn.classList.add('active');
-            tabChartDex.classList.remove('active');
-            loadChart();
-        });
-
-        tabChartDex.addEventListener('click', () => {
-            chartProvider = 'dex';
-            tabChartDex.classList.add('active');
-            tabChartGmgn.classList.remove('active');
-            loadChart();
-        });
-
-        btnRefreshChart.addEventListener('click', loadChart);
-
-        function loadChart() {
-            if (!currentToken || !currentToken.mint) return;
-            const ca = currentToken.mint;
-            if (chartProvider === 'gmgn') {
-                klineFrame.src = `https://www.gmgn.cc/kline/sol/${ca}?theme=dark&interval=1`;
-            } else {
-                klineFrame.src = `https://dexscreener.com/solana/${ca}?embed=1&theme=dark&trades=0&info=0`;
-            }
-        }
-
-        function formatMc(val) {
-            const n = Number(val || 0);
-            if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-            if (n >= 1e3) return `$${(n / 1e3).toFixed(1)}k`;
-            return `$${n.toFixed(0)}`;
-        }
-
-        function formatTimeAgo(ts) {
-            const sec = Math.floor((Date.now() - (ts || Date.now())) / 1000);
-            if (sec < 4) return 'Just now';
-            if (sec < 60) return `${sec}s ago`;
-            const m = Math.floor(sec / 60);
-            if (m < 60) return `${m}m ago`;
-            return `${Math.floor(m / 60)}h ago`;
-        }
-
-        function selectToken(token) {
-            currentToken = token;
-            placeholderEmpty.style.display = 'none';
-            inspectorContent.style.display = 'flex';
-
-            tSymbol.innerText = `$${token.symbol || 'TOKEN'}`;
-            tName.innerText = token.name || 'Token';
-            tCa.innerText = token.mint ? `${token.mint.slice(0, 6)}...${token.mint.slice(-6)}` : '';
-
-            // Update external links
-            btnGmgn.href = `https://gmgn.ai/sol/token/${token.mint}`;
-            btnPhoton.href = `https://photon-sol.tinyastro.io/en/lp/${token.mint}`;
-            btnBullx.href = `https://bullx.io/terminal?chainId=1399811149&address=${token.mint}`;
-            btnAxiom.href = `https://axiom.trade/token/${token.mint}`;
-            btnPump.href = `https://pump.fun/${token.mint}`;
-
-            // Decision Strip
-            tDecisionStrip.className = `decision-strip ${token.status}`;
-            if (token.status === 'approved') {
-                tDecisionText.innerText = `VERIFIED CALL // Passed Sybil cluster (<5%), dev dump (<6%), and liquidity verification`;
-            } else if (token.status === 'rejected') {
-                tDecisionText.innerText = `FILTER REJECTED // Reason: ${token.reason || 'Failed cluster / dev gate'}`;
-            } else {
-                tDecisionText.innerText = `AUDITING CANDIDATE // Screening on-chain cluster & holder distribution`;
-            }
-            tDecisionTime.innerText = formatTimeAgo(token.timestamp);
-
-            // Metrics
-            mMc.innerText = formatMc(token.market_cap_usd);
-
-            const clusterVal = Number(token.cluster_pct || 0);
-            mCluster.innerText = `${clusterVal.toFixed(1)}%`;
-            mCluster.style.color = clusterVal > 5.0 ? 'var(--color-rose)' : 'var(--color-emerald)';
-            barCluster.style.width = `${Math.min(100, clusterVal * 4)}%`;
-            barCluster.className = `progress-bar ${clusterVal > 5.0 ? 'red' : 'green'}`;
-
-            const devVal = Number(token.dev_holdings_pct || 0);
-            mDev.innerText = `${devVal.toFixed(1)}%`;
-            mDev.style.color = devVal > 6.0 ? 'var(--color-rose)' : 'var(--color-emerald)';
-            barDev.style.width = `${Math.min(100, devVal * 5)}%`;
-            barDev.className = `progress-bar ${devVal > 6.0 ? 'red' : 'green'}`;
-
-            const top10Val = Number(token.top10_pct || 0);
-            mTop10.innerText = `${top10Val.toFixed(1)}%`;
-            mTop10.style.color = top10Val > 25.0 ? 'var(--color-rose)' : 'var(--color-emerald)';
-            barTop10.style.width = `${Math.min(100, top10Val * 2)}%`;
-            barTop10.className = `progress-bar ${top10Val > 25.0 ? 'red' : 'green'}`;
-
-            mBundlers.innerText = `${Number(token.bundlers_pct || 0).toFixed(1)}%`;
-            mRugcheck.innerText = token.rugcheck_score || (token.status === 'rejected' ? 'High Risk' : 'Passed');
-
-            loadChart();
-            renderFeed();
-        }
-
-        function renderFeed() {
-            const filtered = tokens.filter(t => {
-                if (filterMode === 'approved' && t.status !== 'approved') return false;
-                if (filterMode === 'rejected' && t.status !== 'rejected') return false;
-                if (filterMode === 'evaluating' && t.status !== 'evaluating') return false;
-
-                if (filterQuery) {
-                    const s = (t.symbol || '').toLowerCase();
-                    const n = (t.name || '').toLowerCase();
-                    const m = (t.mint || '').toLowerCase();
-                    return s.includes(filterQuery) || n.includes(filterQuery) || m.includes(filterQuery);
-                }
-                return true;
-            });
-
-            if (!filtered.length) {
-                feedListEl.innerHTML = `<div class="empty-placeholder">No matching tokens found</div>`;
-                return;
-            }
-
-            feedListEl.innerHTML = filtered.map(t => {
-                const isSelected = currentToken && currentToken.mint === t.mint;
-                const statusPillClass = `pill-${t.status}`;
-                const statusLabel = t.status === 'approved' ? 'CALL' : (t.status === 'rejected' ? 'REJECTED' : 'AUDIT');
-
-                const clusterPct = Number(t.cluster_pct || 0);
-                const devPct = Number(t.dev_holdings_pct || 0);
-
-                let riskSnippet = '';
-                if (t.status === 'rejected' && t.reason) {
-                    riskSnippet = `<span class="row-risk-tag danger">${t.reason}</span>`;
-                } else if (clusterPct > 0 || devPct > 0) {
-                    riskSnippet = `<span class="row-risk-tag">Cluster ${clusterPct.toFixed(1)}% · Dev ${devPct.toFixed(1)}%</span>`;
-                }
-
-                return `
-                    <div class="feed-row ${isSelected ? 'active' : ''}" onclick="window.onSelectRow('${t.mint}')">
-                        <div class="feed-row-top">
-                            <div class="token-identity-left">
-                                <span class="row-symbol mono">$${t.symbol || 'TOKEN'}</span>
-                                <span class="row-name">${t.name || 'Token'}</span>
-                            </div>
-                            <span class="row-mc mono">${formatMc(t.market_cap_usd)}</span>
-                        </div>
-                        <div class="feed-row-bottom">
-                            <div class="row-tags">
-                                <span class="pill-status ${statusPillClass}">${statusLabel}</span>
-                                ${riskSnippet}
-                            </div>
-                            <span class="row-time mono">${formatTimeAgo(t.timestamp)}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.onSelectRow = (mint) => {
-            const found = tokens.find(t => t.mint === mint);
-            if (found) selectToken(found);
-        };
-
-        function updateCounterMetrics() {
-            countTotal.innerText = tokens.length;
-            countApproved.innerText = tokens.filter(t => t.status === 'approved').length;
-            countRejected.innerText = tokens.filter(t => t.status === 'rejected').length;
-        }
-
-        // Keyboard Shortcuts
-        window.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT') return;
-            const key = e.key.toLowerCase();
-            if (key === 'c' && currentToken) {
-                navigator.clipboard.writeText(currentToken.mint);
-                tCa.innerText = 'COPIED';
-                setTimeout(() => { tCa.innerText = `${currentToken.mint.slice(0, 6)}...${currentToken.mint.slice(-6)}`; }, 1200);
-            } else if (key === 'g' && currentToken) {
-                window.open(`https://gmgn.ai/sol/token/${currentToken.mint}`, '_blank');
-            } else if (key === 'p' && currentToken) {
-                window.open(`https://photon-sol.tinyastro.io/en/lp/${currentToken.mint}`, '_blank');
-            } else if (key === 'a' && currentToken) {
-                window.open(`https://axiom.trade/token/${currentToken.mint}`, '_blank');
-            }
-        });
-
-        // SSE Connection
-        function startEventStream() {
-            statusDot.className = 'status-dot';
-            statusText.innerText = 'CONNECTING';
-
-            const es = new EventSource('/api/stream');
-
-            es.onopen = () => {
-                statusDot.className = 'status-dot connected';
-                statusText.innerText = 'LIVE RADAR';
-            };
-
-            es.onmessage = (event) => {
-                try {
-                    const msg = JSON.parse(event.data);
-                    if (msg.type === 'SNAPSHOT') {
-                        tokens = msg.tokens || [];
-                        updateCounterMetrics();
-                        renderFeed();
-                        if (tokens.length && !currentToken) {
-                            selectToken(tokens[0]);
-                        }
-                    } else if (msg.type === 'TOKEN') {
-                        const token = msg.token;
-                        const idx = tokens.findIndex(t => t.mint === token.mint);
-                        if (idx >= 0) {
-                            tokens[idx] = token;
-                        } else {
-                            tokens.unshift(token);
-                            if (tokens.length > 200) tokens.pop();
-                            if (token.status === 'approved') playCallChime();
-                        }
-                        updateCounterMetrics();
-                        renderFeed();
-                        if (!currentToken) {
-                            selectToken(token);
-                        } else if (currentToken.mint === token.mint) {
-                            selectToken(token);
-                        }
-                    }
-                } catch (err) {}
-            };
-
-            es.onerror = () => {
-                statusDot.className = 'status-dot';
-                statusText.innerText = 'RECONNECTING';
-                es.close();
-                setTimeout(startEventStream, 3000);
-            };
-        }
-
-        startEventStream();
-
-        setInterval(() => {
-            renderFeed();
-            if (currentToken) {
-                tDecisionTime.innerText = formatTimeAgo(currentToken.timestamp);
-            }
-        }, 12000);
-
-        // ─── AI Copilot Controller ───────────────────────────────────────────
-        (function initCopilot() {
-            const drawer = document.getElementById('copilot-drawer');
-            const btnOpen = document.getElementById('btn-open-copilot');
-            const btnClose = document.getElementById('btn-close-copilot');
-            const btnSettings = document.getElementById('btn-copilot-settings');
+            const settingsModal = document.getElementById('settings-modal');
+            const btnOpenSettings = document.getElementById('btn-open-settings');
             const btnCloseSettings = document.getElementById('btn-close-settings');
-            const settingsModal = document.getElementById('copilot-settings-modal');
             const btnSaveSettings = document.getElementById('btn-save-settings');
             const inputCfgPass = document.getElementById('input-cfg-pass');
             const inputCfgGithub = document.getElementById('input-cfg-github');
-
-            const gateScreen = document.getElementById('copilot-gate-screen');
-            const chatScreen = document.getElementById('copilot-chat-screen');
-            const passInput = document.getElementById('copilot-pass-input');
-            const btnUnlock = document.getElementById('btn-unlock-copilot');
-            const gateError = document.getElementById('gate-error');
-
-            const msgList = document.getElementById('copilot-msg-list');
-            const textarea = document.getElementById('copilot-input');
-            const btnSend = document.getElementById('btn-send-copilot');
-            const providerBadge = document.getElementById('copilot-provider-badge');
-            const statUptime = document.getElementById('copilot-stat-uptime');
-            const statMc = document.getElementById('copilot-stat-mc');
-            const statGit = document.getElementById('copilot-stat-git');
 
             let chatHistory = [];
             let currentPassword = localStorage.getItem('dd_copilot_pass') || 'blacklarp1';
             let currentGithubToken = localStorage.getItem('dd_copilot_github') || '';
 
-            // Toggle drawer
-            btnOpen.addEventListener('click', () => {
-                drawer.classList.add('open');
-                checkAuth();
+            // Format uptime helper
+            function formatUptime(seconds) {
+                const s = Math.floor(seconds || 0);
+                const h = Math.floor(s / 3600);
+                const m = Math.floor((s % 3600) / 60);
+                if (h > 0) return `${h}h ${m}m`;
+                return `${m}m ${s % 60}s`;
+            }
+
+            // Auth Check
+            async function verifyAuth(passwordToTest) {
+                try {
+                    const res = await fetch(`/api/copilot/status?pass=${encodeURIComponent(passwordToTest)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        currentPassword = passwordToTest;
+                        localStorage.setItem('dd_copilot_pass', currentPassword);
+
+                        gateScreen.style.display = 'none';
+                        chatView.style.display = 'flex';
+                        gateError.style.display = 'none';
+
+                        if (data.runtimeConfig?.min_call_mc_usd) {
+                            statMcFloor.innerText = `$${Math.round(data.runtimeConfig.min_call_mc_usd / 1000)}k`;
+                        }
+                        if (data.uptime) {
+                            barUptime.innerText = formatUptime(data.uptime);
+                        }
+                        if (data.hasGithubToken || currentGithubToken) {
+                            barGithub.innerText = 'Connected';
+                            barGithub.style.color = '#10b981';
+                        } else {
+                            barGithub.innerText = 'Need PAT';
+                            barGithub.style.color = '#f59e0b';
+                        }
+                        chatInput.focus();
+                        return true;
+                    }
+                } catch {}
+                return false;
+            }
+
+            // Unlock Button
+            btnUnlock.addEventListener('click', async () => {
+                const pass = gateInput.value.trim();
+                if (!pass) return;
+                const ok = await verifyAuth(pass);
+                if (!ok) {
+                    gateError.style.display = 'block';
+                }
             });
 
-            btnClose.addEventListener('click', () => {
-                drawer.classList.remove('open');
-                settingsModal.style.display = 'none';
+            gateInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') btnUnlock.click();
             });
+
+            // Auto-check stored password
+            if (currentPassword) {
+                verifyAuth(currentPassword).then(ok => {
+                    if (!ok) gateInput.value = 'blacklarp1';
+                });
+            } else {
+                gateInput.value = 'blacklarp1';
+            }
 
             // Settings Modal
-            btnSettings.addEventListener('click', () => {
+            btnOpenSettings.addEventListener('click', () => {
                 inputCfgPass.value = currentPassword;
                 inputCfgGithub.value = currentGithubToken;
-                settingsModal.style.display = settingsModal.style.display === 'flex' ? 'none' : 'flex';
+                settingsModal.style.display = 'flex';
             });
 
             btnCloseSettings.addEventListener('click', () => {
@@ -1611,275 +856,165 @@
                 localStorage.setItem('dd_copilot_pass', currentPassword);
                 localStorage.setItem('dd_copilot_github', currentGithubToken);
                 settingsModal.style.display = 'none';
-                checkAuth(true);
+                verifyAuth(currentPassword);
             });
 
-            // Check Auth
-            async function checkAuth(forcePrompt = false) {
-                if (!currentPassword && !forcePrompt) {
-                    showGate();
-                    return;
-                }
-
-                try {
-                    const res = await fetch(`/api/copilot/status?pass=${encodeURIComponent(currentPassword)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        gateScreen.style.display = 'none';
-                        chatScreen.style.display = 'flex';
-                        if (data.runtimeConfig?.min_call_mc_usd) {
-                            statMc.innerText = `$${Math.round(data.runtimeConfig.min_call_mc_usd / 1000)}k`;
-                        }
-                        if (data.hasGithubToken || currentGithubToken) {
-                            statGit.innerText = 'Connected';
-                            statGit.style.color = '#10b981';
-                        } else {
-                            statGit.innerText = 'Need PAT';
-                            statGit.style.color = '#f59e0b';
-                        }
-                    } else {
-                        showGate();
-                    }
-                } catch {
-                    showGate();
-                }
-            }
-
-            function showGate() {
-                gateScreen.style.display = 'flex';
-                chatScreen.style.display = 'none';
-                passInput.value = '';
-                passInput.focus();
-            }
-
-            btnUnlock.addEventListener('click', async () => {
-                const entered = passInput.value.trim();
-                if (!entered) return;
-
-                try {
-                    const res = await fetch(`/api/copilot/status?pass=${encodeURIComponent(entered)}`);
-                    if (res.ok) {
-                        currentPassword = entered;
-                        localStorage.setItem('dd_copilot_pass', currentPassword);
-                        gateError.style.display = 'none';
-                        checkAuth();
-                    } else {
-                        gateError.style.display = 'block';
-                    }
-                } catch {
-                    gateError.style.display = 'block';
-                }
+            // Clear Chat
+            btnClear.addEventListener('click', () => {
+                chatHistory = [];
+                const hero = chatMessages.querySelector('.chat-hero');
+                chatMessages.innerHTML = '';
+                if (hero) chatMessages.appendChild(hero);
             });
 
-            passInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') btnUnlock.click();
-            });
-
-            // Helper to render markdown and code safely
+            // Markdown Formatter
             function formatMarkdown(text) {
                 if (!text) return '';
-                let escaped = text
+                let html = text
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;');
 
                 // Code blocks ```lang ... ```
-                escaped = escaped.replace(/```([a-z]*)\s*([\s\S]*?)```/g, (m, lang, code) => {
-                    return `<pre><code class="lang-${lang}">${code.trim()}</code></pre>`;
+                html = html.replace(/```([a-z0-9_]*)\s*([\s\S]*?)```/g, (m, lang, code) => {
+                    return `<pre><code>${code.trim()}</code></pre>`;
                 });
 
-                // Inline code `...`
-                escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+                // Inline code
+                html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-                // Bold **...**
-                escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+                // Bold
+                html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 
-                // Bullet points
-                escaped = escaped.replace(/^[•*-]\s+(.+)$/gm, '<li style="margin-left: 14px;">$1</li>');
+                // Blockquotes
+                html = html.replace(/^>\s+(.+)$/gm, '<blockquote style="border-left: 2px solid #7c3aed; padding-left: 8px; color: #a855f7; margin: 4px 0;">$1</blockquote>');
 
-                // Newlines to <br>
-                escaped = escaped.replace(/\n/g, '<br>');
-                return escaped;
+                // List items
+                html = html.replace(/^[•*-]\s+(.+)$/gm, '<li style="margin-left: 16px;">$1</li>');
+
+                // Links [text](url)
+                html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #38bdf8; text-decoration: underline;">$1</a>');
+
+                // Newlines
+                html = html.replace(/\n/g, '<br>');
+                return html;
             }
 
             function appendMessage(role, content, actions = []) {
+                const row = document.createElement('div');
+                row.className = `msg-row ${role}`;
+
                 const bubble = document.createElement('div');
                 bubble.className = `msg-bubble ${role}`;
 
                 let html = formatMarkdown(content);
 
                 if (actions && actions.length > 0) {
-                    html += '<div style="margin-top: 6px;">';
+                    html += '<div style="margin-top: 8px;">';
                     actions.forEach(act => {
                         const isGit = act.toLowerCase().includes('git') || act.toLowerCase().includes('pushed');
-                        html += `<span class="action-tag ${isGit ? 'git' : ''}">✓ ${act}</span>`;
+                        html += `<span class="action-chip ${isGit ? 'git' : ''}">✓ ${act}</span>`;
                     });
                     html += '</div>';
                 }
 
                 bubble.innerHTML = html;
-                msgList.appendChild(bubble);
-                msgList.scrollTop = msgList.scrollHeight;
+                row.appendChild(bubble);
+                chatMessages.appendChild(row);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
                 return bubble;
             }
 
-            // Send message
-            async function sendMessage(textToSend) {
-                const message = (textToSend || textarea.value).trim();
-                if (!message) return;
+            // Send Message Handler
+            async function sendMessage(text) {
+                const prompt = (text || chatInput.value).trim();
+                if (!prompt) return;
 
-                appendMessage('user', message);
-                textarea.value = '';
+                appendMessage('user', prompt);
+                chatInput.value = '';
+                chatInput.style.height = '44px';
                 btnSend.disabled = true;
 
-                // Typing indicator
-                const typingBubble = appendMessage('assistant', '⚡ <i>Copilot is analyzing code & executing request...</i>');
+                const indicator = appendMessage('assistant', '⚡ <i>Copilot is analyzing request and repository...</i>');
 
                 try {
                     const res = await fetch('/api/copilot/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message,
+                            message: prompt,
                             history: chatHistory.slice(-8),
                             password: currentPassword,
                             githubToken: currentGithubToken
                         })
                     });
 
-                    typingBubble.remove();
+                    indicator.closest('.msg-row').remove();
 
                     if (res.ok) {
                         const data = await res.json();
-                        chatHistory.push({ role: 'user', content: message });
+                        chatHistory.push({ role: 'user', content: prompt });
                         chatHistory.push({ role: 'assistant', content: data.reply });
 
                         if (data.provider) {
-                            providerBadge.innerText = data.provider;
+                            statModel.innerText = data.provider.toUpperCase();
                         }
                         if (data.updatedConfig?.min_call_mc_usd) {
-                            statMc.innerText = `$${Math.round(data.updatedConfig.min_call_mc_usd / 1000)}k`;
+                            statMcFloor.innerText = `$${Math.round(data.updatedConfig.min_call_mc_usd / 1000)}k`;
                         }
 
                         appendMessage('assistant', data.reply, data.actions);
                     } else {
-                        const errData = await res.json().catch(() => ({}));
-                        appendMessage('assistant', `⚠️ Error: ${errData.error || 'Failed to communicate with Copilot'}`);
+                        const err = await res.json().catch(() => ({}));
+                        appendMessage('assistant', `⚠️ Error: ${err.error || 'Request failed'}`);
                     }
                 } catch (e) {
-                    typingBubble.remove();
+                    indicator.closest('.msg-row').remove();
                     appendMessage('assistant', `⚠️ Network error: ${e.message}`);
                 } finally {
                     btnSend.disabled = false;
-                    textarea.focus();
+                    chatInput.focus();
                 }
             }
 
             btnSend.addEventListener('click', () => sendMessage());
 
-            textarea.addEventListener('keydown', (e) => {
+            chatInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     sendMessage();
                 }
             });
 
-            // Quick action pills
-            document.querySelectorAll('.copilot-quick-pills .quick-pill').forEach(pill => {
+            // Auto resize textarea
+            chatInput.addEventListener('input', () => {
+                chatInput.style.height = 'auto';
+                chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+            });
+
+            // Quick pills click
+            document.querySelectorAll('.pill-btn').forEach(pill => {
                 pill.addEventListener('click', () => {
                     const prompt = pill.getAttribute('data-prompt');
                     if (prompt) sendMessage(prompt);
                 });
             });
 
-            // Pre-fill default password if present
-            if (currentPassword) {
-                checkAuth();
-            }
+            // Periodic uptime update
+            setInterval(async () => {
+                if (!currentPassword) return;
+                try {
+                    const res = await fetch(`/api/copilot/status?pass=${encodeURIComponent(currentPassword)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.uptime) barUptime.innerText = formatUptime(data.uptime);
+                        if (data.runtimeConfig?.min_call_mc_usd) {
+                            statMcFloor.innerText = `$${Math.round(data.runtimeConfig.min_call_mc_usd / 1000)}k`;
+                        }
+                    }
+                } catch {}
+            }, 15000);
         })();
     </script>
-
-    <!-- ─── AI Copilot Slide-out Drawer DOM ───────────────────────────── -->
-    <div id="copilot-drawer">
-        <!-- Header -->
-        <div class="copilot-header">
-            <div class="copilot-title">
-                <span style="font-size: 14px;">⚡</span>
-                <span>DD AI COPILOT</span>
-                <span class="copilot-badge" id="copilot-provider-badge">AUTONOMOUS</span>
-            </div>
-            <div class="copilot-controls">
-                <button class="copilot-icon-btn" id="btn-copilot-settings" title="Copilot Settings (GitHub Token / Passcode)">⚙</button>
-                <button class="copilot-icon-btn" id="btn-close-copilot" title="Close Copilot">✕</button>
-            </div>
-        </div>
-
-        <!-- Sub-status Bar -->
-        <div class="copilot-subbar">
-            <span>Uptime: <b id="copilot-stat-uptime">Active</b></span>
-            <span>Floor: <b id="copilot-stat-mc">$20k</b></span>
-            <span>Cloud Git: <b id="copilot-stat-git">Ready</b></span>
-        </div>
-
-        <!-- Settings Modal -->
-        <div id="copilot-settings-modal">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 12px; font-weight: 700; color: #fff;">⚙ COPILOT CONFIGURATION</span>
-                <button class="copilot-icon-btn" id="btn-close-settings" style="width: 22px; height: 22px;">✕</button>
-            </div>
-            <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                Add your GitHub Personal Access Token (PAT) so the cloud bot on Render can push code updates to GitHub when your PC is turned off.
-            </p>
-            <div>
-                <label style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Admin Passcode</label>
-                <input type="password" id="input-cfg-pass" class="gate-input" style="text-align: left; letter-spacing: normal; margin-top: 4px;" placeholder="Admin Passcode">
-            </div>
-            <div>
-                <label style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">GitHub Personal Access Token (PAT)</label>
-                <input type="password" id="input-cfg-github" class="gate-input" style="text-align: left; letter-spacing: normal; margin-top: 4px;" placeholder="ghp_... (repo write permission)">
-            </div>
-            <button class="gate-btn" id="btn-save-settings">Save Settings</button>
-        </div>
-
-        <!-- Passcode Gate (Shown if not authenticated) -->
-        <div class="copilot-gate" id="copilot-gate-screen">
-            <div class="gate-card">
-                <div style="font-size: 28px;">🔐</div>
-                <div style="font-size: 14px; font-weight: 700; color: #fff;">ADMIN AUTHENTICATION</div>
-                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                    Enter your admin passcode to access the remote AI code editor and terminal.
-                </div>
-                <input type="password" id="copilot-pass-input" class="gate-input" placeholder="PASSCODE" autofocus>
-                <button class="gate-btn" id="btn-unlock-copilot">UNLOCK COPILOT</button>
-                <div id="gate-error" style="font-size: 11px; color: var(--color-rose); display: none;">Invalid Passcode</div>
-            </div>
-        </div>
-
-        <!-- Chat Workspace (Shown when authenticated) -->
-        <div class="copilot-body" id="copilot-chat-screen" style="display: none;">
-            <div class="copilot-messages" id="copilot-msg-list">
-                <div class="msg-bubble assistant">
-                    👋 <b>Autonomous Copilot Online.</b><br>
-                    I can audit tokens, tweak filters in real-time, or edit your bot's code and push directly to GitHub while you're on your phone.<br><br>
-                    Try one of the quick commands below or type any custom instructions!
-                </div>
-            </div>
-
-            <!-- Quick Action Pills -->
-            <div class="copilot-quick-pills">
-                <button class="quick-pill" data-prompt="Show current bot status and uptime">📊 Bot Status</button>
-                <button class="quick-pill" data-prompt="What are the current filter thresholds and market cap limits?">🛡️ Active Filters</button>
-                <button class="quick-pill" data-prompt="Change MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Set Min MC $20k</button>
-                <button class="quick-pill" data-prompt="Explain why the latest tokens were approved or rejected">🔍 Audit Recent Scans</button>
-            </div>
-
-            <!-- Input Bar -->
-            <div class="copilot-input-bar">
-                <textarea id="copilot-input" class="copilot-textarea" placeholder="Instruct AI (e.g., 'Change min MC to 25k and push')..."></textarea>
-                <button id="btn-send-copilot" class="copilot-send-btn" title="Send (Enter)">➤</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
-

@@ -632,6 +632,15 @@
     <main>
         <div class="chat-pattern"></div>
 
+        <!-- Live Auto-Redeploy Status Banner -->
+        <div id="redeploy-banner" style="display: none; background: rgba(27, 47, 71, 0.95); border-bottom: 1px solid rgba(82, 136, 193, 0.4); padding: 8px 16px; font-size: 12.5px; color: #90caf9; z-index: 50; flex-shrink: 0; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px;">🚀</span>
+                <span id="redeploy-banner-text">Auto-Redeploy Triggered...</span>
+            </div>
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+        </div>
+
         <div class="chat-scroll" id="chat-stream">
             <div class="service-badge">DD Autonomous Bot Agent</div>
 
@@ -877,6 +886,10 @@
                         chatHistory.push({ role: 'user', content: prompt });
                         chatHistory.push({ role: 'assistant', content: data.reply });
                         appendMessage('assistant', data.reply, data.actions);
+
+                        if (data.redeploy?.triggered) {
+                            showRedeployBanner(data.redeploy.time, data.redeploy.sha);
+                        }
                     } else {
                         const err = await res.json().catch(() => ({}));
                         appendMessage('assistant', `⚠️ Error: ${err.error || 'Request failed'}`);
@@ -913,6 +926,38 @@
                     if (prompt) sendMessage(prompt);
                 }
             });
+
+            // Auto-Redeploy Live Banner Controller
+            const redeployBanner = document.getElementById('redeploy-banner');
+            const redeployText = document.getElementById('redeploy-banner-text');
+
+            function showRedeployBanner(time, sha) {
+                if (!redeployBanner || !redeployText) return;
+                redeployBanner.style.display = 'flex';
+                redeployBanner.style.background = 'rgba(27, 47, 71, 0.95)';
+                redeployText.innerHTML = `<b>Auto-Redeploy Triggered at ${time}</b> (${sha}) • Fast build in progress (~25s)...`;
+
+                let checks = 0;
+                const pollInterval = setInterval(async () => {
+                    checks++;
+                    try {
+                        const res = await fetch('/api/copilot/status');
+                        if (res.ok) {
+                            const data = await res.json();
+                            // If uptime is small (< 30s) after a few checks, the new build is live!
+                            if (checks > 3 && data.uptime && data.uptime < 35) {
+                                clearInterval(pollInterval);
+                                redeployBanner.style.background = 'rgba(16, 185, 129, 0.95)';
+                                redeployText.innerHTML = `✅ <b>Auto-Redeploy Complete!</b> Updated build is now active.`;
+                                setTimeout(() => {
+                                    redeployBanner.style.display = 'none';
+                                }, 6000);
+                            }
+                        }
+                    } catch {}
+                    if (checks > 30) clearInterval(pollInterval);
+                }, 4000);
+            }
         })();
     </script>
 </body>

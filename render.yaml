@@ -3,7 +3,7 @@ services:
     name: solana-sniper-bot
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci --prefer-offline --no-audit --no-fund
     startCommand: npm start
     envVars:
       - key: DISCORD_TOKEN

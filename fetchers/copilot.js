@@ -326,10 +326,14 @@ CRITICAL INSTRUCTIONS:
             }
 
             // Push to GitHub via REST API
+            let redeployInfo = null;
             const gitRes = await commitToGitHub(targetPath, fileContent, commitMsg, token, repo);
             if (gitRes.success) {
-                actions.push(`Pushed to GitHub main (${gitRes.commitSha}) → Render auto-deploy triggered`);
-                responseText += `\n\n> 🚀 **Pushed to GitHub**: [\`${gitRes.commitSha}\`](${gitRes.htmlUrl}) — Render will auto-redeploy in ~45s.`;
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                actions.push(`Pushed to GitHub main (${gitRes.commitSha}) → Auto-redeploy triggered at ${timeStr}`);
+                responseText += `\n\n> 🚀 **Pushed to GitHub**: [\`${gitRes.commitSha}\`](${gitRes.htmlUrl})\n> ⏱️ **Auto-Redeploy Triggered At:** \`${timeStr}\`\n> ⚡ **Speed Mode:** Fast build cached in ~20-30s.\n> 📡 **Notice:** The live bot stays active while Render builds the new container in the background.`;
+                redeployInfo = { triggered: true, time: timeStr, sha: gitRes.commitSha };
             } else if (!token) {
                 actions.push(`Local file saved. (Add GitHub PAT in Copilot Settings to push automatically when PC is off).`);
             } else {
@@ -351,6 +355,7 @@ CRITICAL INSTRUCTIONS:
         actions,
         diffs,
         updatedConfig: config.RUNTIME_CONFIG,
-        provider: llmRes.provider
+        provider: llmRes.provider,
+        redeploy: typeof redeployInfo !== 'undefined' ? redeployInfo : null
     };
 }

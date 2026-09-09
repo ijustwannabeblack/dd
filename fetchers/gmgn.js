@@ -317,15 +317,17 @@ export async function getGmgnTrendingTokens(interval = '5m', platform = null, pr
  * Skill: Liquidity Pool Analysis
  */
 export async function getGmgnTokenPool(mint, chain = 'sol', priority = false) {
-    const defaultRes = { pools: [], total_liquidity_usd: 0, main_dex: 'Unknown', pool_checked: false };
+    const defaultRes = { pools: [], total_liquidity_usd: 0, liquidity: 0, initial_liquidity: 0, is_drained: false, main_dex: 'Unknown', pool_checked: false };
     if (!mint) return defaultRes;
-    const data = await execGmgn(['token', 'pool', '--chain', chain, '--address', mint], 15000, false, priority);
+    const data = await execGmgn(['token', 'pool', '--chain', chain, '--address', mint, '--raw'], 15000, false, priority);
     if (!data) return defaultRes;
     const poolList = Array.isArray(data) ? data : (data.list || data.pools || (data.pool_address || data.address ? [data] : []));
     let totalLiq = 0;
+    let initLiq = Number(data.initial_liquidity || 0);
     const pools = poolList.map(p => {
         const liq = Number(p.liquidity || p.liquidity_usd || 0);
         totalLiq += liq;
+        if (!initLiq && p.initial_liquidity) initLiq = Number(p.initial_liquidity || 0);
         return {
             dex: p.exchange || p.dex_id || p.dex || 'Unknown',
             address: p.pool_address || p.address || '',
@@ -335,7 +337,18 @@ export async function getGmgnTokenPool(mint, chain = 'sol', priority = false) {
         };
     });
     const mainPool = pools[0] || null;
-    return { pools, total_liquidity_usd: Number(totalLiq.toFixed(2)), main_dex: mainPool?.dex || 'Unknown', main_pool_address: mainPool?.address || '', pool_checked: pools.length > 0 };
+    const isDrained = initLiq > 0 && totalLiq > 0 && (totalLiq / initLiq < 0.4);
+    return {
+        pools,
+        total_liquidity_usd: Number(totalLiq.toFixed(2)),
+        liquidity: Number(totalLiq.toFixed(2)),
+        initial_liquidity: initLiq,
+        is_drained: isDrained,
+        pool_address: mainPool?.address || '',
+        main_dex: mainPool?.dex || 'Unknown',
+        main_pool_address: mainPool?.address || '',
+        pool_checked: pools.length > 0
+    };
 }
 
 /**

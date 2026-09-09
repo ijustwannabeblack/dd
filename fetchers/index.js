@@ -182,6 +182,7 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
         gmgnData,
         gmgnSecurity,
         gmgnHoldersData,
+        gmgnPoolData,
         insightxData,
     ] = await Promise.all([
         getOnchainMintSecurity(mint).catch(() => null),
@@ -189,8 +190,9 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
         getRugcheckReport(mint).catch(() => null),
         getPumpfunLivestreamInfo(mint).catch(() => null),
         getGmgnTokenInfo(mint, 'sol', priority).catch(() => ({})),
-        priority ? getGmgnTokenSecurity(mint, 'sol', true).catch(() => ({})) : Promise.resolve({}),
-        priority ? getGmgnTopHolders(mint, 'sol', true).catch(() => ({})) : Promise.resolve({}),
+        getGmgnTokenSecurity(mint, 'sol', priority).catch(() => ({})),
+        getGmgnTopHolders(mint, 'sol', priority).catch(() => ({})),
+        getGmgnTokenPool(mint, 'sol', priority).catch(() => ({})),
         getInsightxMetrics(mint).catch(() => ({})),
     ]);
 
@@ -435,6 +437,10 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
         gmgn_suspicious_count: Number(gmgnHoldersData?.suspicious_count || 0),
         gmgn_flags: gmgnSecurity?.flags || [],
         gmgn_top100_holders: gmgnHoldersData?.holders || [],
+        is_liquidity_drained: Boolean(gmgnPoolData?.is_drained),
+        pool_shrink_ratio: gmgnPoolData?.initial_liquidity > 0 ? (gmgnPoolData.liquidity / gmgnPoolData.initial_liquidity) : 1.0,
+        gmgn_pool_liquidity: Number(gmgnPoolData?.liquidity || 0),
+        gmgn_initial_liquidity: Number(gmgnPoolData?.initial_liquidity || 0),
     };
 
     fullStats.chart_prediction = getChartPrediction(fullStats, dexPair);

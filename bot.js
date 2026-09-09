@@ -292,13 +292,13 @@ function buildMigratedEmbed(stats) {
                 inline: true
             },
             {
-                name: 'Bubblemap & Snipers',
-                value: `Clusters: \`${Number(stats.cluster_pct || 0).toFixed(1)}%\`\nSnipers: \`${Number(stats.snipers_pct || 0).toFixed(1)}%\`\nInsiders: \`${Number(stats.insiders_pct || 0).toFixed(1)}%\``,
+                name: 'Smart Money & KOLs',
+                value: `Smart: \`${Number(stats.gmgn_smart_wallets || stats.smart_traders || 0)}\`\nKOLs: \`${Number(stats.gmgn_renowned_wallets || 0)}\`\nSnipers: \`${Number(stats.snipers_pct || 0).toFixed(1)}%\``,
                 inline: true
             },
             {
-                name: 'Narrative & Sentiment',
-                value: `Theme: \`${stats.ai_narrative_theme || 'Organic'}\`\nScore: \`${stats.ai_narrative_score ? `${stats.ai_narrative_score}/10` : 'Passed'}\`\nRisks: \`${stats.danger_risks && stats.danger_risks.length ? 'Flagged' : 'Clean'}\``,
+                name: 'Dev History',
+                value: `Launched: \`${stats.dev_created_count ?? 'N/A'}\`\nMigrated: \`${stats.dev_migration_rate !== undefined ? `${stats.dev_migration_rate}%` : 'N/A'}\`\nATH: \`${stats.dev_highest_ath_mc ? formatMcUsd(stats.dev_highest_ath_mc) : 'N/A'}\``,
                 inline: true
             },
             {
@@ -397,18 +397,19 @@ async function processCoin(stage, coin, retryCount = 0) {
         return;
     }
 
-    // Strict checks: NEVER send coins with < 2 holders
-    if (Number(stats.holders || 0) < 2) {
-        console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: only ${stats.holders} holder(s)`);
+    // Strict checks: NEVER send coins with low holders
+    const minHolders = stage === 'Migrated' ? 15 : 8;
+    if (Number(stats.holders || 0) < minHolders) {
+        console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: only ${stats.holders} holder(s) (min ${minHolders})`);
         return;
     }
 
-    // Post-restart protection: Do NOT blast ancient coins (Migrated coins exempted as requested)
+    // Post-restart protection: Do NOT blast ancient coins
     const createdTs = Number(stats.created_timestamp || 0);
-    if (stage !== 'Migrated' && createdTs > 0) {
+    if (createdTs > 0) {
         const tsSec = createdTs > 1e11 ? createdTs / 1000 : createdTs;
         const ageMins = ((Date.now() / 1000) - tsSec) / 60;
-        const maxAgeMins = stage === 'New Pair' ? 15.0 : 120.0;
+        const maxAgeMins = stage === 'New Pair' ? 15.0 : (stage === 'Final Stretch' ? 120.0 : 1440.0);
         if (ageMins > maxAgeMins) {
             console.log(`[${stage}] ${stats.symbol} (${mint}) skipped: old coin (${ageMins.toFixed(0)}m old, max ${maxAgeMins}m)`);
             return;
@@ -451,7 +452,7 @@ async function processCoin(stage, coin, retryCount = 0) {
 
     // Dev History Guard (Anti-Serial Rugger Check via GMGN Dev Created Tokens skill)
     const devWallet = stats.dev_wallet || coin.creator;
-    if (devWallet && stage !== 'Migrated') {
+    if (devWallet) {
         try {
             const devHist = await getGmgnDevCreatedTokens(devWallet, 'sol').catch(() => null);
             if (devHist && devHist.checked) {
@@ -523,9 +524,7 @@ async function processCoin(stage, coin, retryCount = 0) {
             stats.ai_narrative_theme = aiEval.theme;
             stats.ai_narrative_reason = aiEval.reason;
         }
-        // User requested: "use no filters for migrated and fix it dosent call anything"
-        // Migrated tokens are never rejected by AI narrative
-        if (stage !== 'Migrated' && !aiEval?.passes) {
+        if (!aiEval?.passes) {
             aiFailed = true;
             aiRejectReason = `AI Rejected: ${aiEval?.reason || 'Failed check'}`;
             console.log(`[${stage}] $${stats.symbol} (${mint}) AI evaluation failed: ${aiRejectReason}`);

@@ -175,25 +175,22 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ Market Cap below $20k threshold ($${Math.round(mcUsd).toLocaleString()} < $${Math.round(minCallMc).toLocaleString()})`], 'rejected'];
     }
 
-    // USER REQUIREMENT: "use no filters for migrated and fix it dosent call anything"
-    // For Migrated tokens, if MC >= 20k and not honeypot/mintable, allow immediately without restrictions!
-    if (stage === 'Migrated') {
-        const label = '🚀 Raydium Migration';
-        reasons.push(
-            `✅ ${label}: $${symbol} | MC $${Math.round(mcUsd).toLocaleString()} | ${holders} holders | Dev ${devPct}% | Top10 ${top10Pct}%`
-        );
-        return [true, reasons, 'confirmed'];
-    }
-
-    // Slop Detection Gate
-    const [isSlop, slopReason] = isSlopToken(stats);
-    if (isSlop) {
-        return [false, [`❌ Slop Detected: ${slopReason}`], 'rejected'];
-    }
-
-    // GMGN Alert Gate
+    // GMGN Direct Security Alert
     if (stats.gmgn_is_show_alert) {
         return [false, ['❌ GMGN Direct Security Alert: Token flagged as rug / high risk by GMGN'], 'rejected'];
+    }
+
+    // GMGN Liquidity Pool Drained Check
+    if (stats.is_liquidity_drained) {
+        return [false, [`❌ Liquidity Drained / Draining: Pool liquidity dropped to ${((stats.pool_shrink_ratio || 0) * 100).toFixed(1)}% of launch`], 'rejected'];
+    }
+
+    // GMGN Security Danger Flags
+    if (Array.isArray(stats.gmgn_flags) && stats.gmgn_flags.length > 0) {
+        const badFlag = stats.gmgn_flags.find(f => /honeypot|fake|blacklist|freeze|scam|rug/i.test(String(f)));
+        if (badFlag) {
+            return [false, [`❌ GMGN Security Flag: ${badFlag}`], 'rejected'];
+        }
     }
 
     // Fatal On-Chain Checks
@@ -233,15 +230,15 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const hasGoodViewers = Boolean(stats.has_good_viewers) || (isLive && liveViewers >= config.PUMPFUN_MIN_GOOD_VIEWERS);
 
     // Strict Anti-Rug Dynamic thresholds (blocks bubblemap clusters, spiderwebs & dev dumps)
-    const devLimit = hasGoodViewers ? 8.0 : 6.0;
-    const devInsiderLimit = hasGoodViewers ? 12.0 : 10.0;
-    const singleLimit = hasGoodViewers ? 8.0 : 6.0;
-    const top10Limit = hasGoodViewers ? 30.0 : 25.0;
-    const bundlerLimit = 5.0;
-    const sniperLimit = 6.0;
-    const clusterLimit = 5.0;
-    const spiderwebLimit = 8.0;
-    const minHolders = 10;
+    const devLimit = hasGoodViewers ? 10.0 : 8.0;
+    const devInsiderLimit = hasGoodViewers ? 14.0 : 12.0;
+    const singleLimit = hasGoodViewers ? 10.0 : 8.0;
+    const top10Limit = stage === 'Migrated' ? 38.0 : (hasGoodViewers ? 30.0 : 25.0);
+    const bundlerLimit = stage === 'Migrated' ? 10.0 : 6.0;
+    const sniperLimit = stage === 'Migrated' ? 10.0 : 7.0;
+    const clusterLimit = stage === 'Migrated' ? 10.0 : 7.0;
+    const spiderwebLimit = stage === 'Migrated' ? 14.0 : 10.0;
+    const minHolders = stage === 'Migrated' ? 15 : 10;
 
     // Gate A: Dev Launch History (Anti-Serial Rugger)
     if (stats.is_serial_rugger) {

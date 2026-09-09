@@ -168,10 +168,168 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .icon-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
+        .icon-btn.active {
+            color: #5288c1;
+            background: rgba(82, 136, 193, 0.2);
+        }
+
+        /* ─── App Body Layout ────────────────────────────────────────── */
+        .app-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: calc(100% - 56px);
+        }
+
+        /* ─── Persistent Real-Time Chart Drawer ──────────────────────── */
+        .chart-drawer {
+            display: none;
+            flex-direction: column;
+            width: 500px;
+            max-width: 100%;
+            background: var(--tg-surface);
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 95;
+            transition: width 0.2s ease;
+        }
+
+        .chart-drawer.open {
+            display: flex;
+        }
+
+        @media (max-width: 860px) {
+            .chart-drawer {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                z-index: 150;
+            }
+        }
+
+        .chart-drawer-header {
+            padding: 10px 14px;
+            background: var(--tg-header);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .chart-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-header-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            background: var(--tg-input-bg);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .chart-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--tg-text-secondary);
+            font-family: inherit;
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+
+        .chart-tab-btn.active {
+            background: var(--tg-primary);
+            color: #fff;
+        }
+
+        .chart-header-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-ca-bar {
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-ca-input {
+            flex: 1;
+            background: var(--tg-input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .chart-ca-input:focus {
+            border-color: var(--tg-primary);
+        }
+
+        .chart-quick-links {
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .chart-link-chip {
+            font-size: 11px;
+            color: #64b5f6;
+            text-decoration: none;
+            background: rgba(82, 136, 193, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .chart-link-chip:hover {
+            background: rgba(82, 136, 193, 0.3);
+            text-decoration: underline;
+        }
+
+        .chart-frame-container {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            position: relative;
+            background: #000;
+        }
+
+        .chart-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #090e15;
         }
 
         /* ─── Chat Viewport ──────────────────────────────────────────── */
@@ -182,6 +340,7 @@
             overflow: hidden;
             position: relative;
             background: #0e1621;
+            min-width: 0;
         }
 
         /* Telegram subtle pattern overlay */
@@ -619,6 +778,9 @@
         </div>
 
         <div class="header-actions">
+            <button class="icon-btn" id="btn-chart-toggle" title="Real-Time Chart & GMGN Kline">
+                <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+            </button>
             <button class="icon-btn" id="btn-clear" title="Clear Chat">
                 <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             </button>
@@ -628,54 +790,95 @@
         </div>
     </header>
 
-    <!-- Main Chat Workspace -->
-    <main>
-        <div class="chat-pattern"></div>
+    <div class="app-body">
+        <!-- Main Chat Workspace -->
+        <main id="chat-workspace">
+            <div class="chat-pattern"></div>
 
-        <!-- Live Auto-Redeploy Status Banner -->
-        <div id="redeploy-banner" style="display: none; background: rgba(27, 47, 71, 0.95); border-bottom: 1px solid rgba(82, 136, 193, 0.4); padding: 8px 16px; font-size: 12.5px; color: #90caf9; z-index: 50; flex-shrink: 0; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 14px;">🚀</span>
-                <span id="redeploy-banner-text">Auto-Redeploy Triggered...</span>
+            <!-- Live Auto-Redeploy Status Banner -->
+            <div id="redeploy-banner" style="display: none; background: rgba(27, 47, 71, 0.95); border-bottom: 1px solid rgba(82, 136, 193, 0.4); padding: 8px 16px; font-size: 12.5px; color: #90caf9; z-index: 50; flex-shrink: 0; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 14px;">🚀</span>
+                    <span id="redeploy-banner-text">Auto-Redeploy Triggered...</span>
+                </div>
+                <div class="typing-dots"><span></span><span></span><span></span></div>
             </div>
-            <div class="typing-dots"><span></span><span></span><span></span></div>
-        </div>
 
-        <div class="chat-scroll" id="chat-stream">
-            <div class="service-badge">DD Autonomous Bot Agent</div>
+            <div class="chat-scroll" id="chat-stream">
+                <div class="service-badge">DD Autonomous Bot Agent</div>
 
-            <!-- Welcome Message with Telegram Bot Inline Buttons -->
-            <div class="message-row assistant">
-                <div class="bubble assistant">
-                    <p>👋 <b>DD AI Copilot is live.</b></p>
-                    <p>I can adjust live bot parameters in real-time, inspect why tokens were called or rejected, or rewrite code and commit it directly to GitHub while you're away from your PC.</p>
-                    
-                    <div class="inline-keyboard">
-                        <button class="inline-btn" data-prompt="Show bot status, uptime, and memory">📊 Bot Status</button>
-                        <button class="inline-btn" data-prompt="Restart the caller bot now">🔄 Restart Bot</button>
-                        <button class="inline-btn" data-prompt="What are the current filter thresholds and market cap limits?">🛡️ Active Filters</button>
-                        <button class="inline-btn" data-prompt="Set MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Min MC $20k</button>
-                        <button class="inline-btn" data-prompt="Read config.js and summarize live settings">📁 View config.js</button>
-                        <button class="inline-btn" data-prompt="Audit recent scanned coins and tell me why they passed or failed">🔍 Audit Scans</button>
-                    </div>
+                <!-- Welcome Message with Telegram Bot Inline Buttons -->
+                <div class="message-row assistant">
+                    <div class="bubble assistant">
+                        <p>👋 <b>DD AI Copilot is live.</b></p>
+                        <p>I can adjust live bot parameters in real-time, inspect why tokens were called or rejected, or rewrite code and commit it directly to GitHub while you're away from your PC.</p>
+                        
+                        <div class="inline-keyboard">
+                            <button class="inline-btn" data-action="toggle-chart">📈 Live Chart</button>
+                            <button class="inline-btn" data-prompt="Show bot status, uptime, and memory">📊 Bot Status</button>
+                            <button class="inline-btn" data-prompt="Restart the caller bot now">🔄 Restart Bot</button>
+                            <button class="inline-btn" data-prompt="What are the current filter thresholds and market cap limits?">🛡️ Active Filters</button>
+                            <button class="inline-btn" data-prompt="Set MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Min MC $20k</button>
+                            <button class="inline-btn" data-prompt="Read config.js and summarize live settings">📁 View config.js</button>
+                            <button class="inline-btn" data-prompt="Audit recent scanned coins and tell me why they passed or failed">🔍 Audit Scans</button>
+                        </div>
 
-                    <div class="bubble-meta">
-                        <span id="init-time">12:00</span>
+                        <div class="bubble-meta">
+                            <span id="init-time">12:00</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Input Bar (Telegram Web Style) -->
-        <div class="input-bar">
-            <div class="input-wrapper">
-                <textarea id="chat-input" class="chat-input" placeholder="Message DD Copilot..." rows="1"></textarea>
+            <!-- Input Bar (Telegram Web Style) -->
+            <div class="input-bar">
+                <div class="input-wrapper">
+                    <textarea id="chat-input" class="chat-input" placeholder="Message DD Copilot..." rows="1"></textarea>
+                </div>
+                <button class="send-btn" id="btn-send" title="Send message">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
             </div>
-            <button class="send-btn" id="btn-send" title="Send message">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
+        </main>
+
+        <!-- Persistent Real-Time Chart Drawer -->
+        <div class="chart-drawer" id="chart-drawer">
+            <div class="chart-drawer-header">
+                <div class="chart-header-left">
+                    <span class="chart-header-title">
+                        <span>📈</span>
+                        <span id="chart-token-title">Solana Chart</span>
+                    </span>
+                    <div class="chart-tabs">
+                        <button class="chart-tab-btn active" id="tab-gmgn">GMGN Kline</button>
+                        <button class="chart-tab-btn" id="tab-dex">DexScreener</button>
+                    </div>
+                </div>
+                <div class="chart-header-right">
+                    <button class="icon-btn" id="btn-refresh-chart" title="Refresh Chart">
+                        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                    </button>
+                    <button class="icon-btn" id="btn-close-chart" title="Close Chart">✕</button>
+                </div>
+            </div>
+
+            <div class="chart-ca-bar">
+                <input type="text" id="input-chart-ca" class="chart-ca-input mono" placeholder="Paste Solana Token Mint CA..." />
+                <button class="btn-modal btn-primary" id="btn-apply-chart-ca" style="padding: 6px 14px; font-size: 12px;">Load</button>
+            </div>
+
+            <div class="chart-quick-links">
+                <a id="link-gmgn" href="#" target="_blank" class="chart-link-chip">GMGN.ai ↗</a>
+                <a id="link-dex" href="#" target="_blank" class="chart-link-chip">DexScreener ↗</a>
+                <a id="link-axiom" href="#" target="_blank" class="chart-link-chip">Axiom ↗</a>
+                <a id="link-pump" href="#" target="_blank" class="chart-link-chip">Pump.fun ↗</a>
+            </div>
+
+            <div class="chart-frame-container">
+                <iframe id="chart-frame" class="chart-iframe" allowfullscreen src="" loading="lazy"></iframe>
+            </div>
         </div>
-    </main>
+    </div>
 
     <!-- Settings Modal -->
     <div id="settings-modal">
@@ -918,10 +1121,123 @@
                 chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
             });
 
+            // ─── Persistent Real-Time Chart Engine ───────────────────────
+            const STORAGE_CA_KEY = 'dd_saved_chart_ca';
+            const STORAGE_PROVIDER_KEY = 'dd_saved_chart_provider';
+            const STORAGE_VISIBLE_KEY = 'dd_saved_chart_visible';
+
+            const btnChartToggle = document.getElementById('btn-chart-toggle');
+            const chartDrawer = document.getElementById('chart-drawer');
+            const btnCloseChart = document.getElementById('btn-close-chart');
+            const btnRefreshChart = document.getElementById('btn-refresh-chart');
+            const tabGmgn = document.getElementById('tab-gmgn');
+            const tabDex = document.getElementById('tab-dex');
+            const inputChartCa = document.getElementById('input-chart-ca');
+            const btnApplyChartCa = document.getElementById('btn-apply-chart-ca');
+            const chartFrame = document.getElementById('chart-frame');
+            const chartTokenTitle = document.getElementById('chart-token-title');
+
+            const linkGmgn = document.getElementById('link-gmgn');
+            const linkDex = document.getElementById('link-dex');
+            const linkAxiom = document.getElementById('link-axiom');
+            const linkPump = document.getElementById('link-pump');
+
+            let currentChartCa = localStorage.getItem(STORAGE_CA_KEY) || 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
+            let currentChartProvider = localStorage.getItem(STORAGE_PROVIDER_KEY) || 'gmgn';
+            let isChartOpen = localStorage.getItem(STORAGE_VISIBLE_KEY) === 'true';
+
+            function renderChart() {
+                if (!currentChartCa) return;
+                currentChartCa = currentChartCa.trim();
+                localStorage.setItem(STORAGE_CA_KEY, currentChartCa);
+                localStorage.setItem(STORAGE_PROVIDER_KEY, currentChartProvider);
+
+                inputChartCa.value = currentChartCa;
+                const shortCa = currentChartCa.length > 10 ? `${currentChartCa.slice(0, 4)}...${currentChartCa.slice(-4)}` : currentChartCa;
+                chartTokenTitle.innerText = `$${shortCa}`;
+
+                linkGmgn.href = `https://gmgn.ai/sol/token/${currentChartCa}`;
+                linkDex.href = `https://dexscreener.com/solana/${currentChartCa}`;
+                linkAxiom.href = `https://axiom.trade/pair/${currentChartCa}`;
+                linkPump.href = `https://pump.fun/${currentChartCa}`;
+
+                if (currentChartProvider === 'gmgn') {
+                    tabGmgn.classList.add('active');
+                    tabDex.classList.remove('active');
+                    chartFrame.src = `https://www.gmgn.cc/kline/sol/${currentChartCa}?theme=dark&interval=1`;
+                } else {
+                    tabDex.classList.add('active');
+                    tabGmgn.classList.remove('active');
+                    chartFrame.src = `https://dexscreener.com/solana/${currentChartCa}?embed=1&theme=dark&trades=0&info=0`;
+                }
+            }
+
+            function setChartVisible(visible) {
+                isChartOpen = Boolean(visible);
+                localStorage.setItem(STORAGE_VISIBLE_KEY, isChartOpen ? 'true' : 'false');
+                if (isChartOpen) {
+                    chartDrawer.classList.add('open');
+                    btnChartToggle.classList.add('active');
+                    if (!chartFrame.src || chartFrame.src === 'about:blank' || chartFrame.src.includes(window.location.host)) {
+                        renderChart();
+                    }
+                } else {
+                    chartDrawer.classList.remove('open');
+                    btnChartToggle.classList.remove('active');
+                }
+            }
+
+            btnChartToggle.addEventListener('click', () => setChartVisible(!isChartOpen));
+            btnCloseChart.addEventListener('click', () => setChartVisible(false));
+            btnRefreshChart.addEventListener('click', () => renderChart());
+
+            tabGmgn.addEventListener('click', () => {
+                currentChartProvider = 'gmgn';
+                renderChart();
+            });
+
+            tabDex.addEventListener('click', () => {
+                currentChartProvider = 'dex';
+                renderChart();
+            });
+
+            function applyNewChartCa(ca) {
+                if (!ca) return;
+                currentChartCa = ca.trim();
+                setChartVisible(true);
+                renderChart();
+            }
+
+            btnApplyChartCa.addEventListener('click', () => applyNewChartCa(inputChartCa.value));
+            inputChartCa.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') applyNewChartCa(inputChartCa.value);
+            });
+
+            // Initialize chart persistence on load / relaunch
+            if (isChartOpen) {
+                setChartVisible(true);
+            }
+            renderChart();
+
+            // Check if latest called coin exists to seed initial CA if none saved
+            fetch('/api/tokens').then(r => r.json()).then(tokens => {
+                if (Array.isArray(tokens) && tokens.length > 0) {
+                    if (!localStorage.getItem(STORAGE_CA_KEY) && tokens[0].mint) {
+                        currentChartCa = tokens[0].mint;
+                        renderChart();
+                    }
+                }
+            }).catch(() => {});
+
             // Inline buttons click delegation
             document.addEventListener('click', (e) => {
                 const btn = e.target.closest('.inline-btn');
                 if (btn) {
+                    const action = btn.getAttribute('data-action');
+                    if (action === 'toggle-chart') {
+                        setChartVisible(!isChartOpen);
+                        return;
+                    }
                     const prompt = btn.getAttribute('data-prompt');
                     if (prompt) sendMessage(prompt);
                 }

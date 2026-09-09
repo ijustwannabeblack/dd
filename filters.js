@@ -97,14 +97,12 @@ export function isInstantSpikeDumpRug(stats) {
     const buysM5 = Number(stats.buys_m5 || 0);
     const sellsM5 = Number(stats.sells_m5 || 0);
     const priceChg5m = Number(stats.price_change_m5 || 0);
-    const smartW = Number(stats.gmgn_smart_wallets || stats.smart_traders || 0);
-    const renownedW = Number(stats.gmgn_renowned_wallets || 0);
 
-    // Image 2 Pattern: Pumped to $45k-$120k MC, dev dumped (devPct <= 0),
-    // supply concentrated in clusters/bundlers, and sells matching/exceeding buys with barcode bleed
+    // Pumped to $40k-$130k MC, dev dumped (devPct <= 0),
+    // supply concentrated in clusters/bundlers, and heavy selloff
     if (mcUsd >= 40000 && mcUsd <= 130000) {
-        if (devPct <= 0.05 && (clusterPct > 8.0 || bundlersPct > 8.0) && sellsM5 >= buysM5 && smartW === 0 && renownedW === 0) {
-            return [true, `Instant Migration Dump & Bleed: Dev dumped (0% dev), ${clusterPct.toFixed(1)}% clusters, sell pressure ${sellsM5} sells vs ${buysM5} buys`];
+        if (devPct <= 0.05 && (clusterPct > 8.0 || bundlersPct > 8.0) && sellsM5 >= (buysM5 * 2)) {
+            return [true, `Instant Migration Dump & Bleed: Dev dumped (0% dev), ${clusterPct.toFixed(1)}% clusters, heavy sell pressure ${sellsM5} sells vs ${buysM5} buys`];
         }
         if (holders < 40 && top10Pct > 40.0) {
             return [true, `Artificial Migration Spike: Only ${holders} holders at $${Math.round(mcUsd / 1000)}k MC with ${top10Pct.toFixed(1)}% Top-10 concentration`];
@@ -124,7 +122,7 @@ export function isSybilClusterRug(stats) {
     const totalClusterRisk = clusterPct + bundlersPct + insidersPct;
     const suspPct = Number(stats.gmgn_suspicious_pct || 0);
 
-    // Image 1 Pattern: 2 interconnected distributor nodes funding dozens of child wallets
+    // Interconnected distributor nodes funding dozens of child wallets
     if (clusterPct >= 14.0 && bundlersPct >= 12.0) {
         return [true, `Connected Sybil Hub Network: InsightX shows ${clusterPct.toFixed(1)}% cluster + ${bundlersPct.toFixed(1)}% bundlers (Interconnected distributor nodes)`];
     }
@@ -161,6 +159,30 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     }
     if (!symbol || ['?', 'None', ''].includes(symbol)) {
         symbol = name ? name.slice(0, 6).toUpperCase() : 'TOKEN';
+    }
+
+    // Fatal On-Chain Checks (Freeze authority / Infinite mint)
+    if (stats.is_honeypot) {
+        return [false, ['❌ Honeypot / Freeze Authority is active (Buyers cannot sell)'], 'rejected'];
+    }
+    if (stats.is_mintable) {
+        return [false, ['❌ Mintable supply risk (Dev can print infinite tokens)'], 'rejected'];
+    }
+
+    // Min MC Check ($20k+ as requested by user, no upper ceiling)
+    const minCallMc = config.MIN_CALL_MC_USD || 20000;
+    if (mcUsd < minCallMc) {
+        return [false, [`❌ Market Cap below $20k threshold ($${Math.round(mcUsd).toLocaleString()} < $${Math.round(minCallMc).toLocaleString()})`], 'rejected'];
+    }
+
+    // USER REQUIREMENT: "use no filters for migrated and fix it dosent call anything"
+    // For Migrated tokens, if MC >= 20k and not honeypot/mintable, allow immediately without restrictions!
+    if (stage === 'Migrated') {
+        const label = '🚀 Raydium Migration';
+        reasons.push(
+            `✅ ${label}: $${symbol} | MC $${Math.round(mcUsd).toLocaleString()} | ${holders} holders | Dev ${devPct}% | Top10 ${top10Pct}%`
+        );
+        return [true, reasons, 'confirmed'];
     }
 
     // Slop Detection Gate
@@ -221,12 +243,6 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const spiderwebLimit = 8.0;
     const minHolders = 10;
 
-    // Gate 0: Min MC Check ($20k+ as requested by user, no upper ceiling)
-    const minCallMc = config.MIN_CALL_MC_USD || 20000;
-    if (mcUsd < minCallMc) {
-        return [false, [`❌ Market Cap below $20k threshold ($${Math.round(mcUsd).toLocaleString()} < $${Math.round(minCallMc).toLocaleString()})`], 'rejected'];
-    }
-
     // Gate A: Dev Launch History (Anti-Serial Rugger)
     if (stats.is_serial_rugger) {
         return [false, [`❌ Serial Rugger Dev: Dev launched ${stats.dev_created_count || 0} tokens with 0 migrations`], 'rejected'];
@@ -268,8 +284,6 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const buysM5 = Number(stats.buys_m5 || 0);
     const sellsM5 = Number(stats.sells_m5 || 0);
     const volM5 = Number(stats.volume_m5 || 0);
-    const smartW = Number(stats.gmgn_smart_wallets || stats.smart_traders || 0);
-    const renownedW = Number(stats.gmgn_renowned_wallets || 0);
 
     if (priceChg5m < -18.0) {
         return [false, [`❌ Active Selloff / Dump: 5m price change ${priceChg5m.toFixed(1)}%`], 'rejected'];
@@ -279,14 +293,13 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     }
 
     if (stage === 'New Pair') {
-        if (priceChg5m < 0 && smartW === 0 && renownedW === 0 && !hasGoodViewers) {
-            return [false, [`❌ Negative Momentum on New Pair: 5m change ${priceChg5m > 0 ? '+' : ''}${priceChg5m.toFixed(1)}% with no KOL/Smart Money`], 'rejected'];
+        if (priceChg5m < -10.0 && !hasGoodViewers) {
+            return [false, [`❌ Negative Momentum on New Pair: 5m change ${priceChg5m > 0 ? '+' : ''}${priceChg5m.toFixed(1)}%`], 'rejected'];
         }
     }
 
     const isMovingUp = (priceChg5m >= 0) ||
         (buysM5 > sellsM5 && volM5 >= 150) ||
-        (smartW >= 1 || renownedW >= 1) ||
         hasGoodViewers ||
         (['Migrated', 'Pons', 'Robinhood'].includes(stage) && priceChg5m >= -8.0);
 

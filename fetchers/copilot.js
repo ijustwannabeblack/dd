@@ -371,11 +371,30 @@ CRITICAL RULES:
                 continue;
             }
 
-            // Safety guard: never overwrite file if content contains placeholder text
+            // Safety guard: never overwrite file if content contains placeholder text or is a snippet
             if (fileContent.includes('<EXISTING CONTENT') || fileContent.includes('<REST OF') || fileContent.includes('// ... rest') || fileContent.length < 50) {
                 console.warn(`[Copilot] Aborting edit for ${targetPath}: detected placeholder text`);
                 actions.push(`Skipped edit for ${targetPath} (contained placeholder instead of complete code)`);
                 continue;
+            }
+
+            // Safety guard: bot.js must be a complete file with imports & client.login, not a random snippet
+            if (targetPath.endsWith('bot.js')) {
+                if (fileContent.length < 30000 || !fileContent.includes('import { Client') || !fileContent.includes('client.login')) {
+                    console.warn(`[Copilot] Aborting edit for ${targetPath}: detected partial snippet instead of full file`);
+                    actions.push(`Skipped edit for ${targetPath}: partial snippets are not allowed. bot.js requires full file content.`);
+                    continue;
+                }
+            }
+
+            // Safety guard: prevent severe truncation (new file cannot be < 35% of existing file)
+            if (fs.existsSync(absPath)) {
+                const existingSize = fs.statSync(absPath).size;
+                if (existingSize > 1000 && fileContent.length < existingSize * 0.35) {
+                    console.warn(`[Copilot] Aborting edit for ${targetPath}: attempted truncation (${fileContent.length} vs ${existingSize} bytes)`);
+                    actions.push(`Skipped edit for ${targetPath}: attempted truncation from ${existingSize} to ${fileContent.length} bytes.`);
+                    continue;
+                }
             }
 
             // Write to local disk safely

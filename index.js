@@ -169,7 +169,10 @@ export function restartBot() {
     if (botChild) {
         try {
             botChild.removeAllListeners('exit');
-            botChild.kill('SIGTERM');
+            botChild.kill('SIGKILL');
+            if (botChild.pid) {
+                try { process.kill(botChild.pid, 'SIGKILL'); } catch {}
+            }
         } catch (e) {
             console.warn('[Bot Controller] Kill error:', e.message);
         }
@@ -177,7 +180,7 @@ export function restartBot() {
     }
     setTimeout(() => {
         spawnBotChild();
-    }, 500);
+    }, 1000);
     return true;
 }
 
@@ -187,7 +190,7 @@ function spawnBotChild() {
     if (process.env.__MEM_CONSTRAINED === '1') return;
     const botPath = path.resolve(process.cwd(), 'bot.js');
     console.log('[Bot Controller] Spawning bot child process...');
-    botChild = spawn(process.execPath, ['--max-old-space-size=128', botPath, ...process.argv.slice(2)], {
+    botChild = spawn(process.execPath, ['--max-old-space-size=384', botPath, ...process.argv.slice(2)], {
         stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
         env: {
             ...process.env,

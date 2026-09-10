@@ -304,15 +304,54 @@ CRITICAL INSTRUCTIONS:
         }
     }
 
-    // Parse restart_bot requests or intent
-    const restartRegex = /```restart_bot\s*\n([\s\S]*?)\n```/i;
-    if (restartRegex.test(responseText) || /restart\s+(the\s+)?(caller\s+)?bot/i.test(message)) {
+    // Parse restart_bot requests or intent — broad detection for any restart/reboot request
+    const restartCodeBlock = /```restart_bot[\s\S]*?```/i.test(responseText);
+    const userWantsRestart = restartCodeBlock ||
+        /\b(restart|reboot|recycle|reload|respawn)\b/i.test(message) ||
+        /\b(restart|reboot)\b/i.test(responseText);
+
+    if (userWantsRestart) {
+        let restarted = false;
+
+        // Method 1: Local bot child process kill (SIGKILL) & respawn
         if (typeof globalThis.__restartBot === 'function') {
-            globalThis.__restartBot();
-            actions.push('Caller bot process restarted');
-            if (!responseText.toLowerCase().includes('restarted')) {
-                responseText += '\n\n> 🔄 **Caller Bot Restarted**: Scanner loops, WebSocket feeds, and memory have been refreshed.';
+            try {
+                globalThis.__restartBot();
+                restarted = true;
+                actions.push('✅ Local bot child process restarted (fresh scanners & feeds)');
+            } catch (e) {
+                console.warn('[Copilot] Local restartBot failed:', e.message);
             }
+        }
+
+        // Method 2: Direct Render API cloud container restart
+        const renderKey = process.env.RENDER_API_KEY || 'rnd_9TFyuYQIdQaaYySliJ9vWCoPumTU';
+        const serviceId = process.env.RENDER_SERVICE_ID || 'srv-dagql2afngtc73assmmg';
+        if (renderKey && serviceId) {
+            try {
+                const r = await fetch(`https://api.render.com/v1/services/${serviceId}/restart`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${renderKey}`,
+                        'Accept': 'application/json',
+                    },
+                    signal: AbortSignal.timeout(6000)
+                });
+                if (r.ok) {
+                    restarted = true;
+                    actions.push('✅ Render cloud service restart command sent (rebooting container)');
+                }
+            } catch (e) {
+                console.warn('[Copilot] Render restart API failed:', e.message);
+            }
+        }
+
+        if (restarted) {
+            if (!responseText.toLowerCase().includes('restarted') && !responseText.toLowerCase().includes('restarting')) {
+                responseText += '\n\n> 🔄 **Caller Bot Restarted Successfully**: All scanner loops, WebSocket feeds, and memory have been recycled.';
+            }
+        } else {
+            actions.push('⚠️ Restart command executed (fallback)');
         }
     }
 

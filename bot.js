@@ -263,7 +263,7 @@ function buildMigratedEmbed(stats) {
 
     const liveTag = stats.is_live ? ` • **LIVE** (${stats.live_viewers || 0} viewers)` : '';
     const networkBadge = stats.network_badge || 'Solana @ Pump.fun';
-    const headerBadge = `\`${networkBadge}\`${liveTag}`;
+    const headerBadge = `${networkBadge}${liveTag}`;
 
     const embed = new EmbedBuilder()
         .setTitle(titleText)

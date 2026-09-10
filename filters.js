@@ -230,15 +230,15 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const hasGoodViewers = Boolean(stats.has_good_viewers) || (isLive && liveViewers >= config.PUMPFUN_MIN_GOOD_VIEWERS);
 
     // Strict Anti-Rug Dynamic thresholds (blocks bubblemap clusters, spiderwebs & dev dumps)
-    const devLimit = hasGoodViewers ? 10.0 : 8.0;
-    const devInsiderLimit = hasGoodViewers ? 14.0 : 12.0;
-    const singleLimit = hasGoodViewers ? 10.0 : 8.0;
-    const top10Limit = stage === 'Migrated' ? 38.0 : (hasGoodViewers ? 30.0 : 25.0);
-    const bundlerLimit = stage === 'Migrated' ? 10.0 : 6.0;
-    const sniperLimit = stage === 'Migrated' ? 10.0 : 7.0;
-    const clusterLimit = stage === 'Migrated' ? 10.0 : 7.0;
-    const spiderwebLimit = stage === 'Migrated' ? 14.0 : 10.0;
-    const minHolders = stage === 'Migrated' ? 15 : 10;
+    const devLimit = hasGoodViewers ? 6.0 : 4.0;
+    const devInsiderLimit = hasGoodViewers ? 10.0 : 7.0;
+    const singleLimit = hasGoodViewers ? 6.0 : 4.0;
+    const top10Limit = stage === 'Migrated' ? 28.0 : (hasGoodViewers ? 22.0 : 18.0);
+    const bundlerLimit = stage === 'Migrated' ? 4.0 : 2.0;
+    const sniperLimit = stage === 'Migrated' ? 6.0 : 4.0;
+    const clusterLimit = stage === 'Migrated' ? 5.0 : 3.0;
+    const spiderwebLimit = stage === 'Migrated' ? 8.0 : 5.0;
+    const minHolders = stage === 'Migrated' ? 25 : 18;
 
     // Gate A: Dev Launch History (Anti-Serial Rugger)
     if (stats.is_serial_rugger) {
@@ -282,15 +282,15 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const sellsM5 = Number(stats.sells_m5 || 0);
     const volM5 = Number(stats.volume_m5 || 0);
 
-    if (priceChg5m < -18.0) {
+    if (priceChg5m < -10.0) {
         return [false, [`❌ Active Selloff / Dump: 5m price change ${priceChg5m.toFixed(1)}%`], 'rejected'];
     }
-    if ((buysM5 + sellsM5) >= 10 && sellsM5 > (buysM5 * 2.5)) {
+    if ((buysM5 + sellsM5) >= 8 && sellsM5 > (buysM5 * 1.8)) {
         return [false, [`❌ Heavy Sell Pressure: ${sellsM5} sells vs ${buysM5} buys in 5m`], 'rejected'];
     }
 
     if (stage === 'New Pair') {
-        if (priceChg5m < -10.0 && !hasGoodViewers) {
+        if (priceChg5m < -5.0 && !hasGoodViewers) {
             return [false, [`❌ Negative Momentum on New Pair: 5m change ${priceChg5m > 0 ? '+' : ''}${priceChg5m.toFixed(1)}%`], 'rejected'];
         }
     }
@@ -298,7 +298,7 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const isMovingUp = (priceChg5m >= 0) ||
         (buysM5 > sellsM5 && volM5 >= 150) ||
         hasGoodViewers ||
-        (['Migrated', 'Pons', 'Robinhood'].includes(stage) && priceChg5m >= -8.0);
+        (['Migrated', 'Pons', 'Robinhood'].includes(stage) && priceChg5m >= -5.0);
 
     if (!isMovingUp) {
         return [false, [`❌ Stagnant / Flat Coin: 5m Change ${priceChg5m.toFixed(1)}%, Vol $${Math.round(volM5)} (No clear upward trend)`], 'rejected'];
@@ -319,20 +319,20 @@ export function evaluateCoin(stats, stage = 'New Pair') {
 
     // GMGN Checks
     const gmgnRat = Number(stats.gmgn_rat_pct || 0);
-    if (gmgnRat > 2.0) {
-        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 2.0%)`], 'rejected'];
+    if (gmgnRat > 1.0) {
+        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 1.0%)`], 'rejected'];
     }
     const gmgnBundler = Number(stats.gmgn_bundler_pct || 0);
-    if (gmgnBundler > 5.0) {
-        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 5.0%)`], 'rejected'];
+    if (gmgnBundler > 3.0) {
+        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 3.0%)`], 'rejected'];
     }
     const gmgnSusp = Number(stats.gmgn_suspicious_pct || 0);
-    if (gmgnSusp > 3.0) {
-        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max 3.0%)`], 'rejected'];
+    if (gmgnSusp > 2.0) {
+        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max 2.0%)`], 'rejected'];
     }
     const gmgnDevTeam = Number(stats.gmgn_dev_team_hold_rate || 0);
-    if (gmgnDevTeam > 5.0) {
-        return [false, [`❌ GMGN Dev Team Holdings: ${gmgnDevTeam.toFixed(1)}% held by dev team (max 5.0%)`], 'rejected'];
+    if (gmgnDevTeam > 3.0) {
+        return [false, [`❌ GMGN Dev Team Holdings: ${gmgnDevTeam.toFixed(1)}% held by dev team (max 3.0%)`], 'rejected'];
     }
 
     // Stage label

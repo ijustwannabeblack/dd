@@ -423,10 +423,15 @@ async function processCoin(stage, coin, retryCount = 0) {
 
     // Market cap range check: User requirement -> Must be $20k or up, no upper cap ceiling
     if (!config.IGNORE_MARKET_CAP) {
-        const minMc = config.MIN_CALL_MC_USD || 20000.0;
         const mcVal = Number(stats.market_cap_usd || 0);
-        if (mcVal < minMc) {
-            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} below $20k threshold`);
+        const stageMcMin = stage === 'New Pair'      ? 5_000
+                         : stage === 'Final Stretch' ? 40_000
+                         : stage === 'Migrated'      ? 15_000
+                         : 15_000;
+        const stageMcMax = stage === 'New Pair' ? 9_000 : Infinity;
+
+        if (mcVal < stageMcMin) {
+            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} below $${(stageMcMin/1000).toFixed(0)}k min`);
             broadcastFeedEvent({
                 mint,
                 symbol: stats.symbol || coin.symbol || 'TOKEN',
@@ -438,9 +443,13 @@ async function processCoin(stage, coin, retryCount = 0) {
                 top10_pct: Number(stats.top10_pct || 0),
                 bundlers_pct: Number(stats.bundlers_pct || 0),
                 rugcheck_score: stats.rugcheck_score || 'High Risk',
-                reason: `MC $${mcVal.toLocaleString()} below $20k threshold`,
+                reason: `MC $${mcVal.toLocaleString()} below $${(stageMcMin/1000).toFixed(0)}k min for ${stage}`,
                 source: coin.source || stage
             });
+            return;
+        }
+        if (mcVal > stageMcMax) {
+            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} above $${(stageMcMax/1000).toFixed(0)}k max`);
             return;
         }
     }

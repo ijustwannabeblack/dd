@@ -229,54 +229,50 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const liveViewers = Number(stats.live_viewers || 0);
     const hasGoodViewers = Boolean(stats.has_good_viewers) || (isLive && liveViewers >= config.PUMPFUN_MIN_GOOD_VIEWERS);
 
-    // ── Stage-specific thresholds ────────────────────────────────────────────
-    // NEW PAIR: Ultra-strict — only the most organic, clean coins pass
-    // MIGRATED: Runner-optimized — LP burned, proven demand, allow more distribution
-    // FINAL STRETCH: Balanced — about to migrate, mid-level strictness
+    // ── Stage-specific thresholds (user-defined) ──────────────────────────────
     let devLimit, devInsiderLimit, singleLimit, top10Limit,
         bundlerLimit, sniperLimit, clusterLimit, spiderwebLimit, minHolders;
 
     if (stage === 'New Pair') {
-        devLimit        = hasGoodViewers ? 4.0  : 2.5;
-        devInsiderLimit = hasGoodViewers ? 7.0  : 5.0;
-        singleLimit     = hasGoodViewers ? 4.0  : 2.5;
-        top10Limit      = hasGoodViewers ? 16.0 : 12.0;
-        bundlerLimit    = 1.5;   // near-zero tolerance — bundled new pairs are always rugs
-        sniperLimit     = 3.0;
-        clusterLimit    = 2.0;
-        spiderwebLimit  = 4.0;
-        minHolders      = 30;    // need a real community before calling
+        devLimit        = 10.0;
+        devInsiderLimit = 14.0;
+        singleLimit     = 8.0;
+        top10Limit      = 30.0;
+        bundlerLimit    = 5.0;
+        sniperLimit     = 8.0;
+        clusterLimit    = 5.0;
+        spiderwebLimit  = 10.0;
+        minHolders      = 12;
     } else if (stage === 'Final Stretch') {
-        devLimit        = hasGoodViewers ? 5.0  : 3.5;
-        devInsiderLimit = hasGoodViewers ? 8.0  : 6.0;
-        singleLimit     = hasGoodViewers ? 5.0  : 3.5;
-        top10Limit      = hasGoodViewers ? 20.0 : 16.0;
-        bundlerLimit    = 2.0;
-        sniperLimit     = 4.0;
-        clusterLimit    = 3.0;
-        spiderwebLimit  = 5.0;
-        minHolders      = 22;
+        devLimit        = 10.0;
+        devInsiderLimit = 14.0;
+        singleLimit     = 8.0;
+        top10Limit      = 35.0;
+        bundlerLimit    = 5.0;
+        sniperLimit     = 8.0;
+        clusterLimit    = 5.0;
+        spiderwebLimit  = 10.0;
+        minHolders      = 90;
     } else if (stage === 'Migrated') {
-        devLimit        = hasGoodViewers ? 6.0  : 5.0;
-        devInsiderLimit = hasGoodViewers ? 10.0 : 8.0;
-        singleLimit     = 5.0;
-        top10Limit      = 30.0;  // migration naturally concentrates early buyers
-        bundlerLimit    = 3.0;
-        sniperLimit     = 8.0;   // snipers common at migration, allow slightly more
-        clusterLimit    = 4.0;
-        spiderwebLimit  = 8.0;
-        minHolders      = 20;
+        devLimit        = 10.0;
+        devInsiderLimit = 14.0;
+        singleLimit     = 8.0;
+        top10Limit      = 40.0;
+        bundlerLimit    = 5.0;
+        sniperLimit     = 10.0;
+        clusterLimit    = 5.0;
+        spiderwebLimit  = 12.0;
+        minHolders      = 200;
     } else {
-        // Pons, Robinhood, etc.
-        devLimit        = hasGoodViewers ? 6.0  : 4.0;
-        devInsiderLimit = hasGoodViewers ? 10.0 : 7.0;
-        singleLimit     = 5.0;
-        top10Limit      = 28.0;
-        bundlerLimit    = 3.0;
-        sniperLimit     = 5.0;
-        clusterLimit    = 3.0;
-        spiderwebLimit  = 6.0;
-        minHolders      = 15;
+        devLimit        = 10.0;
+        devInsiderLimit = 14.0;
+        singleLimit     = 8.0;
+        top10Limit      = 35.0;
+        bundlerLimit    = 5.0;
+        sniperLimit     = 8.0;
+        clusterLimit    = 5.0;
+        spiderwebLimit  = 10.0;
+        minHolders      = 50;
     }
 
     // Gate A: Dev Launch History (Anti-Serial Rugger)
@@ -344,30 +340,20 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     }
 
 
-    // ── Stage Quality Gates ──────────────────────────────────────────────────
+    // ── Stage Volume & Liquidity Gates (user-defined) ────────────────────────
     if (stage === 'New Pair') {
-        // New Pairs must show REAL organic buying activity
-        if (!hasGoodViewers) {
-            if (buysM5 < sellsM5) {
-                return [false, [`❌ New Pair: Sell dominant (${sellsM5} sells vs ${buysM5} buys) — not a runner`], 'rejected'];
-            }
-            if (volM5 < 500) {
-                return [false, [`❌ New Pair: Insufficient activity — only $${Math.round(volM5)} volume in 5m (min $500)`], 'rejected'];
-            }
-            if (liqUsd > 0 && liqUsd < 2000) {
-                return [false, [`❌ New Pair: Too illiquid — $${Math.round(liqUsd).toLocaleString()} liquidity (min $2k)`], 'rejected'];
-            }
+        const totalVol = Math.max(volM5, Number(stats.volume_h1 || 0));
+        if (totalVol < 4400 && !hasGoodViewers) {
+            return [false, [`❌ New Pair: Volume too low — $${Math.round(totalVol).toLocaleString()} (min $4,400)`], 'rejected'];
         }
-    } else if (stage === 'Migrated') {
-        // Migrated must have real post-migration volume and liquidity
+    } else if (stage === 'Final Stretch') {
         const volH1 = Number(stats.volume_h1 || 0);
-        if (liqUsd > 0 && liqUsd < 5000) {
-            return [false, [`❌ Migrated: Low liquidity pool — $${Math.round(liqUsd).toLocaleString()} (min $5k)`], 'rejected'];
-        }
-        if (volH1 > 0 && volH1 < 1000 && volM5 < 300) {
-            return [false, [`❌ Migrated: Dead volume — $${Math.round(volH1).toLocaleString()} 1H vol, $${Math.round(volM5)} 5m vol`], 'rejected'];
+        const totalVol = Math.max(volM5, volH1);
+        if (totalVol < 24000 && !hasGoodViewers) {
+            return [false, [`❌ Final Stretch: Volume too low — $${Math.round(totalVol).toLocaleString()} (min $24,000)`], 'rejected'];
         }
     }
+    // Migrated: no volume limit
 
     // Gate J: InsightX Cluster & Spiderweb Evaluation
     if (stats.is_sybil_cluster) {

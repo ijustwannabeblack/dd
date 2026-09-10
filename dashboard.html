@@ -50,6 +50,22 @@
             font-variant-numeric: tabular-nums;
         }
 
+        /* ─── Telegram Sleek Scrollbar ───────────────────────────────── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
         /* ─── Telegram Header Bar ────────────────────────────────────── */
         header {
             background: var(--tg-header);
@@ -940,9 +956,9 @@
                     <span class="verified-badge">✓</span>
                 </div>
                 <div class="profile-status">
-                    <span class="status-online">bot • online</span>
+                    <span class="status-online">bot</span>
                     <span>•</span>
-                    <span id="header-uptime">active</span>
+                    <span id="header-uptime">online</span>
                 </div>
             </div>
         </div>
@@ -978,22 +994,19 @@
             </div>
 
             <div class="chat-scroll" id="chat-stream">
-                <div class="service-badge">Larpifyy Autonomous Copilot</div>
+                <div class="service-badge">Today</div>
 
-                <!-- Welcome Message with Telegram Bot Inline Buttons -->
+                <!-- Clean Telegram Bot Greeting -->
                 <div class="message-row assistant">
                     <div class="bubble assistant">
-                        <p>👋 <b>Larpifyy is live.</b></p>
-                        <p>I can inspect tokens and charts, analyze attached images or screenshots, adjust live bot parameters in real-time, or rewrite code and commit it directly to GitHub while you're away from your PC.</p>
+                        <p><b>Larpifyy Solana Terminal</b></p>
+                        <p>• Status: <code>online</code><br>• Scanners: <code>new_pairs</code>, <code>final_stretch</code>, <code>migrated</code><br>• Anti-rug: <code>strict filters active</code></p>
                         
                         <div class="inline-keyboard">
-                            <button class="inline-btn" data-action="toggle-chart">📈 Live Chart</button>
-                            <button class="inline-btn" data-prompt="Show bot status, uptime, and memory">📊 Bot Status</button>
-                            <button class="inline-btn" data-prompt="Restart the caller bot now">🔄 Restart Bot</button>
-                            <button class="inline-btn" data-prompt="What are the current filter thresholds and market cap limits?">🛡️ Active Filters</button>
-                            <button class="inline-btn" data-prompt="Set MIN_CALL_MC_USD to 20000 in config.js and push to GitHub">⚡ Min MC $20k</button>
-                            <button class="inline-btn" data-prompt="Read config.js and summarize live settings">📁 View config.js</button>
-                            <button class="inline-btn" data-prompt="Audit recent scanned coins and tell me why they passed or failed">🔍 Audit Scans</button>
+                            <button class="inline-btn" data-action="toggle-chart">📈 Chart</button>
+                            <button class="inline-btn" data-prompt="status">⚡ Status</button>
+                            <button class="inline-btn" data-prompt="show active filters">🛡️ Filters</button>
+                            <button class="inline-btn" data-prompt="restart bot">🔄 Restart</button>
                         </div>
 
                         <div class="bubble-meta">
@@ -1021,7 +1034,7 @@
                 <input type="file" id="file-input" accept="image/*" style="display: none;" />
 
                 <div class="input-wrapper">
-                    <textarea id="chat-input" class="chat-input" placeholder="Message Larpifyy..." rows="1"></textarea>
+                    <textarea id="chat-input" class="chat-input" placeholder="Write a message..." rows="1"></textarea>
                 </div>
                 <button class="send-btn" id="btn-send" title="Send message">
                     <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>

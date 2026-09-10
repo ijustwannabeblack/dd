@@ -421,17 +421,15 @@ async function processCoin(stage, coin, retryCount = 0) {
         }
     }
 
-    // Market cap range check: User requirement -> Must be $20k or up, no upper cap ceiling
+    // Market cap check: $20k or up ALWAYS works if coin is good (no upper ceiling)!
     if (!config.IGNORE_MARKET_CAP) {
         const mcVal = Number(stats.market_cap_usd || 0);
-        const stageMcMin = stage === 'New Pair'      ? 5_000
-                         : stage === 'Final Stretch' ? 40_000
-                         : stage === 'Migrated'      ? 15_000
-                         : 15_000;
-        const stageMcMax = stage === 'New Pair' ? 9_000 : Infinity;
+        const isRunnerMc = mcVal >= 20_000;
+        const isEarlyNewPair = stage === 'New Pair' && mcVal >= 5_000 && mcVal <= 9_000;
+        const isMigratedFloor = stage === 'Migrated' && mcVal >= 15_000;
 
-        if (mcVal < stageMcMin) {
-            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} below $${(stageMcMin/1000).toFixed(0)}k min`);
+        if (!isRunnerMc && !isEarlyNewPair && !isMigratedFloor) {
+            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} outside target range ($20k+ runner or $5k-$9k early)`);
             broadcastFeedEvent({
                 mint,
                 symbol: stats.symbol || coin.symbol || 'TOKEN',
@@ -443,13 +441,9 @@ async function processCoin(stage, coin, retryCount = 0) {
                 top10_pct: Number(stats.top10_pct || 0),
                 bundlers_pct: Number(stats.bundlers_pct || 0),
                 rugcheck_score: stats.rugcheck_score || 'High Risk',
-                reason: `MC $${mcVal.toLocaleString()} below $${(stageMcMin/1000).toFixed(0)}k min for ${stage}`,
+                reason: `MC $${mcVal.toLocaleString()} outside target range ($20k+ runner or $5k-$9k early)`,
                 source: coin.source || stage
             });
-            return;
-        }
-        if (mcVal > stageMcMax) {
-            console.log(`[${stage}] ${stats.symbol} (${mint}) dropped: MC $${mcVal.toLocaleString()} above $${(stageMcMax/1000).toFixed(0)}k max`);
             return;
         }
     }

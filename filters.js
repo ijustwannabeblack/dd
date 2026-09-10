@@ -169,10 +169,13 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, ['❌ Mintable supply risk (Dev can print infinite tokens)'], 'rejected'];
     }
 
-    // Min MC Check ($20k+ as requested by user, no upper ceiling)
-    const minCallMc = config.MIN_CALL_MC_USD || 20000;
-    if (mcUsd < minCallMc) {
-        return [false, [`❌ Market Cap below $20k threshold ($${Math.round(mcUsd).toLocaleString()} < $${Math.round(minCallMc).toLocaleString()})`], 'rejected'];
+    // Market Cap Check: $20k+ works across ALL stages if good; New Pair early entry $5k-$9k; Migrated $15k+
+    const isRunnerMc = mcUsd >= 20000;
+    const isEarlyNewPair = stage === 'New Pair' && mcUsd >= 5000 && mcUsd <= 9000;
+    const isMigratedFloor = stage === 'Migrated' && mcUsd >= 15000;
+
+    if (!isRunnerMc && !isEarlyNewPair && !isMigratedFloor) {
+        return [false, [`❌ Market Cap $${Math.round(mcUsd).toLocaleString()} outside target range (allowed: $20k+ runner or stage entry)`], 'rejected'];
     }
 
     // GMGN Direct Security Alert

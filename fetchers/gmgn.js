@@ -58,19 +58,18 @@ async function execGmgn(args, timeout = 15000, _isRetry = false, priority = fals
     return enqueueGmgn(() => _execGmgnRaw(args, timeout, _isRetry, false));
 }
 
+export function isGmgnRateLimited() {
+    return _gmgnRateLimitUntil > Date.now();
+}
+
 async function _execGmgnRaw(args, timeout = 15000, _isRetry = false, priority = false) {
     // Check active IP ban
     const banWait = _gmgnRateLimitUntil - Date.now();
     if (banWait > 0) {
-        if (!_gmgnRateLimitLogged) {
-            console.warn(`[GMGN] ⚠️ Rate-limited — cooling down for ${Math.ceil(banWait / 1000)}s (calls will resume automatically)`);
-            _gmgnRateLimitLogged = true;
-        }
-        // If banned, background calls skip GMGN so bot stays lightning fast
+        // Silently skip background calls during cooldown so bot stays lightning fast
         if (!priority) return null;
         if (banWait > 5000) return null;
         await new Promise(r => setTimeout(r, banWait + 500));
-        _gmgnRateLimitLogged = false;
     }
 
     // Minimum gap between consecutive calls
@@ -96,8 +95,11 @@ async function _execGmgnRaw(args, timeout = 15000, _isRetry = false, priority = 
         if (combined.includes('RATE_LIMIT_BANNED') || combined.includes('429')) {
             const secMatch = combined.match(/~(\d+)s remaining/);
             const banSecs = secMatch ? parseInt(secMatch[1], 10) + 5 : 65;
+            const wasLimited = _gmgnRateLimitUntil > Date.now();
             _gmgnRateLimitUntil = Date.now() + banSecs * 1000;
-            console.warn(`[GMGN] ⚠️ IP ban detected — cooling down for ${banSecs}s`);
+            if (!wasLimited) {
+                console.warn(`[GMGN] ⚠️ Rate limit active — cooling down for ${banSecs}s (fallback data active)`);
+            }
             return null;
         }
 

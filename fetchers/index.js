@@ -24,6 +24,7 @@ import {
     getGmgnNearCompletionTokens,
     getGmgnSmartMoneyExitSignals,
     getGmgnKolBoughtNewTokens,
+    isGmgnRateLimited,
 } from './gmgn.js';
 import { callAimlapi, aiEvaluateToken } from './aimlapi.js';
 import { getTwitterUserInfo, getTwitterUserTweets, searchTwitter, getHotCryptoNews } from './open6551.js';
@@ -189,10 +190,10 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
         getDexscreenerData(mint).catch(() => null),
         getRugcheckReport(mint).catch(() => null),
         getPumpfunLivestreamInfo(mint).catch(() => null),
-        getGmgnTokenInfo(mint, 'sol', priority).catch(() => ({})),
-        getGmgnTokenSecurity(mint, 'sol', priority).catch(() => ({})),
-        getGmgnTopHolders(mint, 'sol', priority).catch(() => ({})),
-        getGmgnTokenPool(mint, 'sol', priority).catch(() => ({})),
+        (!isGmgnRateLimited() || priority) ? getGmgnTokenInfo(mint, 'sol', priority).catch(() => ({})) : Promise.resolve({}),
+        (!isGmgnRateLimited() || priority) ? getGmgnTokenSecurity(mint, 'sol', priority).catch(() => ({})) : Promise.resolve({}),
+        (!isGmgnRateLimited() || priority) ? getGmgnTopHolders(mint, 'sol', priority).catch(() => ({})) : Promise.resolve({}),
+        (!isGmgnRateLimited() || priority) ? getGmgnTokenPool(mint, 'sol', priority).catch(() => ({})) : Promise.resolve({}),
         getInsightxMetrics(mint).catch(() => ({})),
     ]);
 

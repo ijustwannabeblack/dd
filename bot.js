@@ -1023,11 +1023,11 @@ client.once('clientReady', async () => {
     console.log(`🤖 Logged in as ${client.user.tag}`);
     try {
         if (client.user.username !== 'Larpifyy') {
-            await client.user.setUsername('Larpifyy').catch(e => console.warn(`[Bot] setUsername: ${e.message}`));
+            await client.user.setUsername('Larpifyy').catch(() => {});
         }
         const avatarPath = path.resolve(process.cwd(), 'larpifyy_avatar.jpg');
-        if (fs.existsSync(avatarPath)) {
-            await client.user.setAvatar(avatarPath).catch(e => console.warn(`[Bot] setAvatar: ${e.message}`));
+        if (!client.user.avatar && fs.existsSync(avatarPath)) {
+            await client.user.setAvatar(avatarPath).catch(() => {});
         }
     } catch {}
 

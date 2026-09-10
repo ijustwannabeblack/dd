@@ -229,16 +229,55 @@ export function evaluateCoin(stats, stage = 'New Pair') {
     const liveViewers = Number(stats.live_viewers || 0);
     const hasGoodViewers = Boolean(stats.has_good_viewers) || (isLive && liveViewers >= config.PUMPFUN_MIN_GOOD_VIEWERS);
 
-    // Strict Anti-Rug Dynamic thresholds (blocks bubblemap clusters, spiderwebs & dev dumps)
-    const devLimit = hasGoodViewers ? 6.0 : 4.0;
-    const devInsiderLimit = hasGoodViewers ? 10.0 : 7.0;
-    const singleLimit = hasGoodViewers ? 6.0 : 4.0;
-    const top10Limit = stage === 'Migrated' ? 28.0 : (hasGoodViewers ? 22.0 : 18.0);
-    const bundlerLimit = stage === 'Migrated' ? 4.0 : 2.0;
-    const sniperLimit = stage === 'Migrated' ? 6.0 : 4.0;
-    const clusterLimit = stage === 'Migrated' ? 5.0 : 3.0;
-    const spiderwebLimit = stage === 'Migrated' ? 8.0 : 5.0;
-    const minHolders = stage === 'Migrated' ? 25 : 18;
+    // ── Stage-specific thresholds ────────────────────────────────────────────
+    // NEW PAIR: Ultra-strict — only the most organic, clean coins pass
+    // MIGRATED: Runner-optimized — LP burned, proven demand, allow more distribution
+    // FINAL STRETCH: Balanced — about to migrate, mid-level strictness
+    let devLimit, devInsiderLimit, singleLimit, top10Limit,
+        bundlerLimit, sniperLimit, clusterLimit, spiderwebLimit, minHolders;
+
+    if (stage === 'New Pair') {
+        devLimit        = hasGoodViewers ? 4.0  : 2.5;
+        devInsiderLimit = hasGoodViewers ? 7.0  : 5.0;
+        singleLimit     = hasGoodViewers ? 4.0  : 2.5;
+        top10Limit      = hasGoodViewers ? 16.0 : 12.0;
+        bundlerLimit    = 1.5;   // near-zero tolerance — bundled new pairs are always rugs
+        sniperLimit     = 3.0;
+        clusterLimit    = 2.0;
+        spiderwebLimit  = 4.0;
+        minHolders      = 30;    // need a real community before calling
+    } else if (stage === 'Final Stretch') {
+        devLimit        = hasGoodViewers ? 5.0  : 3.5;
+        devInsiderLimit = hasGoodViewers ? 8.0  : 6.0;
+        singleLimit     = hasGoodViewers ? 5.0  : 3.5;
+        top10Limit      = hasGoodViewers ? 20.0 : 16.0;
+        bundlerLimit    = 2.0;
+        sniperLimit     = 4.0;
+        clusterLimit    = 3.0;
+        spiderwebLimit  = 5.0;
+        minHolders      = 22;
+    } else if (stage === 'Migrated') {
+        devLimit        = hasGoodViewers ? 6.0  : 5.0;
+        devInsiderLimit = hasGoodViewers ? 10.0 : 8.0;
+        singleLimit     = 5.0;
+        top10Limit      = 30.0;  // migration naturally concentrates early buyers
+        bundlerLimit    = 3.0;
+        sniperLimit     = 8.0;   // snipers common at migration, allow slightly more
+        clusterLimit    = 4.0;
+        spiderwebLimit  = 8.0;
+        minHolders      = 20;
+    } else {
+        // Pons, Robinhood, etc.
+        devLimit        = hasGoodViewers ? 6.0  : 4.0;
+        devInsiderLimit = hasGoodViewers ? 10.0 : 7.0;
+        singleLimit     = 5.0;
+        top10Limit      = 28.0;
+        bundlerLimit    = 3.0;
+        sniperLimit     = 5.0;
+        clusterLimit    = 3.0;
+        spiderwebLimit  = 6.0;
+        minHolders      = 15;
+    }
 
     // Gate A: Dev Launch History (Anti-Serial Rugger)
     if (stats.is_serial_rugger) {
@@ -304,6 +343,32 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ Stagnant / Flat Coin: 5m Change ${priceChg5m.toFixed(1)}%, Vol $${Math.round(volM5)} (No clear upward trend)`], 'rejected'];
     }
 
+
+    // ── Stage Quality Gates ──────────────────────────────────────────────────
+    if (stage === 'New Pair') {
+        // New Pairs must show REAL organic buying activity
+        if (!hasGoodViewers) {
+            if (buysM5 < sellsM5) {
+                return [false, [`❌ New Pair: Sell dominant (${sellsM5} sells vs ${buysM5} buys) — not a runner`], 'rejected'];
+            }
+            if (volM5 < 500) {
+                return [false, [`❌ New Pair: Insufficient activity — only $${Math.round(volM5)} volume in 5m (min $500)`], 'rejected'];
+            }
+            if (liqUsd > 0 && liqUsd < 2000) {
+                return [false, [`❌ New Pair: Too illiquid — $${Math.round(liqUsd).toLocaleString()} liquidity (min $2k)`], 'rejected'];
+            }
+        }
+    } else if (stage === 'Migrated') {
+        // Migrated must have real post-migration volume and liquidity
+        const volH1 = Number(stats.volume_h1 || 0);
+        if (liqUsd > 0 && liqUsd < 5000) {
+            return [false, [`❌ Migrated: Low liquidity pool — $${Math.round(liqUsd).toLocaleString()} (min $5k)`], 'rejected'];
+        }
+        if (volH1 > 0 && volH1 < 1000 && volM5 < 300) {
+            return [false, [`❌ Migrated: Dead volume — $${Math.round(volH1).toLocaleString()} 1H vol, $${Math.round(volM5)} 5m vol`], 'rejected'];
+        }
+    }
+
     // Gate J: InsightX Cluster & Spiderweb Evaluation
     if (stats.is_sybil_cluster) {
         return [false, [`❌ Bubblemap Sybil Fan-out Cluster: ${stats.sybil_reason || 'Connected bot network'}`], 'rejected'];
@@ -317,22 +382,27 @@ export function evaluateCoin(stats, stage = 'New Pair') {
         return [false, [`❌ Multi-Cluster Spiderweb Ring: Combined clusters hold ${totalClusterRisk.toFixed(1)}% (max ${spiderwebLimit.toFixed(1)}%)`], 'rejected'];
     }
 
-    // GMGN Checks
+    // GMGN Checks — stricter for New Pairs
+    const gmgnRatLimit   = stage === 'New Pair' ? 0.5 : 1.0;
+    const gmgnBundleLimit = stage === 'New Pair' ? 1.5 : 3.0;
+    const gmgnSuspLimit  = stage === 'New Pair' ? 1.0 : 2.0;
+    const gmgnDevLimit   = stage === 'New Pair' ? 2.0 : 3.0;
+
     const gmgnRat = Number(stats.gmgn_rat_pct || 0);
-    if (gmgnRat > 1.0) {
-        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max 1.0%)`], 'rejected'];
+    if (gmgnRat > gmgnRatLimit) {
+        return [false, [`❌ GMGN Rat Trader Risk: ${gmgnRat.toFixed(1)}% held by rat wallets (max ${gmgnRatLimit}%)`], 'rejected'];
     }
     const gmgnBundler = Number(stats.gmgn_bundler_pct || 0);
-    if (gmgnBundler > 3.0) {
-        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max 3.0%)`], 'rejected'];
+    if (gmgnBundler > gmgnBundleLimit) {
+        return [false, [`❌ GMGN Bundler Ring: ${gmgnBundler.toFixed(1)}% bundled at launch (max ${gmgnBundleLimit}%)`], 'rejected'];
     }
     const gmgnSusp = Number(stats.gmgn_suspicious_pct || 0);
-    if (gmgnSusp > 2.0) {
-        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max 2.0%)`], 'rejected'];
+    if (gmgnSusp > gmgnSuspLimit) {
+        return [false, [`❌ GMGN Suspicious Wallets: ${gmgnSusp.toFixed(1)}% held by suspicious wallets (max ${gmgnSuspLimit}%)`], 'rejected'];
     }
     const gmgnDevTeam = Number(stats.gmgn_dev_team_hold_rate || 0);
-    if (gmgnDevTeam > 3.0) {
-        return [false, [`❌ GMGN Dev Team Holdings: ${gmgnDevTeam.toFixed(1)}% held by dev team (max 3.0%)`], 'rejected'];
+    if (gmgnDevTeam > gmgnDevLimit) {
+        return [false, [`❌ GMGN Dev Team Holdings: ${gmgnDevTeam.toFixed(1)}% held by dev team (max ${gmgnDevLimit}%)`], 'rejected'];
     }
 
     // Stage label

@@ -269,7 +269,7 @@ function buildMigratedEmbed(stats) {
         .setTitle(titleText)
         .setURL(titleUrl)
         .setDescription(headerBadge)
-        .setColor(0x10B981)
+        .setColor(0xF59E0B)
         .addFields(
             {
                 name: 'Valuation',
@@ -301,7 +301,11 @@ function buildMigratedEmbed(stats) {
                 value: `Launched: \`${stats.dev_created_count ?? 'N/A'}\`\nMigrated: \`${stats.dev_migration_rate !== undefined ? `${stats.dev_migration_rate}%` : 'N/A'}\`\nATH: \`${stats.dev_highest_ath_mc ? formatMcUsd(stats.dev_highest_ath_mc) : 'N/A'}\``,
                 inline: true
             },
-
+            {
+                name: 'Contract Address',
+                value: `\`${mint}\``,
+                inline: false
+            },
         )
         .setFooter({ text: 'Larpifyy • Solana Real-Time Intelligence' })
         .setTimestamp();

@@ -352,7 +352,7 @@ export async function buildStats(coin, stage = 'Migrated', priority = false) {
 
     // Resolve Chain and Launchpad
     let chainName = 'Solana';
-    let chainIcon = '<:solana:1546954132424753182>';
+    let chainIcon = '◎';
     let launchpadName = 'Pump.fun';
 
     const dexIdStr = String(dexPair?.dex_id || '').toLowerCase();

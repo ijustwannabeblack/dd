@@ -301,16 +301,7 @@ function buildMigratedEmbed(stats) {
                 value: `Launched: \`${stats.dev_created_count ?? 'N/A'}\`\nMigrated: \`${stats.dev_migration_rate !== undefined ? `${stats.dev_migration_rate}%` : 'N/A'}\`\nATH: \`${stats.dev_highest_ath_mc ? formatMcUsd(stats.dev_highest_ath_mc) : 'N/A'}\``,
                 inline: true
             },
-            {
-                name: 'Quick Links',
-                value: `[DexScreener](${dexUrl})  •  [Axiom](${axiomUrl})  •  [GMGN](${gmgnUrl})  •  [InsightX Atlas](${bmapUrl})  •  [Pump.fun](${pumpUrl})`,
-                inline: false
-            },
-            {
-                name: 'Contract Address (tap to copy)',
-                value: `\`${mint}\``,
-                inline: false
-            }
+
         )
         .setFooter({ text: 'Larpifyy • Solana Real-Time Intelligence' })
         .setTimestamp();
@@ -942,19 +933,17 @@ async function trackCalledCoinsPerformance() {
                         const calledStr = `${formatMcUsd(calledMc)} MC`;
                         const currStr = `${formatMcUsd(Math.max(currMc, athMc))} MC`;
 
+                        const pctGainWin = ((mult - 1) * 100).toFixed(0);
                         const winEmbed = new EmbedBuilder()
-                            .setTitle(`PROFIT TARGET REACHED // $${symbol}`)
-                            .setURL(`https://dexscreener.com/solana/${mint}`)
-                            .setDescription(`Target multiple achieved from initial call valuation.`)
-                            .setColor(0x10B981)
-                            .addFields(
-                                { name: 'Initial Call', value: `\`${calledStr}\``, inline: true },
-                                { name: 'Current Valuation', value: `\`${currStr}\``, inline: true },
-                                { name: 'Return Multiplier', value: `\`+${((mult - 1) * 100).toFixed(0)}% (${mult.toFixed(2)}x)\``, inline: true },
-                                { name: 'Quick Links', value: `[DexScreener](https://dexscreener.com/solana/${mint})  •  [GMGN](https://gmgn.ai/sol/token/${mint})  •  [Axiom](https://axiom.trade/pair/${mint})`, inline: false },
-                                { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                            .setTitle(`🚀 COIN PUMPING`)
+                            .setDescription(
+                                `**$${symbol}** — \`${calledStr}\` → \`${currStr}\` **${mult.toFixed(2)}x**\n\n` +
+                                `**Initial Call:** \`${calledStr}\`\n` +
+                                `**Coin went up to:** \`${currStr}\`\n` +
+                                `**Profits:** \`+${pctGainWin}% (${mult.toFixed(2)}x)\``
                             )
-                            .setFooter({ text: 'DD Terminal • Performance Tracker' })
+                            .setColor(0x10B981)
+                            .setFooter({ text: 'dyor before buying any call' })
                             .setTimestamp();
 
                         const wChan = winsChannel || client.channels.cache.get(String(config.WINS_CHANNEL_ID || '1540839154882056363'));
@@ -978,18 +967,15 @@ async function trackCalledCoinsPerformance() {
 
                     if (athMult > 1.5) {
                         const doneEmbed = new EmbedBuilder()
-                            .setTitle(`CYCLE AUDIT // $${symbol}`)
-                            .setURL(`https://dexscreener.com/solana/${mint}`)
-                            .setDescription(`20-minute call lifecycle summary report.`)
-                            .setColor(0x6366F1)
-                            .addFields(
-                                { name: 'Initial Call', value: `\`${calledStr}\``, inline: true },
-                                { name: 'Peak Valuation', value: `\`${athStr}\``, inline: true },
-                                { name: 'Peak Return', value: `\`+${((athMult - 1) * 100).toFixed(0)}% (${athMult.toFixed(2)}x Peak)\``, inline: true },
-                                { name: 'Quick Links', value: `[DexScreener](https://dexscreener.com/solana/${mint})  •  [GMGN](https://gmgn.ai/sol/token/${mint})`, inline: false },
-                                { name: 'Contract Address', value: `\`${mint}\``, inline: false }
+                            .setTitle(`🏁 COIN DONE`)
+                            .setDescription(
+                                `**$${symbol}** — \`${calledStr}\` → \`${athStr}\` **${athMult.toFixed(2)}x**\n\n` +
+                                `**Initial Call:** \`${calledStr}\`\n` +
+                                `**Coin went up to:** \`${athStr}\`\n` +
+                                `**Profits:** \`+${((athMult - 1) * 100).toFixed(0)}% (${athMult.toFixed(2)}x)\``
                             )
-                            .setFooter({ text: 'DD Terminal • Lifecycle Verification' })
+                            .setColor(0xF59E0B)
+                            .setFooter({ text: 'dyor before buying any call' })
                             .setTimestamp();
 
                         const dChan = doneChannel || client.channels.cache.get(String(config.DONE_CHANNEL_ID || '1541133072781811712'));
